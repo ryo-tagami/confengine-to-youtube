@@ -1,0 +1,41 @@
+[project]
+name = "confengine-exporter"
+version = "0.1.0"
+description = "ConfEngineのスケジュールをエクスポート"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = ["markdownify>=0.11", "pydantic>=2.0", "snakemd>=2.0"]
+
+[dependency-groups]
+dev = ["ruff", "mypy"]
+
+[project.scripts]
+confengine-export = "confengine_exporter.cli:main"
+
+[tool.uv]
+package = true
+
+[tool.ruff]
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    # フォーマッターと競合するルール（ruffが警告）
+    "COM812", # missing-trailing-comma
+    # 日本語docstringには句点不要
+    "D400",   # first-line-should-end-with-period
+    "D415",   # first-line-should-end-with-period-question-mark-or-exclamation-point
+    # このプロジェクトでは不要/不適切なルール
+    "D104",   # missing-docstring-in-public-package
+    "D107",   # missing-docstring-in-__init__
+]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+packages = ["confengine_exporter"]
+
+[[tool.mypy.overrides]]
+module = ["snakemd.*", "markdownify"]
+ignore_missing_imports = true

@@ -1,0 +1,8 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Output
+regional-scrum-gathering-tokyo-2026/

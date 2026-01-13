@@ -1,0 +1,420 @@
+swagger: "2.0"
+host : confengine.com
+basePath : /api/v3
+schemes : [https]
+consumes: [application/json]
+produces: [application/json]
+definitions:
+  Speaker:
+    type: object
+    properties:
+      name:
+        type: string
+      key:
+        type: string
+        description: 'unique user-id'
+      pic:
+        type: string
+        desription: 'link to user picture'
+      country:
+        type: string
+      title:  
+        type: string
+      organization: 
+        type: string
+  Session: 
+    type: object
+    properties:
+      id: 
+        type: string
+        example: "23935"
+      track: 
+        type: string
+        enum: ['*','Track 1', 'Track 2']
+      conf_id:
+        type: string
+      room:
+        type: string
+        example: 'Red Room'
+      timeslot:
+        type: string
+        example: '2017-09-21 10:00:00'
+      proposal_id:
+        type: string
+        example: '4172'
+      title:
+        type: string
+        example: 'Make that first leap into voice interfaces and AI'
+      duration:
+        type: string
+        example: '45'
+        description: 'unit is minutes'
+      abstract:
+        type: string
+        description: 'html string'
+      session_type:
+        type: string
+        example: 'Talk'
+      theme:
+        type: string
+        example: 'Mobile'
+      level:
+        type: string
+        enum: ['Beginner','Intermediate','Advanced','Executive']
+      slides:
+        type: string
+        example: 'http://yowconference.com.au/slides/yowconnected2017/LeGassick-CreatingInclusiveAppsReactNative.pdf'
+        description: 'link to slideshare or pdf file'
+      video:
+        type: string
+        example: 'https://www.youtube.com/watch?v=PoS9VOVWssQ'  
+        description: 'youtube or vimeo link'
+      username:
+        type: string
+        description: 'user-id of the presenter'
+      co_authors:
+        type: string
+        description: 'comma seperated list of user-ids who are copresenting'
+      url:
+        type: string
+        description: 'session link at confengine.com'
+      entity_id:
+        type: number
+      available_seats:
+        type: number
+      labels:
+        type: string
+        description: 'comma seperated list of labels/tags attached to the session'
+        example: 'yow-connected-2017,general-mobile-development,30_mins,case-study,intermediate'
+      registration_url:
+        type: string
+        description : 'registration url if the session is a workshop'
+      votes:
+        type: string
+        description: 'number of upvotes on the session at confengine.com'
+      comments:
+        type: number
+      has_voted:
+        type: boolean
+      color:
+        type: string
+      attendees:
+        type: string
+      track_span:
+        type: number
+      slot: 
+        type: array
+        items:
+          type: number
+      speaker:
+        type: array
+        items:
+          $ref: '#/definitions/Speaker'
+
+  Day:
+    type: object
+    properties:
+      day: 
+        type: number
+        example: 1505865600
+      sessions: 
+        type: array
+        items:
+          type: object
+          properties:
+            timestamp: 
+              type: array
+              items:
+                $ref: '#/definitions/Session'
+
+  Error:
+    type: object
+    properties:
+      error:
+        type: string
+      error_description:
+        type: string
+responses:
+  ForbiddenError: # 403
+    description: Access denied - additional privileges/rights required to retrieve item
+    schema:
+      $ref: '#/definitions/Error'
+  NotAcceptableError: #406
+    description: Not Acceptable - invalid input/data sent to the server
+    schema:
+      $ref: '#/definitions/Error'
+  NotFoundError: # 404
+    description: Item not found
+    schema:
+      $ref: '#/definitions/Error'
+  GeneralError: # 500
+    description: Unrecoverable error - something really bad happened :-(
+    schema:
+      $ref: '#/definitions/Error'
+
+info:
+  title: ConfEngine REST APIs
+  description: ConfEngine REST APIs
+  version: 3.0.0
+  contact:
+    email: "info@confengine.com"
+
+paths:
+  /users/{userId}:                
+    get:
+      summary: Returns json object containing user details
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: unique user id
+      description: Returns json object containing user details
+      responses:
+        '200':    # status code
+          description: A JSON object of user detail
+          content:
+            application/json:
+              schema:
+                type: object
+        404 :
+          $ref: '#/responses/NotFoundError'
+          examples:
+            error: "invalid_request"
+            error_string: "Sorry, conference not found"
+
+        406 :
+          $ref: '#/responses/NotAcceptableError'
+               
+  
+
+  /conferences/{confId}:
+    get:
+      summary: Returns Conference detail.
+      parameters:
+        - in: path
+          name: confId
+          schema:
+            type: string
+          required: true
+          description: unque conference id
+      description: Returns fields like description(html),logo_url,name.
+      responses:
+        '200':    # status code
+          description: A JSON object of conf details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: conf id.
+        404 :
+          $ref: '#/responses/NotFoundError'
+        406 :
+          $ref: '#/responses/NotAcceptableError'
+
+    
+  /conferences/{confId}/schedule:
+    get:
+      summary: Returns Conference Schedule.
+      parameters:
+        - in: path
+          name: confId
+          schema:
+            type: string
+          required: true
+          description: unique conference id
+      description: Returns conference schedule in json format
+      responses:
+        '200':    # status code
+          description: A JSON object of schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conf_schedule:
+                    type: array
+                    items:
+                      $ref:'#/definitions/Day'
+
+        404 :
+          $ref: '#/responses/NotFoundError'
+        406 :
+          $ref: '#/responses/NotAcceptableError'              
+
+  /conferences/{confId}/proposals:
+    get:
+      summary: Returns array of selected proposals.
+      parameters:
+        - in: path
+          name: confId
+          schema:
+            type: string
+          required: true
+          description: unique conference id
+      description: Returns array of selected proposals.
+      responses:
+        '200':    # status code
+          description: A JSON array of proposal objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        404 :
+          $ref: '#/responses/NotFoundError'
+        406 :
+          $ref: '#/responses/NotAcceptableError'                  
+  /conferences/{confId}/proposals/{proposalId}:
+    get:
+      summary: Returns json object containing proposal details
+      parameters:
+        - in: path
+          name: confId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: proposalId
+          schema:
+            type: string
+          required: true
+          description: unique proposal id
+      description: Returns json object containing proposal details
+      responses:
+        '200':    # status code
+          description: A JSON object of proposal detail
+          content:
+            application/json:
+              schema:
+                type: object
+        404 :
+          $ref: '#/responses/NotFoundError'
+        406 :
+          $ref: '#/responses/NotAcceptableError'              
+  /conferences/{confId}/sponsors:
+    get:
+      summary: Returns array of conference sponsors
+      parameters:
+        - in: path
+          name: confId
+          schema:
+            type: string
+          required: true
+          description: unique conference id
+      description: Returns array of sponsors registered for the conference.
+      responses:
+        '200':    # status code
+          description: A JSON array of sponsors objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        404 :
+          $ref: '#/responses/NotFoundError'
+        406 :
+          $ref: '#/responses/NotAcceptableError'              
+  /conferences/{confId}/workshops:
+    get:
+      summary: Returns array of conference workshops
+      parameters:
+        - in: path
+          name: confId
+          schema:
+            type: string
+          required: true
+          description: unique conference id
+      description: Returns array of workshops. Workshop details can be fetched from /conferences/{confid}/proposals/{workshop_id}
+      responses:
+        '200':    # status code
+          description: A JSON array of workshop objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        404 :
+          $ref: '#/responses/NotFoundError'
+        406 :
+          $ref: '#/responses/NotAcceptableError'              
+  /conferences/{confId}/sponsors/{sponsorId}:
+    get:
+      summary: Returns json object containing sponsor details
+      parameters:
+        - in: path
+          name: confId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: sponsorId
+          schema:
+            type: string
+          required: true
+          description: unique sponsor id
+      description: Returns json object containing sponsor details
+      responses:
+        '200':    # status code
+          description: A JSON object of sponsor detail
+          content:
+            application/json:
+              schema:
+                type: object
+        404 :
+          $ref: '#/responses/NotFoundError'
+        406 :
+          $ref: '#/responses/NotAcceptableError'              
+  /conferences/{confId}/sponsors/levels:
+    get:
+      summary: Returns sponsor levels available for the conf sponsors
+      parameters:
+        - in: path
+          name: confId
+          required: true
+          schema:
+            type: string
+          description: unique sponsor id
+      description: Returns json object representing available sponsor levels and benefits
+      responses:
+        '200':    # status code
+          description: A JSON object of sponsor levels 
+          content:
+            application/json:
+              schema:
+                type: object
+        404 :
+          $ref: '#/responses/NotFoundError'
+        406 :
+          $ref: '#/responses/NotAcceptableError'
+
+  /conferences/{confId}/speakers:
+    get:
+      summary: Returns all speakers for a conference
+      parameters:
+        - in: path
+          name: confId
+          required: true
+          schema:
+            type: string
+          description: unique conference id
+      description: Returns json object representing speakers
+      responses:
+        '200': # status code
+          description: A JSON object of speakers
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          $ref: '#/responses/NotFoundError'
+        406:
+          $ref: '#/responses/NotAcceptableError'
+          
