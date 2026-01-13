@@ -4,5 +4,8 @@ __pycache__/
 *.egg-info/
 .venv/
 
+# Testing
+.coverage
+
 # Output
 regional-scrum-gathering-tokyo-2026/

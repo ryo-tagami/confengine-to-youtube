@@ -1,0 +1,119 @@
+"""ConfEngine API Gateway のテスト"""
+
+from datetime import datetime
+from unittest.mock import MagicMock
+from zoneinfo import ZoneInfo
+
+from confengine_exporter.adapters.confengine_api import ConfEngineApiGateway
+
+
+class TestConfEngineApiGateway:
+    """ConfEngineApiGateway のテスト"""
+
+    def test_fetch_sessions(self) -> None:
+        """APIからセッションを取得できる"""
+        mock_http_client = MagicMock()
+        mock_http_client.get_json.return_value = {
+            "conf_timezone": "Asia/Tokyo",
+            "conf_schedule": [
+                {
+                    "schedule_days": [
+                        {
+                            "sessions": [
+                                {
+                                    "1234567890": [
+                                        {
+                                            "timeslot": "2026-01-07 10:00:00",
+                                            "title": "Test Session",
+                                            "room": "Hall A",
+                                            "track": "Track 1",
+                                            "url": "https://example.com",
+                                            "abstract": "<p>Test</p>",
+                                            "speakers": [{"name": "Speaker A"}],
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+        }
+
+        gateway = ConfEngineApiGateway(http_client=mock_http_client)
+        sessions = gateway.fetch_sessions(conf_id="test-conf")
+
+        assert len(sessions) == 1
+        session = sessions[0]
+
+        # 全フィールドのマッピングを検証
+        jst = ZoneInfo("Asia/Tokyo")
+
+        assert session.title == "Test Session"
+        assert session.timeslot == datetime(2026, 1, 7, 10, 0, 0, tzinfo=jst)
+        assert session.room == "Hall A"
+        assert session.track == "Track 1"
+        assert session.speakers == ["Speaker A"]
+        assert session.abstract == "Test"
+        assert session.url == "https://example.com"
+
+        # 正しいURLでAPIが呼ばれたことを検証
+        mock_http_client.get_json.assert_called_once_with(
+            url="https://confengine.com/api/v3/conferences/test-conf/schedule"
+        )
+
+    def test_sessions_sorted_by_timeslot_and_room(self) -> None:
+        """セッションがtimeslotとroomでソートされる"""
+        mock_http_client = MagicMock()
+        mock_http_client.get_json.return_value = {
+            "conf_timezone": "Asia/Tokyo",
+            "conf_schedule": [
+                {
+                    "schedule_days": [
+                        {
+                            "sessions": [
+                                {
+                                    "1": [
+                                        {
+                                            "timeslot": "2026-01-07 11:00:00",
+                                            "title": "Session B",
+                                            "room": "Hall A",
+                                            "track": "Track 1",
+                                            "url": "https://example.com",
+                                            "abstract": "",
+                                            "speakers": [],
+                                        },
+                                        {
+                                            "timeslot": "2026-01-07 10:00:00",
+                                            "title": "Session A",
+                                            "room": "Hall B",
+                                            "track": "Track 1",
+                                            "url": "https://example.com",
+                                            "abstract": "",
+                                            "speakers": [],
+                                        },
+                                        {
+                                            "timeslot": "2026-01-07 10:00:00",
+                                            "title": "Session C",
+                                            "room": "Hall A",
+                                            "track": "Track 1",
+                                            "url": "https://example.com",
+                                            "abstract": "",
+                                            "speakers": [],
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+        }
+
+        gateway = ConfEngineApiGateway(http_client=mock_http_client)
+        sessions = gateway.fetch_sessions(conf_id="test-conf")
+
+        assert len(sessions) == 3
+        assert sessions[0].title == "Session C"  # 10:00, Hall A
+        assert sessions[1].title == "Session A"  # 10:00, Hall B
+        assert sessions[2].title == "Session B"  # 11:00, Hall A

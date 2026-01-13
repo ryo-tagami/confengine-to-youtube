@@ -54,12 +54,18 @@ uv run confengine-export regional-scrum-gathering-tokyo-2026 -o output/
 
 ## 開発
 
-### リンター・型チェック
+### チェック (リンター・型チェック・テスト)
 
 ```bash
-uv run ruff check .
+uv run task check   # lint + test を実行
+uv run task lint    # ruff check, ruff format --check, mypy
+uv run task test    # pytest
+```
+
+### フォーマット
+
+```bash
 uv run ruff format .
-uv run mypy
 ```
 
 ## ライセンス

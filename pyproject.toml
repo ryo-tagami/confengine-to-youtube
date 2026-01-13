@@ -7,7 +7,7 @@ requires-python = ">=3.14"
 dependencies = ["markdownify>=0.11", "pydantic>=2.0", "snakemd>=2.0"]
 
 [dependency-groups]
-dev = ["ruff", "mypy"]
+dev = ["ruff", "mypy", "pytest", "pytest-cov", "taskipy"]
 
 [project.scripts]
 confengine-export = "confengine_exporter.cli:main"
@@ -23,12 +23,25 @@ select = ["ALL"]
 ignore = [
     # フォーマッターと競合するルール（ruffが警告）
     "COM812", # missing-trailing-comma
+    # 相互に競合するルール（D211を採用）
+    "D203",   # incorrect-blank-line-before-class (D211と競合)
+    # 相互に競合するルール（D212を採用）
+    "D213",   # multi-line-summary-second-line (D212と競合)
     # 日本語docstringには句点不要
     "D400",   # first-line-should-end-with-period
     "D415",   # first-line-should-end-with-period-question-mark-or-exclamation-point
     # このプロジェクトでは不要/不適切なルール
     "D104",   # missing-docstring-in-public-package
     "D107",   # missing-docstring-in-__init__
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "PLR2004", # マジックナンバーの比較はテストで許容
+    "S101",    # assert は pytest で必須
+    "SLF001",  # プライベートメソッドのテストを許容
+    "TC001",   # TYPE_CHECKING はテストでは不要
+    "TC003",   # TYPE_CHECKING はテストでは不要
 ]
 
 [tool.mypy]
@@ -39,3 +52,26 @@ packages = ["confengine_exporter"]
 [[tool.mypy.overrides]]
 module = ["snakemd.*", "markdownify"]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=confengine_exporter --cov-branch --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+source = ["confengine_exporter"]
+omit = [
+    "confengine_exporter/cli.py",
+    "confengine_exporter/infrastructure/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]
+
+[tool.taskipy.tasks]
+check = "task lint && task test"
+lint = "ruff check && ruff format --check && mypy"
+test = "pytest"
