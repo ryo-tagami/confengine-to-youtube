@@ -7,5 +7,10 @@ __pycache__/
 # Testing
 .coverage
 
-# Output
-regional-scrum-gathering-tokyo-2026/
+# Workspace (input/output files)
+workspace/*
+!workspace/.gitkeep
+
+# YouTube API credentials
+.credentials.json
+.token.json

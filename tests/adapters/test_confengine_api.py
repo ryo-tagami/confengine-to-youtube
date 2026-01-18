@@ -41,16 +41,19 @@ class TestConfEngineApiGateway:
         }
 
         gateway = ConfEngineApiGateway(http_client=mock_http_client)
-        sessions = gateway.fetch_sessions(conf_id="test-conf")
+        sessions, timezone = gateway.fetch_sessions(conf_id="test-conf")
 
         assert len(sessions) == 1
         session = sessions[0]
 
         # 全フィールドのマッピングを検証
-        jst = ZoneInfo("Asia/Tokyo")
+        jst = ZoneInfo(key="Asia/Tokyo")
+        assert timezone == jst
 
         assert session.title == "Test Session"
-        assert session.timeslot == datetime(2026, 1, 7, 10, 0, 0, tzinfo=jst)
+        assert session.timeslot == datetime(
+            year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=jst
+        )
         assert session.room == "Hall A"
         assert session.track == "Track 1"
         assert session.speakers == ["Speaker A"]
@@ -111,7 +114,7 @@ class TestConfEngineApiGateway:
         }
 
         gateway = ConfEngineApiGateway(http_client=mock_http_client)
-        sessions = gateway.fetch_sessions(conf_id="test-conf")
+        sessions, _ = gateway.fetch_sessions(conf_id="test-conf")
 
         assert len(sessions) == 3
         assert sessions[0].title == "Session C"  # 10:00, Hall A

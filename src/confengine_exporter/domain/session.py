@@ -11,8 +11,6 @@ if TYPE_CHECKING:
 
 @dataclass
 class Session:
-    """カンファレンスセッション"""
-
     title: str
     timeslot: datetime
     room: str
@@ -23,5 +21,4 @@ class Session:
 
     @property
     def has_content(self) -> bool:
-        """出力可能なコンテンツがあるかどうか"""
         return bool(self.abstract)
