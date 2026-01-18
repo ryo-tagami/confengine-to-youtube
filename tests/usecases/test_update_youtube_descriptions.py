@@ -360,6 +360,13 @@ sessions:
         )
 
         assert isinstance(result, YouTubeUpdateResult)
-        assert len(result.previews) == 1  # 2つ目だけプレビュー生成
+        assert len(result.previews) == 2  # エラー時もプレビュー生成
+        # 1件目はエラー
+        assert result.previews[0].error == "Authentication failed"
+        assert result.previews[0].current_title is None
+        assert result.previews[0].new_description is None
+        # 2件目は正常
+        assert result.previews[1].error is None
+        assert result.previews[1].current_title == "Title 2"
         assert len(result.errors) == 1
         assert result.errors[0] == "Authentication failed"

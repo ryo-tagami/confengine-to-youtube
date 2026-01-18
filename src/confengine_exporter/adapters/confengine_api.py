@@ -22,12 +22,14 @@ class ConfEngineApiGateway:
         schedule_data = self.http_client.get_json(url=url)
         response = ScheduleResponse.model_validate(obj=schedule_data)
 
-        sessions = self._extract_sessions(response=response)
         timezone = ZoneInfo(key=response.conf_timezone)
+        sessions = self._extract_sessions(response=response, timezone=timezone)
 
         return sessions, timezone
 
-    def _extract_sessions(self, response: ScheduleResponse) -> list[Session]:
+    def _extract_sessions(
+        self, response: ScheduleResponse, timezone: ZoneInfo
+    ) -> list[Session]:
         sessions: list[Session] = []
 
         for day_data in response.conf_schedule:
@@ -38,7 +40,9 @@ class ConfEngineApiGateway:
                             sessions.append(  # noqa: PERF401 # 可読性のため
                                 Session(
                                     title=api_session.title,
-                                    timeslot=api_session.timeslot,
+                                    timeslot=api_session.timeslot.replace(
+                                        tzinfo=timezone
+                                    ),
                                     room=api_session.room,
                                     track=api_session.track,
                                     speakers=api_session.speaker_names,

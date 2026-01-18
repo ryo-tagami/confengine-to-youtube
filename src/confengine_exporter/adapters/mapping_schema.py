@@ -32,13 +32,7 @@ class TimeSlotsSchema(RootModel[dict[time, SessionEntrySchema]]):
     @model_validator(mode="before")
     @classmethod
     def parse_time_keys(cls, data: dict[str, object]) -> dict[time, object]:
-        result = {}
-        for k, v in data.items():
-            if isinstance(k, time):
-                result[k] = v
-            else:
-                result[time.fromisoformat(k)] = v
-        return result
+        return {time.fromisoformat(k): v for k, v in data.items()}
 
 
 class RoomSlotsSchema(RootModel[dict[str, TimeSlotsSchema]]):
@@ -51,13 +45,7 @@ class DateSlotsSchema(RootModel[dict[date, RoomSlotsSchema]]):
     @model_validator(mode="before")
     @classmethod
     def parse_date_keys(cls, data: dict[str, object]) -> dict[date, object]:
-        result = {}
-        for k, v in data.items():
-            if isinstance(k, date):
-                result[k] = v
-            else:
-                result[date.fromisoformat(k)] = v
-        return result
+        return {date.fromisoformat(k): v for k, v in data.items()}
 
 
 class MappingFileSchema(BaseModel):
