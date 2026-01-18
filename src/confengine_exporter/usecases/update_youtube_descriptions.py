@@ -84,13 +84,15 @@ class UpdateYouTubeDescriptionsUseCase:
 
             used_mappings.add(key)
 
+            session_key = f"{key[0].isoformat()}_{key[1]}"
+
             try:
                 video_info = self._youtube_api.get_video_info(video_id=mapping.video_id)
                 description = self._description_builder.build(session=session)
 
                 previews.append(
                     UpdatePreview(
-                        session_key=f"{key[0]}_{key[1]}",
+                        session_key=session_key,
                         video_id=mapping.video_id,
                         current_title=video_info.title,
                         new_description=description,
@@ -109,8 +111,18 @@ class UpdateYouTubeDescriptionsUseCase:
                     logger.info("Updated: %s (%s)", session.title, mapping.video_id)
 
             except YouTubeApiError as e:
-                errors.append(str(e))
+                error_msg = str(e)
+                errors.append(error_msg)
                 logger.exception("YouTube API error")
+                previews.append(
+                    UpdatePreview(
+                        session_key=session_key,
+                        video_id=mapping.video_id,
+                        current_title=None,
+                        new_description=None,
+                        error=error_msg,
+                    )
+                )
 
         unused_count = self._warn_unused_mappings(
             mapping_config=mapping_config, used_mappings=used_mappings

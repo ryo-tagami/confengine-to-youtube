@@ -124,18 +124,26 @@ def run(args: argparse.Namespace) -> None:
 def _print_result(result: YouTubeUpdateResult) -> None:
     if result.is_dry_run:
         print("=== Dry Run Mode ===", file=sys.stderr)  # noqa: T201
+        success_count = 0
+        error_count = 0
         for i, preview in enumerate(iterable=result.previews, start=1):
             print(f"\n[{i}] {preview.session_key}", file=sys.stderr)  # noqa: T201
             print(f"  Video ID: {preview.video_id}", file=sys.stderr)  # noqa: T201
-            print(f"  Title: {preview.current_title}", file=sys.stderr)  # noqa: T201
-            print("  New Description:", file=sys.stderr)  # noqa: T201
-            desc_preview = preview.new_description[:PREVIEW_TRUNCATE_LENGTH]
-            if len(preview.new_description) > PREVIEW_TRUNCATE_LENGTH:
-                desc_preview += "..."
-            for line in desc_preview.split(sep="\n"):
-                print(f"    {line}", file=sys.stderr)  # noqa: T201
+            if preview.error:
+                print(f"  Error: {preview.error}", file=sys.stderr)  # noqa: T201
+                error_count += 1
+            else:
+                print(f"  Title: {preview.current_title}", file=sys.stderr)  # noqa: T201
+                print("  New Description:", file=sys.stderr)  # noqa: T201
+                new_description = preview.new_description or ""
+                desc_preview = new_description[:PREVIEW_TRUNCATE_LENGTH]
+                if len(new_description) > PREVIEW_TRUNCATE_LENGTH:
+                    desc_preview += "..."
+                for line in desc_preview.split(sep="\n"):
+                    print(f"    {line}", file=sys.stderr)  # noqa: T201
+                success_count += 1
         print(  # noqa: T201
-            f"\nSummary: Would update {len(result.previews)} videos",
+            f"\nSummary: Would update {success_count} videos, {error_count} errors",
             file=sys.stderr,
         )
     else:

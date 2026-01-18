@@ -28,13 +28,13 @@ def main() -> None:
     args = parser.parse_args()
 
     match args.command:
-        case None:
-            parser.print_help()
-            sys.exit(1)
         case "youtube-update":
             youtube.run(args)
         case "generate-mapping":
             generate_mapping.run(args)
+        case _:
+            parser.print_help()
+            sys.exit(1)
 
 
 if __name__ == "__main__":

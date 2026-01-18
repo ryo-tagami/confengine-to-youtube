@@ -1,7 +1,6 @@
 """ConfEngine スキーマのテスト"""
 
 from datetime import UTC, datetime
-from zoneinfo import ZoneInfo
 
 from confengine_exporter.adapters.confengine_schema import (
     ApiSession,
@@ -123,41 +122,3 @@ class TestScheduleResponse:
 
         assert len(response.conf_schedule) == 1
         assert len(response.conf_schedule[0].schedule_days) == 1
-
-    def test_timeslot_is_timezone_aware(self) -> None:
-        """Timeslot が timezone-aware になっている"""
-        data = {
-            "conf_timezone": "Asia/Tokyo",
-            "conf_schedule": [
-                {
-                    "schedule_days": [
-                        {
-                            "sessions": [
-                                {
-                                    "1234567890": [
-                                        {
-                                            "timeslot": "2026-01-07 10:00:00",
-                                            "title": "Test Session",
-                                            "room": "Hall A",
-                                            "track": "Track 1",
-                                            "url": "https://example.com",
-                                            "abstract": "",
-                                            "speakers": [],
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ],
-        }
-        response = ScheduleResponse.model_validate(obj=data)
-
-        sessions = response.conf_schedule[0].schedule_days[0].sessions[0]
-        session = sessions["1234567890"][0]
-
-        jst = ZoneInfo(key="Asia/Tokyo")
-        assert session.timeslot == datetime(
-            year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=jst
-        )

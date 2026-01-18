@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import re
 from datetime import datetime  # noqa: TC003
-from typing import Self
-from zoneinfo import ZoneInfo
 
 from markdownify import markdownify as md
-from pydantic import BaseModel, computed_field, model_validator
+from pydantic import BaseModel, computed_field
 
 
 class Speaker(BaseModel):
@@ -70,17 +68,3 @@ class ScheduleResponse(BaseModel):
 
     conf_timezone: str
     conf_schedule: list[DayData]
-
-    @model_validator(mode="after")
-    def apply_timezone_to_sessions(self) -> Self:
-        """全セッションの timeslot にタイムゾーンを適用"""
-        tz = ZoneInfo(key=self.conf_timezone)
-
-        for day_data in self.conf_schedule:
-            for schedule_day in day_data.schedule_days:
-                for slot_sessions in schedule_day.sessions:
-                    for sessions in slot_sessions.values():
-                        for session in sessions:
-                            session.timeslot = session.timeslot.replace(tzinfo=tz)
-
-        return self
