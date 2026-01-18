@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, NoReturn, Protocol, Self
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 if TYPE_CHECKING:
     from googleapiclient._apis.youtube.v3 import YouTubeResource
@@ -26,6 +26,8 @@ class YouTubeAuthProvider(Protocol):
 class YouTubeSnippet(BaseModel):
     """YouTube API snippet レスポンス"""
 
+    model_config = ConfigDict(frozen=True)
+
     title: str
     categoryId: str  # noqa: N815 # APIは文字列で返す
 
@@ -33,12 +35,16 @@ class YouTubeSnippet(BaseModel):
 class YouTubeVideoItem(BaseModel):
     """YouTube API video item レスポンス"""
 
+    model_config = ConfigDict(frozen=True)
+
     id: str
     snippet: YouTubeSnippet
 
 
 class YouTubeVideosListResponse(BaseModel):
     """YouTube API videos.list レスポンス"""
+
+    model_config = ConfigDict(frozen=True)
 
     items: list[YouTubeVideoItem] = []
 
@@ -51,6 +57,8 @@ class YouTubeVideosListResponse(BaseModel):
 class YouTubeSnippetUpdate(BaseModel):
     """YouTube API snippet 更新リクエスト"""
 
+    model_config = ConfigDict(frozen=True)
+
     title: str
     description: str
     categoryId: str  # noqa: N815
@@ -58,6 +66,8 @@ class YouTubeSnippetUpdate(BaseModel):
 
 class YouTubeVideoUpdateBody(BaseModel):
     """YouTube API videos.update リクエストボディ"""
+
+    model_config = ConfigDict(frozen=True)
 
     id: str
     snippet: YouTubeSnippetUpdate
@@ -70,6 +80,8 @@ class YouTubeVideoUpdateBody(BaseModel):
 
 class VideoInfo(BaseModel):
     """ビデオ情報"""
+
+    model_config = ConfigDict(frozen=True)
 
     video_id: str
     title: str
@@ -86,6 +98,8 @@ class VideoInfo(BaseModel):
 
 class VideoUpdateRequest(BaseModel):
     """動画更新リクエスト"""
+
+    model_config = ConfigDict(frozen=True)
 
     video_id: str
     title: str

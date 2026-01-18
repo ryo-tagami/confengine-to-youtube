@@ -34,8 +34,8 @@ class ConfEngineApiGateway:
 
         for day_data in response.conf_schedule:
             for schedule_day in day_data.schedule_days:
-                for slot_item in schedule_day.sessions:
-                    for api_sessions in slot_item.values():
+                for slot_sessions in schedule_day.sessions:
+                    for api_sessions in slot_sessions.values():
                         for api_session in api_sessions:
                             sessions.append(  # noqa: PERF401 # 可読性のため
                                 Session(

@@ -6,17 +6,21 @@ import re
 from datetime import datetime  # noqa: TC003
 
 from markdownify import markdownify as md
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, ConfigDict, computed_field
 
 
 class Speaker(BaseModel):
     """スピーカー情報"""
+
+    model_config = ConfigDict(frozen=True)
 
     name: str
 
 
 class ApiSession(BaseModel):
     """APIレスポンスのセッション"""
+
+    model_config = ConfigDict(frozen=True)
 
     timeslot: datetime
     title: str
@@ -54,17 +58,23 @@ type SlotSessions = dict[str, list[ApiSession]]
 class ScheduleDay(BaseModel):
     """スケジュール日"""
 
+    model_config = ConfigDict(frozen=True)
+
     sessions: list[SlotSessions]
 
 
 class DayData(BaseModel):
     """日付データ"""
 
+    model_config = ConfigDict(frozen=True)
+
     schedule_days: list[ScheduleDay]
 
 
 class ScheduleResponse(BaseModel):
     """APIレスポンス"""
+
+    model_config = ConfigDict(frozen=True)
 
     conf_timezone: str
     conf_schedule: list[DayData]

@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import date, datetime, time
 from typing import TYPE_CHECKING, Self
 
-from pydantic import BaseModel, RootModel, model_validator
+from pydantic import BaseModel, ConfigDict, RootModel, model_validator
 
 from confengine_exporter.domain.video_mapping import MappingConfig, VideoMapping
 
@@ -23,11 +23,15 @@ if TYPE_CHECKING:
 class SessionEntrySchema(BaseModel):
     """セッションエントリのスキーマ (Reader用)"""
 
+    model_config = ConfigDict(frozen=True)
+
     video_id: str
 
 
 class TimeSlotsSchema(RootModel[dict[time, SessionEntrySchema]]):
     """時刻 -> セッションエントリのマッピング"""
+
+    model_config = ConfigDict(frozen=True)
 
     @model_validator(mode="before")
     @classmethod
@@ -38,9 +42,13 @@ class TimeSlotsSchema(RootModel[dict[time, SessionEntrySchema]]):
 class RoomSlotsSchema(RootModel[dict[str, TimeSlotsSchema]]):
     """部屋名 -> 時刻マッピングのマッピング"""
 
+    model_config = ConfigDict(frozen=True)
+
 
 class DateSlotsSchema(RootModel[dict[date, RoomSlotsSchema]]):
     """日付 -> 部屋マッピングのマッピング"""
+
+    model_config = ConfigDict(frozen=True)
 
     @model_validator(mode="before")
     @classmethod
@@ -50,6 +58,8 @@ class DateSlotsSchema(RootModel[dict[date, RoomSlotsSchema]]):
 
 class MappingFileSchema(BaseModel):
     """マッピングファイルのルートスキーマ (Reader用)"""
+
+    model_config = ConfigDict(frozen=True)
 
     sessions: DateSlotsSchema
 
@@ -92,17 +102,25 @@ class SessionEntryWithComment(SessionEntrySchema):
 class TimeSlotsWithCommentSchema(RootModel[dict[time, SessionEntryWithComment]]):
     """時刻 -> セッションエントリのマッピング (Writer用)"""
 
+    model_config = ConfigDict(frozen=True)
+
 
 class RoomSlotsWithCommentSchema(RootModel[dict[str, TimeSlotsWithCommentSchema]]):
     """部屋名 -> 時刻マッピングのマッピング (Writer用)"""
+
+    model_config = ConfigDict(frozen=True)
 
 
 class DateSlotsWithCommentSchema(RootModel[dict[date, RoomSlotsWithCommentSchema]]):
     """日付 -> 部屋マッピングのマッピング (Writer用)"""
 
+    model_config = ConfigDict(frozen=True)
+
 
 class MappingFileWithCommentSchema(BaseModel):
     """マッピングファイルのルートスキーマ (Writer用)"""
+
+    model_config = ConfigDict(frozen=True)
 
     sessions: DateSlotsWithCommentSchema
 

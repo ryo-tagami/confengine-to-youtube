@@ -1,9 +1,11 @@
 """ユースケースのDTO (Data Transfer Object)"""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 
-@dataclass
+@dataclass(frozen=True)
 class UpdatePreview:
     """更新プレビュー情報"""
 
@@ -14,7 +16,7 @@ class UpdatePreview:
     error: str | None = None  # エラーメッセージ
 
 
-@dataclass
+@dataclass(frozen=True)
 class YouTubeUpdateResult:
     """YouTube更新結果"""
 

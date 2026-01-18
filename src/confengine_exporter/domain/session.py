@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 
-@dataclass
+@dataclass(frozen=True)
 class Session:
     title: str
     timeslot: datetime
