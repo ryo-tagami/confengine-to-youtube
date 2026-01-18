@@ -4,13 +4,23 @@ version = "0.1.0"
 description = "ConfEngineのスケジュールをエクスポート"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = ["markdownify>=0.11", "pydantic>=2.0", "snakemd>=2.0"]
+dependencies = [
+    "budoux>=0.6",
+    "google-api-python-client>=2.0",
+    "google-auth-httplib2>=0.1",
+    "google-auth-oauthlib>=1.0",
+    "markdownify>=0.11",
+    "pydantic>=2.0",
+    "ruamel.yaml>=0.18",
+    "snakemd>=2.0",
+    "wcwidth>=0.2",
+]
 
 [dependency-groups]
 dev = ["ruff", "mypy", "pytest", "pytest-cov", "taskipy"]
 
 [project.scripts]
-confengine-export = "confengine_exporter.cli:main"
+confengine-export = "confengine_exporter.infrastructure.cli:main"
 
 [tool.uv]
 package = true
@@ -23,6 +33,13 @@ select = ["ALL"]
 ignore = [
     # フォーマッターと競合するルール（ruffが警告）
     "COM812", # missing-trailing-comma
+    # 自明なコードにdocstringを強制しない
+    "D100",   # missing-docstring-in-public-module
+    "D101",   # missing-docstring-in-public-class
+    "D102",   # missing-docstring-in-public-method
+    "D103",   # missing-docstring-in-public-function
+    "D104",   # missing-docstring-in-public-package
+    "D107",   # missing-docstring-in-__init__
     # 相互に競合するルール（D211を採用）
     "D203",   # incorrect-blank-line-before-class (D211と競合)
     # 相互に競合するルール（D212を採用）
@@ -30,9 +47,6 @@ ignore = [
     # 日本語docstringには句点不要
     "D400",   # first-line-should-end-with-period
     "D415",   # first-line-should-end-with-period-question-mark-or-exclamation-point
-    # このプロジェクトでは不要/不適切なルール
-    "D104",   # missing-docstring-in-public-package
-    "D107",   # missing-docstring-in-__init__
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -50,7 +64,17 @@ strict = true
 packages = ["confengine_exporter"]
 
 [[tool.mypy.overrides]]
-module = ["snakemd.*", "markdownify"]
+module = [
+    "budoux",
+    "google.auth.*",
+    "google.oauth2.*",
+    "google_auth_oauthlib.*",
+    "googleapiclient.*",
+    "markdownify",
+    "ruamel.*",
+    "snakemd.*",
+    "wcwidth",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -58,10 +82,9 @@ addopts = "--cov=confengine_exporter --cov-branch --cov-report=term-missing"
 
 [tool.coverage.run]
 branch = true
-source = ["confengine_exporter"]
+source = ["src/confengine_exporter"]
 omit = [
-    "confengine_exporter/cli.py",
-    "confengine_exporter/infrastructure/*",
+    "src/confengine_exporter/infrastructure/*",
 ]
 
 [tool.coverage.report]

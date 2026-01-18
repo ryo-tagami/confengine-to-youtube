@@ -1,8 +1,7 @@
-"""ConfEngine API Gateway"""
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 from confengine_exporter.adapters.confengine_schema import ScheduleResponse
 from confengine_exporter.domain.session import Session
@@ -12,24 +11,23 @@ if TYPE_CHECKING:
 
 
 class ConfEngineApiGateway:
-    """ConfEngine APIからセッション情報を取得"""
-
     BASE_URL = "https://confengine.com/api/v3"
 
     def __init__(self, http_client: HttpClient) -> None:
         self.http_client = http_client
 
-    def fetch_sessions(self, conf_id: str) -> list[Session]:
-        """指定カンファレンスのセッション一覧を取得"""
+    def fetch_sessions(self, conf_id: str) -> tuple[list[Session], ZoneInfo]:
         url = f"{self.BASE_URL}/conferences/{conf_id}/schedule"
 
         schedule_data = self.http_client.get_json(url=url)
         response = ScheduleResponse.model_validate(obj=schedule_data)
 
-        return self._extract_sessions(response=response)
+        sessions = self._extract_sessions(response=response)
+        timezone = ZoneInfo(key=response.conf_timezone)
+
+        return sessions, timezone
 
     def _extract_sessions(self, response: ScheduleResponse) -> list[Session]:
-        """APIレスポンスからセッション情報を抽出"""
         sessions: list[Session] = []
 
         for day_data in response.conf_schedule:
@@ -37,7 +35,7 @@ class ConfEngineApiGateway:
                 for slot_item in schedule_day.sessions:
                     for api_sessions in slot_item.values():
                         for api_session in api_sessions:
-                            sessions.append(  # noqa: PERF401
+                            sessions.append(  # noqa: PERF401 # 可読性のため
                                 Session(
                                     title=api_session.title,
                                     timeslot=api_session.timeslot,

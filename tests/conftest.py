@@ -12,7 +12,9 @@ def sample_session() -> Session:
     """テスト用のセッション"""
     return Session(
         title="Sample Session",
-        timeslot=datetime(2026, 1, 7, 10, 0, 0, tzinfo=UTC),
+        timeslot=datetime(
+            year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=UTC
+        ),
         room="Hall A",
         track="Track 1",
         speakers=["Speaker A", "Speaker B"],
@@ -26,7 +28,9 @@ def empty_session() -> Session:
     """abstractが空のセッション"""
     return Session(
         title="Empty Session",
-        timeslot=datetime(2026, 1, 7, 9, 0, 0, tzinfo=UTC),
+        timeslot=datetime(
+            year=2026, month=1, day=7, hour=9, minute=0, second=0, tzinfo=UTC
+        ),
         room="Hall A",
         track="Track 1",
         speakers=[],

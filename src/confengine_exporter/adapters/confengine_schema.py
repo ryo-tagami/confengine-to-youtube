@@ -41,10 +41,10 @@ class ApiSession(BaseModel):
         if not self.abstract:
             return ""
 
-        text = md(self.abstract, heading_style="ATX", strip=["script", "style"])
+        text = md(html=self.abstract, heading_style="ATX", strip=["script", "style"])
         text = text.strip()
         text = text.replace("\\n", "\n")
-        text = re.sub(r"\n{3,}", "\n\n", text)
+        text = re.sub(pattern=r"\n{3,}", repl="\n\n", string=text)
 
         return text  # noqa: RET504
 
@@ -74,7 +74,7 @@ class ScheduleResponse(BaseModel):
     @model_validator(mode="after")
     def apply_timezone_to_sessions(self) -> Self:
         """全セッションの timeslot にタイムゾーンを適用"""
-        tz = ZoneInfo(self.conf_timezone)
+        tz = ZoneInfo(key=self.conf_timezone)
 
         for day_data in self.conf_schedule:
             for schedule_day in day_data.schedule_days:
