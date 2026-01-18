@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from confengine_exporter.domain.session import Session
 
 
-@dataclass
+@dataclass(frozen=True)
 class YouTubeDescriptionOptions:
     hashtags: str
     footer_text: str

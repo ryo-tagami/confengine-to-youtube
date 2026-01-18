@@ -9,14 +9,14 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 
-@dataclass
+@dataclass(frozen=True)
 class VideoMapping:
     timeslot: datetime
     room: str
     video_id: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class MappingConfig:
     mappings: list[VideoMapping]
 

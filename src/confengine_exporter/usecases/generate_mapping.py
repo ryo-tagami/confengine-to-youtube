@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from confengine_exporter.adapters.mapping_file_writer import MappingFileWriter
 
 
-@dataclass
+@dataclass(frozen=True)
 class GenerateMappingResult:
     session_count: int
 

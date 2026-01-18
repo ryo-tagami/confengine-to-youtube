@@ -75,16 +75,17 @@ class UpdateYouTubeDescriptionsUseCase:
                 no_content_count += 1
                 continue
 
-            key = (session.timeslot, session.room)
-            mapping = mapping_config.find_mapping(timeslot=key[0], room=key[1])
+            mapping = mapping_config.find_mapping(
+                timeslot=session.timeslot, room=session.room
+            )
 
             if mapping is None:
                 no_mapping_count += 1
                 continue
 
-            used_mappings.add(key)
+            used_mappings.add((session.timeslot, session.room))
 
-            session_key = f"{key[0].isoformat()}_{key[1]}"
+            session_key = f"{session.timeslot.isoformat()}_{session.room}"
 
             try:
                 video_info = self._youtube_api.get_video_info(video_id=mapping.video_id)
