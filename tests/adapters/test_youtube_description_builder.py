@@ -221,3 +221,38 @@ class TestYouTubeDescriptionBuilder:
             "Speaker: Speaker\n\nSee https://a.com and http://b.com\n\n***\n\n***"
         )
         assert markdown == expected
+
+    def test_sanitize_replaces_non_url_angle_brackets(self) -> None:
+        """非URLの山括弧をUnicode引用符に置換する
+
+        YouTubeは < > を許可しないため、URLパターン以外の山括弧は
+        U+2039 と U+203A に置換する。
+        """
+        session = Session(
+            title="Test",
+            timeslot=datetime(
+                year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=UTC
+            ),
+            room="Hall A",
+            track="Track 1",
+            speakers=["Speaker"],
+            abstract="> Quote\na < b\nList<T>",
+            url="",
+        )
+        options = YouTubeDescriptionOptions(hashtags="", footer_text="")
+        builder = YouTubeDescriptionBuilder(options=options)
+        markdown = builder.build(session=session)
+
+        # > is replaced with U+203A, < is replaced with U+2039
+        expected = (
+            "Speaker: Speaker\n"
+            "\n"
+            "\u203a Quote\n"
+            "a \u2039 b\n"
+            "List\u2039T\u203a\n"
+            "\n"
+            "***\n"
+            "\n"
+            "***"
+        )
+        assert markdown == expected

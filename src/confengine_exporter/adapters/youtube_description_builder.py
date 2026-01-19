@@ -78,6 +78,14 @@ class YouTubeDescriptionBuilder:
         return self._sanitize_for_youtube(text=str(doc))
 
     def _sanitize_for_youtube(self, text: str) -> str:
-        """YouTube description で無効な文字を除去"""
-        # YouTubeは < > を許可しないため、URLを囲む山括弧を除去
-        return re.sub(pattern=r"<(https?://[^>]+)>", repl=r"\1", string=text)
+        """YouTube description で無効な文字を置換
+
+        YouTubeは < > を許可しないため、これらを置換する。
+        - <URL> パターンはURLだけを残す
+        - 残りの < は U+2039 (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) に置換
+        - > は U+203A (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) に置換
+        """
+        # URLを囲む山括弧を除去
+        text = re.sub(pattern=r"<(https?://[^>]+)>", repl=r"\1", string=text)
+        # 残りの < > を置換
+        return text.replace("<", "\u2039").replace(">", "\u203a")
