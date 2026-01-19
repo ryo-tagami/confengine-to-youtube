@@ -9,6 +9,8 @@ if TYPE_CHECKING:
 
     from confengine_exporter.usecases.dto import YouTubeUpdateResult
 
+from rich.console import Console
+
 from confengine_exporter.adapters.confengine_api import ConfEngineApiGateway
 from confengine_exporter.adapters.mapping_file_reader import MappingFileReader
 from confengine_exporter.adapters.youtube_api import YouTubeApiGateway
@@ -17,10 +19,8 @@ from confengine_exporter.adapters.youtube_description_builder import (
     YouTubeDescriptionOptions,
 )
 from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
-from confengine_exporter.infrastructure.cli.constants import (
-    DEFAULT_FOOTER,
-    PREVIEW_TRUNCATE_LENGTH,
-)
+from confengine_exporter.infrastructure.cli.constants import DEFAULT_FOOTER
+from confengine_exporter.infrastructure.cli.diff_formatter import DiffFormatter
 from confengine_exporter.infrastructure.http_client import HttpClient
 from confengine_exporter.infrastructure.youtube_auth import YouTubeAuthClient
 from confengine_exporter.usecases.update_youtube_descriptions import (
@@ -121,30 +121,22 @@ def run(args: argparse.Namespace) -> None:
 
 def _print_result(result: YouTubeUpdateResult) -> None:
     if result.is_dry_run:
-        print("=== Dry Run Mode ===", file=sys.stderr)  # noqa: T201
+        formatter = DiffFormatter(console=Console(stderr=True))
+
+        formatter.print_header(message="=== Dry Run Mode ===")
+
         success_count = 0
         error_count = 0
+
         for i, preview in enumerate(iterable=result.previews, start=1):
-            print(f"\n[{i}] {preview.session_key}", file=sys.stderr)  # noqa: T201
-            print(f"  Video ID: {preview.video_id}", file=sys.stderr)  # noqa: T201
+            formatter.print_preview(preview=preview, index=i)
+
             if preview.error:
-                print(f"  Error: {preview.error}", file=sys.stderr)  # noqa: T201
                 error_count += 1
             else:
-                print(f"  Current Title: {preview.current_title}", file=sys.stderr)  # noqa: T201
-                print(f"  New Title: {preview.new_title}", file=sys.stderr)  # noqa: T201
-                print("  New Description:", file=sys.stderr)  # noqa: T201
-                new_description = preview.new_description or ""
-                desc_preview = new_description[:PREVIEW_TRUNCATE_LENGTH]
-                if len(new_description) > PREVIEW_TRUNCATE_LENGTH:
-                    desc_preview += "..."
-                for line in desc_preview.split(sep="\n"):
-                    print(f"    {line}", file=sys.stderr)  # noqa: T201
                 success_count += 1
-        print(  # noqa: T201
-            f"\nSummary: Would update {success_count} videos, {error_count} errors",
-            file=sys.stderr,
-        )
+
+        formatter.print_summary(success_count=success_count, error_count=error_count)
     else:
         print(f"Updated: {result.updated_count} videos", file=sys.stderr)  # noqa: T201
 

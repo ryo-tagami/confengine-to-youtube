@@ -84,6 +84,7 @@ sessions:
         mock.get_video_info.side_effect = lambda video_id: VideoInfo(
             video_id=video_id,
             title=f"Title for {video_id}",
+            description=f"Description for {video_id}",
             category_id=28,
         )
         return mock
@@ -332,7 +333,12 @@ sessions:
         # 1つ目の動画でAPIエラー、2つ目は成功
         mock_youtube_api.get_video_info.side_effect = [
             YouTubeApiError("Rate limit exceeded"),
-            VideoInfo(video_id="video2", title="Title 2", category_id=28),
+            VideoInfo(
+                video_id="video2",
+                title="Title 2",
+                description="Description 2",
+                category_id=28,
+            ),
         ]
 
         result = usecase.execute(
@@ -355,7 +361,12 @@ sessions:
         """dry-runモードでもYouTubeApiErrorを適切に処理する"""
         mock_youtube_api.get_video_info.side_effect = [
             YouTubeApiError("Authentication failed"),
-            VideoInfo(video_id="video2", title="Title 2", category_id=28),
+            VideoInfo(
+                video_id="video2",
+                title="Title 2",
+                description="Description 2",
+                category_id=28,
+            ),
         ]
 
         result = usecase.execute(

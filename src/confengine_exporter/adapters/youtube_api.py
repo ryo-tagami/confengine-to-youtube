@@ -29,6 +29,7 @@ class YouTubeSnippet(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     title: str
+    description: str
     categoryId: str  # noqa: N815 # APIは文字列で返す
 
 
@@ -85,6 +86,7 @@ class VideoInfo(BaseModel):
 
     video_id: str
     title: str
+    description: str
     category_id: int
 
     @classmethod
@@ -92,6 +94,7 @@ class VideoInfo(BaseModel):
         return cls(
             video_id=item.id,
             title=item.snippet.title,
+            description=item.snippet.description,
             category_id=int(item.snippet.categoryId),
         )
 
