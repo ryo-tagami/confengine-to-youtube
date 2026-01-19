@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import stat
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
@@ -26,13 +26,13 @@ class YouTubeAuthClient:
         self.credentials_path = credentials_path
         self.token_path = token_path
 
-    def get_credentials(self) -> Any:  # noqa: ANN401
+    def get_credentials(self) -> Credentials:
         if (creds := self._load_token()) and creds.valid:
             return creds
 
         if creds and creds.expired and creds.refresh_token:
             try:
-                creds.refresh(Request())
+                creds.refresh(request=Request())
             except RefreshError:
                 logger.warning(
                     "Token refresh failed, falling back to OAuth flow",
@@ -62,6 +62,7 @@ class YouTubeAuthClient:
         self.token_path.chmod(mode=stat.S_IRUSR | stat.S_IWUSR)  # 0600
 
     def _run_oauth_flow(self) -> Credentials:
+        # 認証失敗時の例外はCLI層でキャッチされ、エラーメッセージが表示される
         flow = InstalledAppFlow.from_client_secrets_file(
             client_secrets_file=str(self.credentials_path),
             scopes=self.SCOPES,

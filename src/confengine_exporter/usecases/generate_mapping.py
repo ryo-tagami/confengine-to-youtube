@@ -9,8 +9,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import TextIO
 
-    from confengine_exporter.adapters.confengine_api import ConfEngineApiGateway
-    from confengine_exporter.adapters.mapping_file_writer import MappingFileWriter
+    from confengine_exporter.usecases.protocols import (
+        ConfEngineApiProtocol,
+        MappingWriterProtocol,
+    )
 
 
 @dataclass(frozen=True)
@@ -21,8 +23,8 @@ class GenerateMappingResult:
 class GenerateMappingUseCase:
     def __init__(
         self,
-        confengine_api: ConfEngineApiGateway,
-        mapping_writer: MappingFileWriter,
+        confengine_api: ConfEngineApiProtocol,
+        mapping_writer: MappingWriterProtocol,
     ) -> None:
         self._confengine_api = confengine_api
         self._mapping_writer = mapping_writer

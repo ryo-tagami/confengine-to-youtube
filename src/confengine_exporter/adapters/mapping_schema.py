@@ -26,6 +26,7 @@ class SessionEntrySchema(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    # YouTube video IDの形式は公式に文書化されていないためバリデーションしない
     video_id: str
 
 

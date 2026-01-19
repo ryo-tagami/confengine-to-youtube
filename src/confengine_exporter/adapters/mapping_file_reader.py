@@ -7,16 +7,13 @@ from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 
 from confengine_exporter.adapters.mapping_schema import MappingFileSchema
+from confengine_exporter.usecases.protocols import MappingFileError
 
 if TYPE_CHECKING:
     from pathlib import Path
     from zoneinfo import ZoneInfo
 
     from confengine_exporter.domain.video_mapping import MappingConfig
-
-
-class MappingFileError(Exception):
-    """マッピングファイル読み込みエラー"""
 
 
 class MappingFileReader:

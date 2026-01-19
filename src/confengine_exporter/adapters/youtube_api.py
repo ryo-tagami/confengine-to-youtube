@@ -3,19 +3,23 @@
 from __future__ import annotations
 
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, NoReturn, Protocol, Self
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from pydantic import BaseModel, ConfigDict
 
+from confengine_exporter.usecases.protocols import (
+    VideoInfo,
+    VideoNotFoundError,
+    VideoUpdateRequest,
+    YouTubeApiError,
+)
+
 if TYPE_CHECKING:
     from googleapiclient._apis.youtube.v3 import YouTubeResource
 
-
-class YouTubeAuthProvider(Protocol):
-    def get_credentials(self) -> Any:  # noqa: ANN401
-        ...
+    from confengine_exporter.adapters.protocols import YouTubeAuthProvider
 
 
 # =============================================================================
@@ -75,49 +79,30 @@ class YouTubeVideoUpdateBody(BaseModel):
 
 
 # =============================================================================
-# Gateway データ型
+# ヘルパー関数
 # =============================================================================
 
 
-class VideoInfo(BaseModel):
-    """ビデオ情報"""
-
-    model_config = ConfigDict(frozen=True)
-
-    video_id: str
-    title: str
-    description: str
-    category_id: int
-
-    @classmethod
-    def from_api_response(cls, item: YouTubeVideoItem) -> Self:
-        return cls(
-            video_id=item.id,
-            title=item.snippet.title,
-            description=item.snippet.description,
-            category_id=int(item.snippet.categoryId),
-        )
+def _video_info_from_api_response(item: YouTubeVideoItem) -> VideoInfo:
+    """Convert API response to VideoInfo."""
+    return VideoInfo(
+        video_id=item.id,
+        title=item.snippet.title,
+        description=item.snippet.description,
+        category_id=int(item.snippet.categoryId),
+    )
 
 
-class VideoUpdateRequest(BaseModel):
-    """動画更新リクエスト"""
-
-    model_config = ConfigDict(frozen=True)
-
-    video_id: str
-    title: str
-    description: str
-    category_id: int
-
-    def to_api_body(self) -> dict[str, Any]:
-        return YouTubeVideoUpdateBody(
-            id=self.video_id,
-            snippet=YouTubeSnippetUpdate(
-                title=self.title,
-                description=self.description,
-                categoryId=str(self.category_id),
-            ),
-        ).model_dump()
+def _to_api_body(request: VideoUpdateRequest) -> dict[str, Any]:
+    """Convert VideoUpdateRequest to API request body."""
+    return YouTubeVideoUpdateBody(
+        id=request.video_id,
+        snippet=YouTubeSnippetUpdate(
+            title=request.title,
+            description=request.description,
+            categoryId=str(request.category_id),
+        ),
+    ).model_dump()
 
 
 # =============================================================================
@@ -143,6 +128,8 @@ class YouTubeApiGateway:
 
     def get_video_info(self, video_id: str) -> VideoInfo:
         youtube = self._get_youtube()
+        # NOTE: HttpError のみキャッチし、ネットワークエラー等はそのまま上位に伝播させる
+        # (ユーザーが原因を理解できるため、変換不要)
         try:
             response = youtube.videos().list(part="snippet", id=video_id).execute()
         except HttpError as e:
@@ -154,15 +141,16 @@ class YouTubeApiGateway:
             msg = f"Video not found: {video_id}"
             raise VideoNotFoundError(msg)
 
-        return VideoInfo.from_api_response(item=parsed.items[0])
+        return _video_info_from_api_response(item=parsed.items[0])
 
     def update_video(self, request: VideoUpdateRequest) -> None:
         """動画のsnippetを更新"""
         youtube = self._get_youtube()
+        # NOTE: ネットワークエラー等の扱いは get_video_info 参照
         try:
             youtube.videos().update(
                 part="snippet",
-                body=request.to_api_body(),
+                body=_to_api_body(request=request),
             ).execute()
         except HttpError as e:
             self._handle_http_error(error=e, video_id=request.video_id)
@@ -189,11 +177,3 @@ class YouTubeApiGateway:
 
         msg = f"YouTube API error (HTTP {status}): {error}"
         raise YouTubeApiError(msg) from error
-
-
-class YouTubeApiError(Exception):
-    """YouTube API エラーの基底クラス"""
-
-
-class VideoNotFoundError(YouTubeApiError):
-    pass

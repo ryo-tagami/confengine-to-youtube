@@ -40,7 +40,6 @@ class ApiSession(BaseModel):
 
         text = md(html=self.abstract, heading_style="ATX", strip=["script", "style"])
         text = text.strip()
-        text = text.replace("\\n", "\n")
         text = re.sub(pattern=r"\n{3,}", repl="\n\n", string=text)
 
         return text  # noqa: RET504

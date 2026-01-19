@@ -7,13 +7,13 @@ from confengine_exporter.adapters.confengine_schema import ScheduleResponse
 from confengine_exporter.domain.session import Session, Speaker
 
 if TYPE_CHECKING:
-    from confengine_exporter.infrastructure.http_client import HttpClient
+    from confengine_exporter.adapters.protocols import HttpClientProtocol
 
 
 class ConfEngineApiGateway:
     BASE_URL = "https://confengine.com/api/v3"
 
-    def __init__(self, http_client: HttpClient) -> None:
+    def __init__(self, http_client: HttpClientProtocol) -> None:
         self.http_client = http_client
 
     def fetch_sessions(self, conf_id: str) -> tuple[list[Session], ZoneInfo]:

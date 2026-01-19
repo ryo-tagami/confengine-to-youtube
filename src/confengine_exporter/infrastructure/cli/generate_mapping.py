@@ -64,6 +64,7 @@ def run(args: argparse.Namespace) -> None:
             msg = f"Generated: stdout ({result.session_count} sessions)"
             print(msg, file=sys.stderr)  # noqa: T201
 
+    # CLIエントリポイントで全例外をキャッチし、ユーザーフレンドリーなエラー表示を行う
     except Exception as e:  # noqa: BLE001
         print(f"Error: {type(e).__name__}: {e}", file=sys.stderr)  # noqa: T201
         sys.exit(1)

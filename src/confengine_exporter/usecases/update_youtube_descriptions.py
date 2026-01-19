@@ -5,11 +5,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from confengine_exporter.adapters.youtube_api import (
+from confengine_exporter.usecases.dto import UpdatePreview, YouTubeUpdateResult
+from confengine_exporter.usecases.protocols import (
     VideoUpdateRequest,
     YouTubeApiError,
 )
-from confengine_exporter.usecases.dto import UpdatePreview, YouTubeUpdateResult
 
 logger = logging.getLogger(name=__name__)
 
@@ -17,25 +17,25 @@ if TYPE_CHECKING:
     from datetime import datetime
     from pathlib import Path
 
-    from confengine_exporter.adapters.confengine_api import ConfEngineApiGateway
-    from confengine_exporter.adapters.mapping_file_reader import MappingFileReader
-    from confengine_exporter.adapters.youtube_api import YouTubeApiGateway
-    from confengine_exporter.adapters.youtube_description_builder import (
-        YouTubeDescriptionBuilder,
-    )
-    from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
     from confengine_exporter.domain.session import Session
     from confengine_exporter.domain.video_mapping import MappingConfig
+    from confengine_exporter.usecases.protocols import (
+        ConfEngineApiProtocol,
+        DescriptionBuilderProtocol,
+        MappingReaderProtocol,
+        TitleBuilderProtocol,
+        YouTubeApiProtocol,
+    )
 
 
 class UpdateYouTubeDescriptionsUseCase:
     def __init__(
         self,
-        confengine_api: ConfEngineApiGateway,
-        mapping_reader: MappingFileReader,
-        youtube_api: YouTubeApiGateway,
-        description_builder: YouTubeDescriptionBuilder,
-        title_builder: YouTubeTitleBuilder,
+        confengine_api: ConfEngineApiProtocol,
+        mapping_reader: MappingReaderProtocol,
+        youtube_api: YouTubeApiProtocol,
+        description_builder: DescriptionBuilderProtocol,
+        title_builder: TitleBuilderProtocol,
     ) -> None:
         self._confengine_api = confengine_api
         self._mapping_reader = mapping_reader
