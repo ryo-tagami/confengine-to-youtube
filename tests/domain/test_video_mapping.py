@@ -44,7 +44,7 @@ class TestMappingConfig:
                 video_id="def456",
             ),
         ]
-        config = MappingConfig(mappings=mappings)
+        config = MappingConfig(mappings=mappings, hashtags=())
 
         result = config.find_mapping(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC),
@@ -65,7 +65,7 @@ class TestMappingConfig:
                 video_id="abc123",
             ),
         ]
-        config = MappingConfig(mappings=mappings)
+        config = MappingConfig(mappings=mappings, hashtags=())
 
         result = config.find_mapping(
             timeslot=datetime(year=2026, month=1, day=8, hour=14, minute=0, tzinfo=UTC),
@@ -99,7 +99,7 @@ class TestMappingConfig:
                 video_id="ghi789",
             ),
         ]
-        config = MappingConfig(mappings=mappings)
+        config = MappingConfig(mappings=mappings, hashtags=())
 
         # 1つだけ使用
         used_keys = {
@@ -113,3 +113,12 @@ class TestMappingConfig:
         assert len(unused) == 2
         assert unused[0].video_id == "def456"
         assert unused[1].video_id == "ghi789"
+
+    def test_create_with_hashtags(self) -> None:
+        """hashtagsを指定してMappingConfigを作成できる"""
+        config = MappingConfig(
+            mappings=[],
+            hashtags=("#RSGT2026", "#Agile", "#Scrum"),
+        )
+
+        assert config.hashtags == ("#RSGT2026", "#Agile", "#Scrum")

@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import date, datetime, time
 from typing import TYPE_CHECKING, Self
 
-from pydantic import BaseModel, ConfigDict, RootModel, model_validator
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
 from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_exporter.domain.video_mapping import MappingConfig, VideoMapping
@@ -80,6 +80,7 @@ class MappingFileSchema(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    hashtags: list[str] = Field(default_factory=list)
     sessions: DateSlotsSchema
 
     def to_domain(self, timezone: ZoneInfo) -> MappingConfig:
@@ -102,7 +103,7 @@ class MappingFileSchema(BaseModel):
                         )
                     )
 
-        return MappingConfig(mappings=mappings)
+        return MappingConfig(mappings=mappings, hashtags=tuple(self.hashtags))
 
 
 # Writer用スキーマ
@@ -141,10 +142,15 @@ class MappingFileWithCommentSchema(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    hashtags: list[str] = Field(default_factory=list)
     sessions: DateSlotsWithCommentSchema
 
     @classmethod
-    def from_sessions(cls, sessions: list[Session]) -> Self:
+    def from_sessions(
+        cls,
+        sessions: list[Session],
+        hashtags: list[str] | None,
+    ) -> Self:
         """Sessionリストからスキーマを構築"""
         date_slots: dict[date, RoomSlotsWithCommentSchema] = {}
 
@@ -186,4 +192,7 @@ class MappingFileWithCommentSchema(BaseModel):
                 comment=comment,
             )
 
-        return cls(sessions=DateSlotsWithCommentSchema(root=date_slots))
+        return cls(
+            hashtags=hashtags or [],
+            sessions=DateSlotsWithCommentSchema(root=date_slots),
+        )

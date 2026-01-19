@@ -23,6 +23,12 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         "--output",
         help="出力ファイルパス (省略時はstdoutに出力)",
     )
+    parser.add_argument(
+        "--hashtags",
+        action="append",
+        metavar="TAG",
+        help="descriptionに追加するハッシュタグ (複数指定可)",
+    )
 
 
 def run(args: argparse.Namespace) -> None:
@@ -38,12 +44,23 @@ def run(args: argparse.Namespace) -> None:
     try:
         if args.output:
             output_path = Path(args.output)
+
             with output_path.open(mode="w", encoding="utf-8") as f:
-                result = usecase.execute(conf_id=args.conf_id, output=f)
+                result = usecase.execute(
+                    conf_id=args.conf_id,
+                    output=f,
+                    hashtags=args.hashtags,
+                )
+
             msg = f"Generated: {output_path} ({result.session_count} sessions)"
             print(msg, file=sys.stderr)  # noqa: T201
         else:
-            result = usecase.execute(conf_id=args.conf_id, output=sys.stdout)
+            result = usecase.execute(
+                conf_id=args.conf_id,
+                output=sys.stdout,
+                hashtags=args.hashtags,
+            )
+
             msg = f"Generated: stdout ({result.session_count} sessions)"
             print(msg, file=sys.stderr)  # noqa: T201
 

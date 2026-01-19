@@ -93,7 +93,9 @@ class UpdateYouTubeDescriptionsUseCase:
             try:
                 video_info = self._youtube_api.get_video_info(video_id=mapping.video_id)
                 new_title = self._title_builder.build(session=session)
-                description = self._description_builder.build(session=session)
+                description = self._description_builder.build(
+                    session=session, hashtags=mapping_config.hashtags
+                )
 
                 previews.append(
                     UpdatePreview(

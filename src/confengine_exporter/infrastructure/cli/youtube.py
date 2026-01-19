@@ -54,10 +54,6 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="実際の更新を行わずプレビュー表示",
     )
-    parser.add_argument(
-        "--hashtags",
-        help="descriptionに追加するハッシュタグ",
-    )
 
 
 def run(args: argparse.Namespace) -> None:
@@ -87,7 +83,6 @@ def run(args: argparse.Namespace) -> None:
     youtube_api = YouTubeApiGateway(auth_provider=auth_client)
 
     description_options = YouTubeDescriptionOptions(
-        hashtags=args.hashtags or "",
         footer_text=DEFAULT_FOOTER,
     )
     description_builder = YouTubeDescriptionBuilder(options=description_options)

@@ -19,6 +19,7 @@ class VideoMapping:
 @dataclass(frozen=True)
 class MappingConfig:
     mappings: list[VideoMapping]
+    hashtags: tuple[str, ...]
 
     def find_mapping(
         self,

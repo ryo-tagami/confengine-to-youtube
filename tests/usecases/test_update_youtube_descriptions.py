@@ -98,7 +98,7 @@ sessions:
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
             description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(hashtags="", footer_text="")
+                options=YouTubeDescriptionOptions(footer_text="")
             ),
             title_builder=YouTubeTitleBuilder(),
         )
@@ -187,7 +187,7 @@ sessions:
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
             description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(hashtags="", footer_text="")
+                options=YouTubeDescriptionOptions(footer_text="")
             ),
             title_builder=YouTubeTitleBuilder(),
         )
@@ -244,7 +244,7 @@ sessions: {}
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
             description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(hashtags="", footer_text="")
+                options=YouTubeDescriptionOptions(footer_text="")
             ),
             title_builder=YouTubeTitleBuilder(),
         )
@@ -307,7 +307,7 @@ sessions:
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
             description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(hashtags="", footer_text="")
+                options=YouTubeDescriptionOptions(footer_text="")
             ),
             title_builder=YouTubeTitleBuilder(),
         )
@@ -375,3 +375,67 @@ sessions:
         assert result.previews[1].current_title == "Title 2"
         assert len(result.errors) == 1
         assert result.errors[0] == "Authentication failed"
+
+    def test_execute_with_hashtags_in_mapping(
+        self,
+        mock_confengine_api: MagicMock,
+        mock_youtube_api: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        """マッピングファイルにhashtagsがある場合、descriptionに含まれる"""
+        mock_confengine_api.fetch_sessions.return_value = (
+            [
+                Session(
+                    title="Session 1",
+                    timeslot=datetime(
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        second=0,
+                        tzinfo=JST,
+                    ),
+                    room="Hall A",
+                    track="Track 1",
+                    speakers=[Speaker(first_name="Speaker", last_name="A")],
+                    abstract="Abstract 1",
+                    url="https://example.com/1",
+                ),
+            ],
+            JST,
+        )
+
+        yaml_content = """
+hashtags:
+  - "#RSGT2026"
+  - "#Agile"
+  - "#Scrum"
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+"""
+        mapping_file = tmp_path / "mapping_with_hashtags.yaml"
+        mapping_file.write_text(data=yaml_content, encoding="utf-8")
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=MappingFileReader(),
+            youtube_api=mock_youtube_api,
+            description_builder=YouTubeDescriptionBuilder(
+                options=YouTubeDescriptionOptions(footer_text="")
+            ),
+            title_builder=YouTubeTitleBuilder(),
+        )
+
+        result = usecase.execute(
+            conf_id="test-conf",
+            mapping_file=mapping_file,
+            dry_run=True,
+        )
+
+        assert len(result.previews) == 1
+        # hashtagsがdescriptionに含まれることを確認
+        assert "#RSGT2026 #Agile #Scrum" in result.previews[0].new_description
