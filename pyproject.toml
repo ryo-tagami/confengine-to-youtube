@@ -11,6 +11,7 @@ dependencies = [
     "google-auth-oauthlib>=1.0",
     "markdownify>=0.11",
     "pydantic>=2.0",
+    "rich>=13.0",
     "ruamel.yaml>=0.18",
     "snakemd>=2.0",
     "wcwidth>=0.2",

@@ -61,6 +61,7 @@ class TestYouTubeApiGateway:
         assert isinstance(result, VideoInfo)
         assert result.video_id == "abc123"
         assert result.title == "Test Video"
+        assert result.description == "Test Description"
         assert result.category_id == 28
 
     def test_get_video_info_not_found(

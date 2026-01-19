@@ -12,6 +12,7 @@ class UpdatePreview:
     session_key: str
     video_id: str
     current_title: str | None  # エラー時はNone
+    current_description: str | None  # エラー時はNone
     new_title: str | None  # エラー時はNone
     new_description: str | None  # エラー時はNone
     error: str | None = None  # エラーメッセージ

@@ -102,6 +102,7 @@ class UpdateYouTubeDescriptionsUseCase:
                         session_key=session_key,
                         video_id=mapping.video_id,
                         current_title=video_info.title,
+                        current_description=video_info.description,
                         new_title=new_title,
                         new_description=description,
                     )
@@ -127,6 +128,7 @@ class UpdateYouTubeDescriptionsUseCase:
                         session_key=session_key,
                         video_id=mapping.video_id,
                         current_title=None,
+                        current_description=None,
                         new_title=None,
                         new_description=None,
                         error=error_msg,
