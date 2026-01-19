@@ -29,8 +29,12 @@ class MappingFileWriter:
         output: TextIO,
         conf_id: str,
         generated_at: datetime,
+        hashtags: list[str] | None,
     ) -> None:
-        schema = MappingFileWithCommentSchema.from_sessions(sessions=sessions)
+        schema = MappingFileWithCommentSchema.from_sessions(
+            sessions=sessions,
+            hashtags=hashtags,
+        )
 
         self._schema_to_yaml(
             schema=schema,
@@ -84,6 +88,7 @@ class MappingFileWriter:
 
             sessions_map[session_date] = rooms_map
 
+        root["hashtags"] = schema.hashtags
         root["sessions"] = sessions_map
 
         yaml = YAML()

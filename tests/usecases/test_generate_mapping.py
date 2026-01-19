@@ -65,7 +65,7 @@ class TestGenerateMappingUseCase:
         ) as mock_datetime:
             mock_datetime.now.return_value = fixed_now
             output = StringIO()
-            result = usecase.execute(conf_id="test-conf", output=output)
+            result = usecase.execute(conf_id="test-conf", output=output, hashtags=None)
             yaml_content = output.getvalue()
 
         assert isinstance(result, GenerateMappingResult)
@@ -73,6 +73,7 @@ class TestGenerateMappingUseCase:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "hashtags: []\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -89,7 +90,7 @@ class TestGenerateMappingUseCase:
         self, usecase: GenerateMappingUseCase
     ) -> None:
         output = StringIO()
-        result = usecase.execute(conf_id="test-conf", output=output)
+        result = usecase.execute(conf_id="test-conf", output=output, hashtags=None)
 
         assert result.session_count == 2
 
@@ -97,7 +98,7 @@ class TestGenerateMappingUseCase:
         self, usecase: GenerateMappingUseCase, mock_confengine_api: MagicMock
     ) -> None:
         output = StringIO()
-        usecase.execute(conf_id="test-conf", output=output)
+        usecase.execute(conf_id="test-conf", output=output, hashtags=None)
 
         mock_confengine_api.fetch_sessions.assert_called_once_with(conf_id="test-conf")
 
@@ -116,7 +117,7 @@ class TestGenerateMappingUseCase:
         ) as mock_datetime:
             mock_datetime.now.return_value = fixed_now
             output = StringIO()
-            result = usecase.execute(conf_id="test-conf", output=output)
+            result = usecase.execute(conf_id="test-conf", output=output, hashtags=None)
             yaml_content = output.getvalue()
 
         assert result.session_count == 0
@@ -124,6 +125,30 @@ class TestGenerateMappingUseCase:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "hashtags: []\n"
             "sessions: {}\n"
         )
         assert yaml_content == expected
+
+    def test_execute_with_hashtags(self, usecase: GenerateMappingUseCase) -> None:
+        """hashtagsを指定するとYAMLに出力される"""
+        fixed_now = datetime(
+            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=JST
+        )
+        with patch(
+            target="confengine_exporter.usecases.generate_mapping.datetime"
+        ) as mock_datetime:
+            mock_datetime.now.return_value = fixed_now
+            output = StringIO()
+            result = usecase.execute(
+                conf_id="test-conf",
+                output=output,
+                hashtags=["#RSGT2026", "#Agile"],
+            )
+            yaml_content = output.getvalue()
+
+        assert isinstance(result, GenerateMappingResult)
+        # hashtagsがYAMLに含まれることを確認
+        assert "hashtags:" in yaml_content
+        assert "- '#RSGT2026'" in yaml_content
+        assert "- '#Agile'" in yaml_content

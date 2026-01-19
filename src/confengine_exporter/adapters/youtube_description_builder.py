@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class YouTubeDescriptionOptions:
-    hashtags: str
     footer_text: str
 
 
@@ -28,11 +27,11 @@ class YouTubeDescriptionBuilder:
     def __init__(self, options: YouTubeDescriptionOptions) -> None:
         self.options = options
 
-    def build(self, session: Session) -> str:
+    def build(self, session: Session, hashtags: tuple[str, ...]) -> str:
         abstract = session.abstract
 
         # YouTube説明文の最大文字数に収まるようabstractを調整
-        frame_length = self._calculate_frame_length(session=session)
+        frame_length = self._calculate_frame_length(session=session, hashtags=hashtags)
         available = YOUTUBE_DESCRIPTION_MAX_LENGTH - frame_length
 
         if available < len(ELLIPSIS):
@@ -43,17 +42,32 @@ class YouTubeDescriptionBuilder:
             # 省略記号の文字数を確保して切り詰め
             abstract = abstract[: available - len(ELLIPSIS)] + ELLIPSIS
 
-        return self._build_document(session=session, abstract=abstract)
+        return self._build_document(
+            session=session,
+            abstract=abstract,
+            hashtags=hashtags,
+        )
 
-    def _calculate_frame_length(self, session: Session) -> int:
+    def _calculate_frame_length(
+        self,
+        session: Session,
+        hashtags: tuple[str, ...],
+    ) -> int:
         placeholder = "X"
         doc_with_placeholder = self._build_document(
-            session=session, abstract=placeholder
+            session=session,
+            abstract=placeholder,
+            hashtags=hashtags,
         )
 
         return len(doc_with_placeholder) - len(placeholder)
 
-    def _build_document(self, session: Session, abstract: str) -> str:
+    def _build_document(
+        self,
+        session: Session,
+        abstract: str,
+        hashtags: tuple[str, ...],
+    ) -> str:
         doc = Document()
 
         if speakers_str := YouTubeTitleBuilder.format_speakers_full(
@@ -69,8 +83,8 @@ class YouTubeDescriptionBuilder:
         if session.url:
             doc.add_paragraph(text=session.url)
 
-        if self.options.hashtags:
-            doc.add_paragraph(text=self.options.hashtags)
+        if hashtags:
+            doc.add_paragraph(text=" ".join(hashtags))
 
         doc.add_horizontal_rule()
 

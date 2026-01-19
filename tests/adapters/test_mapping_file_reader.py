@@ -162,3 +162,47 @@ sessions:
         )
         assert mapping is not None
         assert mapping.video_id == "abc123"
+
+    def test_read_with_hashtags(self, tmp_path: Path) -> None:
+        """hashtagsフィールドを含むYAMLファイルを読み込める"""
+        yaml_content = """
+hashtags:
+  - "#RSGT2026"
+  - "#Agile"
+  - "#Scrum"
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+"""
+        jst = ZoneInfo(key="Asia/Tokyo")
+
+        yaml_file = tmp_path / "with_hashtags.yaml"
+        yaml_file.write_text(data=yaml_content, encoding="utf-8")
+
+        reader = MappingFileReader()
+        config = reader.read(file_path=yaml_file, timezone=jst)
+
+        assert config.hashtags == ("#RSGT2026", "#Agile", "#Scrum")
+        assert len(config.mappings) == 1
+
+    def test_read_without_hashtags_defaults_to_empty(self, tmp_path: Path) -> None:
+        """hashtagsフィールドがないYAMLファイルでもエラーにならない"""
+        yaml_content = """
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+"""
+        jst = ZoneInfo(key="Asia/Tokyo")
+
+        yaml_file = tmp_path / "without_hashtags.yaml"
+        yaml_file.write_text(data=yaml_content, encoding="utf-8")
+
+        reader = MappingFileReader()
+        config = reader.read(file_path=yaml_file, timezone=jst)
+
+        assert config.hashtags == ()
+        assert len(config.mappings) == 1

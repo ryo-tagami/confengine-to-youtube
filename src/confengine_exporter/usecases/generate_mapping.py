@@ -27,7 +27,12 @@ class GenerateMappingUseCase:
         self._confengine_api = confengine_api
         self._mapping_writer = mapping_writer
 
-    def execute(self, conf_id: str, output: TextIO) -> GenerateMappingResult:
+    def execute(
+        self,
+        conf_id: str,
+        output: TextIO,
+        hashtags: list[str] | None,
+    ) -> GenerateMappingResult:
         sessions, timezone = self._confengine_api.fetch_sessions(conf_id=conf_id)
 
         self._mapping_writer.write(
@@ -35,6 +40,7 @@ class GenerateMappingUseCase:
             output=output,
             conf_id=conf_id,
             generated_at=datetime.now(tz=timezone),
+            hashtags=hashtags,
         )
 
         return GenerateMappingResult(session_count=len(sessions))
