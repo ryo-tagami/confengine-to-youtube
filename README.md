@@ -33,6 +33,7 @@ uv run confengine-export generate-mapping <カンファレンスID> -o mapping.y
 |----------------|------|
 | `conf_id` | カンファレンスID |
 | `-o, --output` | 出力ファイルパス (省略時はstdoutに出力) |
+| `--hashtags` | descriptionに追加するハッシュタグ (複数指定可) |
 
 生成されたYAMLの `video_id` フィールドにYouTube動画IDを入力してください。
 
@@ -62,11 +63,12 @@ uv run confengine-export youtube-update <カンファレンスID> -m <マッピ�
 | `--credentials` | OAuth credentials.jsonのパス (デフォルト: `.credentials.json`) |
 | `--token` | トークン保存先 (デフォルト: `.token.json`) |
 | `--dry-run` | 実際の更新を行わずプレビュー表示 |
-| `--hashtags` | descriptionに追加するハッシュタグ |
 
 ### マッピングファイルの形式
 
 ```yaml
+hashtags:
+  - "#RSGT2026"
 sessions:
   2026-01-08:
     Hall A:
@@ -86,8 +88,7 @@ uv run confengine-export youtube-update regional-scrum-gathering-tokyo-2026 \
 
 # 実際に更新
 uv run confengine-export youtube-update regional-scrum-gathering-tokyo-2026 \
-  -m mapping.yaml \
-  --hashtags '#RSGT2026'
+  -m mapping.yaml
 ```
 
 ## 開発
