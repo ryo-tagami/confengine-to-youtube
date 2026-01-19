@@ -17,21 +17,21 @@ def main() -> None:
         name="youtube-update",
         help="YouTube動画のdescriptionを更新",
     )
-    youtube.add_arguments(youtube_parser)
+    youtube.add_arguments(parser=youtube_parser)
 
     generate_mapping_parser = subparsers.add_parser(
         name="generate-mapping",
         help="マッピングYAML雛形を生成",
     )
-    generate_mapping.add_arguments(generate_mapping_parser)
+    generate_mapping.add_arguments(parser=generate_mapping_parser)
 
     args = parser.parse_args()
 
     match args.command:
         case "youtube-update":
-            youtube.run(args)
+            youtube.run(args=args)
         case "generate-mapping":
-            generate_mapping.run(args)
+            generate_mapping.run(args=args)
         case _:
             parser.print_help()
             sys.exit(1)

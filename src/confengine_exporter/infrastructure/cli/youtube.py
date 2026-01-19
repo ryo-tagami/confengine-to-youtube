@@ -114,6 +114,7 @@ def run(args: argparse.Namespace) -> None:
 
         _print_result(result=result)
 
+    # CLIエントリポイントで全例外をキャッチし、ユーザーフレンドリーなエラー表示を行う
     except Exception as e:  # noqa: BLE001
         print(f"Error: {type(e).__name__}: {e}", file=sys.stderr)  # noqa: T201
         sys.exit(1)

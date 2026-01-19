@@ -7,12 +7,12 @@ import pytest
 from googleapiclient.errors import HttpError
 from httplib2 import Response
 
-from confengine_exporter.adapters.youtube_api import (
+from confengine_exporter.adapters.youtube_api import YouTubeApiGateway
+from confengine_exporter.usecases.protocols import (
     VideoInfo,
     VideoNotFoundError,
     VideoUpdateRequest,
     YouTubeApiError,
-    YouTubeApiGateway,
 )
 
 
@@ -165,5 +165,12 @@ class TestYouTubeApiGateway:
         # セットアップ時にも update() が呼ばれるため assert_called_with を使用
         mock_youtube.videos().update.assert_called_with(
             part="snippet",
-            body=request.to_api_body(),
+            body={
+                "id": "abc123",
+                "snippet": {
+                    "title": "Title",
+                    "description": "Desc",
+                    "categoryId": "28",
+                },
+            },
         )

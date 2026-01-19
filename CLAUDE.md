@@ -42,6 +42,6 @@ confengine_exporter/
 - `ruff` の `select = ["ALL"]` を使用（厳格なリンティング）
 - D100-D103 は無効化（自明なコードにdocstringを強制しない）
 - 日本語コメント可
-- `from __future__ import annotations` を全ファイルで使用（`__init__.py` を除く）
+- `from __future__ import annotations` を全ファイルで使用（`__init__.py` と `tests/` を除く）
 - 型ヒント専用のimportは `TYPE_CHECKING` ブロック内に配置
 - 関数・メソッド呼び出しでは、キーワード引数で渡せる引数は常にキーワード引数を使用する（位置専用引数を除く）

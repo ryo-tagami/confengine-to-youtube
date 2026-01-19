@@ -26,6 +26,7 @@ class MappingConfig:
         timeslot: datetime,
         room: str,
     ) -> VideoMapping | None:
+        # 線形検索だが、セッション数は通常数百以下のため実用上問題なし
         for mapping in self.mappings:
             if mapping.timeslot == timeslot and mapping.room == room:
                 return mapping

@@ -7,6 +7,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 from wcwidth import wcwidth
 
+from confengine_exporter.adapters.constants import TITLE_SPEAKER_SEPARATOR
 from confengine_exporter.adapters.mapping_schema import MappingFileWithCommentSchema
 
 if TYPE_CHECKING:
@@ -122,16 +123,16 @@ class MappingFileWriter:
     def _split_into_chunks(self, text: str) -> list[str]:
         """テキストを折り返し可能なチャンクに分割する
 
-        1. " / " で分割 (タイトルとスピーカーの区切り)
+        1. TITLE_SPEAKER_SEPARATOR で分割 (タイトルとスピーカーの区切り)
         2. 各セグメントをbudouxで分かち書き
         3. budouxの結果をさらにスペースで分割 (英語対応)
         """
         result: list[str] = []
-        segments = text.split(sep=" / ")
+        segments = text.split(sep=TITLE_SPEAKER_SEPARATOR)
 
         for i, segment in enumerate(iterable=segments):
             if i > 0:
-                result.append(" / ")
+                result.append(TITLE_SPEAKER_SEPARATOR)
 
             # budouxで分かち書き
             budoux_chunks = _BUDOUX_PARSER.parse(sentence=segment)
