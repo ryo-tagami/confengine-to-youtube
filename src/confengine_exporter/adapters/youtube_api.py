@@ -46,7 +46,7 @@ class YouTubeVideosListResponse(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    items: list[YouTubeVideoItem] = []
+    items: list[YouTubeVideoItem]
 
 
 # =============================================================================

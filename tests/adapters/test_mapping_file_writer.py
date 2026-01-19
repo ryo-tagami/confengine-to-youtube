@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from confengine_exporter.adapters.mapping_file_writer import MappingFileWriter
-from confengine_exporter.domain.session import Session
+from confengine_exporter.domain.session import Session, Speaker
 
 
 class TestMappingFileWriter:
@@ -19,7 +19,7 @@ class TestMappingFileWriter:
                 ),
                 room="Hall A",
                 track="技術",
-                speakers=["田中太郎"],
+                speakers=[Speaker(first_name="", last_name="田中太郎")],
                 abstract="概要",
                 url="https://example.com/session1",
             )
@@ -46,7 +46,7 @@ class TestMappingFileWriter:
             "  2026-01-07:\n"
             "    Hall A:\n"
             "      10:00:\n"
-            "        # Clean Architecture入門 / 田中太郎\n"
+            "        # Clean Architecture入門 - 田中太郎\n"
             "        video_id: ''\n"
         )
         assert result == expected
@@ -61,7 +61,10 @@ class TestMappingFileWriter:
                 ),
                 room="Hall A",
                 track="技術",
-                speakers=["田中太郎", "山田花子"],
+                speakers=[
+                    Speaker(first_name="", last_name="田中太郎"),
+                    Speaker(first_name="", last_name="山田花子"),
+                ],
                 abstract="概要",
                 url="https://example.com/session1",
             )
@@ -88,7 +91,7 @@ class TestMappingFileWriter:
             "  2026-01-07:\n"
             "    Hall A:\n"
             "      11:00:\n"
-            "        # ペアプロ実践 / 田中太郎, 山田花子\n"
+            "        # ペアプロ実践 - 田中太郎, 山田花子\n"
             "        video_id: ''\n"
         )
         assert result == expected
@@ -103,7 +106,7 @@ class TestMappingFileWriter:
                 ),
                 room="Hall A",
                 track="技術",
-                speakers=["佐藤"],
+                speakers=[Speaker(first_name="", last_name="佐藤")],
                 abstract="概要",
                 url="https://example.com/session2",
             ),
@@ -114,7 +117,7 @@ class TestMappingFileWriter:
                 ),
                 room="Hall A",
                 track="技術",
-                speakers=["鈴木"],
+                speakers=[Speaker(first_name="", last_name="鈴木")],
                 abstract="概要",
                 url="https://example.com/session1",
             ),
@@ -141,12 +144,12 @@ class TestMappingFileWriter:
             "  2026-01-07:\n"
             "    Hall A:\n"
             "      10:00:\n"
-            "        # Day1 Session / 鈴木\n"
+            "        # Day1 Session - 鈴木\n"
             "        video_id: ''\n"
             "  2026-01-08:\n"
             "    Hall A:\n"
             "      10:00:\n"
-            "        # Day2 Session / 佐藤\n"
+            "        # Day2 Session - 佐藤\n"
             "        video_id: ''\n"
         )
         assert result == expected
@@ -161,7 +164,7 @@ class TestMappingFileWriter:
                 ),
                 room="Hall B",
                 track="技術",
-                speakers=["佐藤"],
+                speakers=[Speaker(first_name="", last_name="佐藤")],
                 abstract="概要",
                 url="https://example.com/session2",
             ),
@@ -172,7 +175,7 @@ class TestMappingFileWriter:
                 ),
                 room="Hall A",
                 track="技術",
-                speakers=["鈴木"],
+                speakers=[Speaker(first_name="", last_name="鈴木")],
                 abstract="概要",
                 url="https://example.com/session1",
             ),
@@ -199,11 +202,11 @@ class TestMappingFileWriter:
             "  2026-01-07:\n"
             "    Hall A:\n"
             "      10:00:\n"
-            "        # Session in Hall A / 鈴木\n"
+            "        # Session in Hall A - 鈴木\n"
             "        video_id: ''\n"
             "    Hall B:\n"
             "      10:00:\n"
-            "        # Session in Hall B / 佐藤\n"
+            "        # Session in Hall B - 佐藤\n"
             "        video_id: ''\n"
         )
         assert result == expected
@@ -279,8 +282,8 @@ class TestMappingFileWriter:
     def test_write_long_title_wraps_at_word_boundary(self) -> None:
         """長いタイトルは分かち書き単位で折り返される"""
         jst = ZoneInfo(key="Asia/Tokyo")
-        # タイトル + " / " + スピーカー名 の合計が70文字幅を超えるケース
-        # タイトル34文字 (68幅) + " / " (3幅) + スピーカー4文字 (8幅) = 79幅
+        # タイトル + " - " + スピーカー名 の合計が70文字幅を超えるケース
+        # タイトル34文字 (68幅) + " - " (3幅) + スピーカー4文字 (8幅) = 79幅
         long_title = (
             "アジャイル開発における継続的インテグレーションの実践と課題について"
         )
@@ -292,7 +295,7 @@ class TestMappingFileWriter:
                 ),
                 room="Hall A",
                 track="技術",
-                speakers=["田中太郎"],
+                speakers=[Speaker(first_name="", last_name="田中太郎")],
                 abstract="概要",
                 url="https://example.com/session1",
             )
@@ -311,10 +314,10 @@ class TestMappingFileWriter:
         )
         result = output.getvalue()
 
-        # タイトル全体 + " / 田中太郎" が1行に収まらないので改行される
+        # タイトル全体 + " - 田中太郎" が1行に収まらないので改行される
         long_comment = (
             "        # アジャイル開発における継続的インテグレーションの"
-            "実践と課題について / \n"
+            "実践と課題について - \n"
         )
         expected = (
             "# ConfEngine Mapping Template\n"
@@ -341,7 +344,7 @@ class TestMappingFileWriter:
                 ),
                 room="Hall A",
                 track="技術",
-                speakers=["Speaker A"],
+                speakers=[Speaker(first_name="Speaker", last_name="A")],
                 abstract="概要",
                 url="https://example.com/session1",
             ),
@@ -352,7 +355,7 @@ class TestMappingFileWriter:
                 ),
                 room="Hall A",
                 track="技術",
-                speakers=["Speaker B"],
+                speakers=[Speaker(first_name="Speaker", last_name="B")],
                 abstract="概要",
                 url="https://example.com/session2",
             ),

@@ -16,6 +16,7 @@ from confengine_exporter.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
     YouTubeDescriptionOptions,
 )
+from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_exporter.infrastructure.cli.constants import (
     DEFAULT_FOOTER,
     PREVIEW_TRUNCATE_LENGTH,
@@ -90,12 +91,14 @@ def run(args: argparse.Namespace) -> None:
         footer_text=DEFAULT_FOOTER,
     )
     description_builder = YouTubeDescriptionBuilder(options=description_options)
+    title_builder = YouTubeTitleBuilder()
 
     usecase = UpdateYouTubeDescriptionsUseCase(
         confengine_api=confengine_api,
         mapping_reader=mapping_reader,
         youtube_api=youtube_api,
         description_builder=description_builder,
+        title_builder=title_builder,
     )
 
     try:
@@ -133,7 +136,8 @@ def _print_result(result: YouTubeUpdateResult) -> None:
                 print(f"  Error: {preview.error}", file=sys.stderr)  # noqa: T201
                 error_count += 1
             else:
-                print(f"  Title: {preview.current_title}", file=sys.stderr)  # noqa: T201
+                print(f"  Current Title: {preview.current_title}", file=sys.stderr)  # noqa: T201
+                print(f"  New Title: {preview.new_title}", file=sys.stderr)  # noqa: T201
                 print("  New Description:", file=sys.stderr)  # noqa: T201
                 new_description = preview.new_description or ""
                 desc_preview = new_description[:PREVIEW_TRUNCATE_LENGTH]

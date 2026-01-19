@@ -15,7 +15,8 @@ from confengine_exporter.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
     YouTubeDescriptionOptions,
 )
-from confengine_exporter.domain.session import Session
+from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_exporter.domain.session import Session, Speaker
 from confengine_exporter.usecases.dto import YouTubeUpdateResult
 from confengine_exporter.usecases.update_youtube_descriptions import (
     UpdateYouTubeDescriptionsUseCase,
@@ -37,7 +38,7 @@ class TestUpdateYouTubeDescriptionsUseCase:
                 ),
                 room="Hall A",
                 track="Track 1",
-                speakers=["Speaker A"],
+                speakers=[Speaker(first_name="Speaker", last_name="A")],
                 abstract="Abstract 1",
                 url="https://example.com/1",
             ),
@@ -48,7 +49,7 @@ class TestUpdateYouTubeDescriptionsUseCase:
                 ),
                 room="Hall A",
                 track="Track 1",
-                speakers=["Speaker B"],
+                speakers=[Speaker(first_name="Speaker", last_name="B")],
                 abstract="Abstract 2",
                 url="https://example.com/2",
             ),
@@ -99,6 +100,7 @@ sessions:
             description_builder=YouTubeDescriptionBuilder(
                 options=YouTubeDescriptionOptions(hashtags="", footer_text="")
             ),
+            title_builder=YouTubeTitleBuilder(),
         )
 
     def test_execute_dry_run(
@@ -187,6 +189,7 @@ sessions:
             description_builder=YouTubeDescriptionBuilder(
                 options=YouTubeDescriptionOptions(hashtags="", footer_text="")
             ),
+            title_builder=YouTubeTitleBuilder(),
         )
 
         result = usecase.execute(
@@ -221,7 +224,7 @@ sessions:
                     ),
                     room="Hall C",
                     track="Track 1",
-                    speakers=["Speaker"],
+                    speakers=[Speaker(first_name="", last_name="Speaker")],
                     abstract="Content",
                     url="https://example.com/unmapped",
                 ),
@@ -243,6 +246,7 @@ sessions: {}
             description_builder=YouTubeDescriptionBuilder(
                 options=YouTubeDescriptionOptions(hashtags="", footer_text="")
             ),
+            title_builder=YouTubeTitleBuilder(),
         )
 
         result = usecase.execute(
@@ -277,7 +281,7 @@ sessions: {}
                     ),
                     room="Hall A",
                     track="Track 1",
-                    speakers=["Speaker"],
+                    speakers=[Speaker(first_name="", last_name="Speaker")],
                     abstract="Content",
                     url="https://example.com/1",
                 ),
@@ -305,6 +309,7 @@ sessions:
             description_builder=YouTubeDescriptionBuilder(
                 options=YouTubeDescriptionOptions(hashtags="", footer_text="")
             ),
+            title_builder=YouTubeTitleBuilder(),
         )
 
         result = usecase.execute(

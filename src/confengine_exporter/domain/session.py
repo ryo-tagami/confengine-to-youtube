@@ -10,12 +10,46 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
+class Speaker:
+    """スピーカー情報"""
+
+    first_name: str
+    last_name: str
+
+    @property
+    def full_name(self) -> str | None:
+        """フルネームを取得 (例: "John Doe")
+
+        first_name と last_name が両方空の場合は None を返す。
+        """
+        name = f"{self.first_name} {self.last_name}".strip()
+        return name or None
+
+    @property
+    def initial_name(self) -> str | None:
+        """イニシャル表記を取得
+
+        例: "John Doe" -> "J. Doe", "Tze Chin Tang" -> "T. C. Tang"
+
+        first_name と last_name が両方空の場合は None を返す。
+        """
+        if not self.first_name and not self.last_name:
+            return None
+
+        if self.first_name:
+            initials = " ".join(f"{part[0]}." for part in self.first_name.split())
+            return f"{initials} {self.last_name}".strip()
+
+        return self.last_name
+
+
+@dataclass(frozen=True)
 class Session:
     title: str
     timeslot: datetime
     room: str
     track: str
-    speakers: list[str]
+    speakers: list[Speaker]
     abstract: str
     url: str
 

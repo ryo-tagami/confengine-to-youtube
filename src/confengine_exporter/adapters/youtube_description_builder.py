@@ -12,6 +12,7 @@ from confengine_exporter.adapters.constants import (
     ELLIPSIS,
     YOUTUBE_DESCRIPTION_MAX_LENGTH,
 )
+from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
 
 if TYPE_CHECKING:
     from confengine_exporter.domain.session import Session
@@ -55,8 +56,9 @@ class YouTubeDescriptionBuilder:
     def _build_document(self, session: Session, abstract: str) -> str:
         doc = Document()
 
-        if session.speakers:
-            speakers_str = ", ".join(session.speakers)
+        if speakers_str := YouTubeTitleBuilder.format_speakers_full(
+            speakers=session.speakers
+        ):
             doc.add_paragraph(text=f"Speaker: {speakers_str}")
 
         if abstract:

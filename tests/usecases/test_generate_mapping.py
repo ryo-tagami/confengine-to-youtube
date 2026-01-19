@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from confengine_exporter.adapters.mapping_file_writer import MappingFileWriter
-from confengine_exporter.domain.session import Session
+from confengine_exporter.domain.session import Session, Speaker
 from confengine_exporter.usecases.generate_mapping import (
     GenerateMappingResult,
     GenerateMappingUseCase,
@@ -26,7 +26,7 @@ class TestGenerateMappingUseCase:
                 ),
                 room="Hall A",
                 track="Track 1",
-                speakers=["Speaker A"],
+                speakers=[Speaker(first_name="Speaker", last_name="A")],
                 abstract="Abstract 1",
                 url="https://example.com/1",
             ),
@@ -37,7 +37,7 @@ class TestGenerateMappingUseCase:
                 ),
                 room="Hall A",
                 track="Track 1",
-                speakers=["Speaker B"],
+                speakers=[Speaker(first_name="Speaker", last_name="B")],
                 abstract="Abstract 2",
                 url="https://example.com/2",
             ),
@@ -77,10 +77,10 @@ class TestGenerateMappingUseCase:
             "  2026-01-07:\n"
             "    Hall A:\n"
             "      10:00:\n"
-            "        # Session 1 / Speaker A\n"
+            "        # Session 1 - Speaker A\n"
             "        video_id: ''\n"
             "      11:00:\n"
-            "        # Session 2 / Speaker B\n"
+            "        # Session 2 - Speaker B\n"
             "        video_id: ''\n"
         )
         assert yaml_content == expected

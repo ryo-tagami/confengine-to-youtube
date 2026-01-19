@@ -18,7 +18,7 @@ Clean Architectureに基づく4層構造:
 
 ```
 confengine_exporter/
-├── domain/          # ビジネスエンティティ (Session, VideoMapping)
+├── domain/          # ビジネスエンティティ (Session, Speaker, VideoMapping)
 ├── usecases/        # ビジネスロジック (依存性は注入)
 ├── adapters/        # 外部サービスとのインターフェース
 └── infrastructure/  # 技術的詳細 (HTTP, 認証, CLI)
@@ -28,7 +28,7 @@ confengine_exporter/
 
 ### ユースケース
 
-- `UpdateYouTubeDescriptionsUseCase`: セッション情報でYouTube動画のdescriptionを更新
+- `UpdateYouTubeDescriptionsUseCase`: セッション情報でYouTube動画のタイトルとdescriptionを更新
 - `GenerateMappingUseCase`: マッピングYAML雛形を生成
 
 ### データフロー
