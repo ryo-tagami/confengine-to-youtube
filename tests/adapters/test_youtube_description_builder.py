@@ -9,7 +9,7 @@ from confengine_exporter.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
     YouTubeDescriptionOptions,
 )
-from confengine_exporter.domain.session import Session
+from confengine_exporter.domain.session import Session, Speaker
 
 
 class TestYouTubeDescriptionBuilder:
@@ -94,7 +94,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             room="Hall A",
             track="Track 1",
-            speakers=["Speaker A"],
+            speakers=[Speaker(first_name="Speaker", last_name="A")],
             abstract="",
             url="https://example.com",
         )
@@ -114,7 +114,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             room="Hall A",
             track="Track 1",
-            speakers=["Speaker A"],
+            speakers=[Speaker(first_name="Speaker", last_name="A")],
             abstract="Some abstract",
             url="",
         )
@@ -134,7 +134,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             room="Hall A",
             track="Track 1",
-            speakers=["Speaker"],
+            speakers=[Speaker(first_name="", last_name="Speaker")],
             abstract="Short",
             url="https://example.com",
         )
@@ -161,7 +161,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             room="Hall A",
             track="Track 1",
-            speakers=["Speaker"],
+            speakers=[Speaker(first_name="", last_name="Speaker")],
             abstract=long_abstract,
             url="https://example.com",
         )
@@ -189,7 +189,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             room="Hall A",
             track="Track 1",
-            speakers=["Speaker"],
+            speakers=[Speaker(first_name="", last_name="Speaker")],
             abstract="Link: <https://example.com/page>",
             url="",
         )
@@ -209,7 +209,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             room="Hall A",
             track="Track 1",
-            speakers=["Speaker"],
+            speakers=[Speaker(first_name="", last_name="Speaker")],
             abstract="See <https://a.com> and <http://b.com>",
             url="",
         )
@@ -235,7 +235,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             room="Hall A",
             track="Track 1",
-            speakers=["Speaker"],
+            speakers=[Speaker(first_name="", last_name="Speaker")],
             abstract="> Quote\na < b\nList<T>",
             url="",
         )

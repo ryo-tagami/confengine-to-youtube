@@ -1,6 +1,6 @@
 # confengine-exporter
 
-ConfEngineのセッション情報を使ってYouTube動画のdescriptionを更新するCLIツール。
+ConfEngineのセッション情報を使ってYouTube動画のタイトルとdescriptionを更新するCLIツール。
 
 ## 必要要件
 
@@ -15,7 +15,7 @@ uv sync
 
 ## 使い方
 
-YouTube動画のdescriptionをConfEngineのセッション情報で更新。
+YouTube動画のタイトルとdescriptionをConfEngineのセッション情報で更新。
 
 ### マッピングファイルの雛形生成
 

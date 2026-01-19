@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Self
 
 from pydantic import BaseModel, ConfigDict, RootModel, model_validator
 
+from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_exporter.domain.video_mapping import MappingConfig, VideoMapping
 
 if TYPE_CHECKING:
@@ -60,6 +61,7 @@ class DateSlotsSchema(RootModel[dict[date, RoomSlotsSchema]]):
     ) -> dict[date, object]:
         # datetimeはdateのサブクラスなので、先にdatetimeをチェックする
         result: dict[date, object] = {}
+
         for k, v in data.items():
             if isinstance(k, datetime):
                 key = k.date()
@@ -67,7 +69,9 @@ class DateSlotsSchema(RootModel[dict[date, RoomSlotsSchema]]):
                 key = k
             else:
                 key = date.fromisoformat(k)
+
             result[key] = v
+
         return result
 
 
@@ -111,7 +115,7 @@ class SessionEntryWithComment(SessionEntrySchema):
     フィールドとしては出力されない。
     """
 
-    comment: str = ""
+    comment: str
 
 
 class TimeSlotsWithCommentSchema(RootModel[dict[time, SessionEntryWithComment]]):
@@ -148,8 +152,14 @@ class MappingFileWithCommentSchema(BaseModel):
             session_date = session.timeslot.date()
             session_time = session.timeslot.time()
             room = session.room
-            if session.speakers:
-                comment = f"{session.title} / {', '.join(session.speakers)}"
+
+            if speakers_str := YouTubeTitleBuilder.format_speakers_full(
+                speakers=session.speakers
+            ):
+                comment = YouTubeTitleBuilder.combine(
+                    title=session.title,
+                    speaker_part=speakers_str,
+                )
             else:
                 comment = session.title
 

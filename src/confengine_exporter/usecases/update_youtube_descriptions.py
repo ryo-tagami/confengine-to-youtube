@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from confengine_exporter.adapters.youtube_description_builder import (
         YouTubeDescriptionBuilder,
     )
+    from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
     from confengine_exporter.domain.session import Session
     from confengine_exporter.domain.video_mapping import MappingConfig
 
@@ -34,11 +35,13 @@ class UpdateYouTubeDescriptionsUseCase:
         mapping_reader: MappingFileReader,
         youtube_api: YouTubeApiGateway,
         description_builder: YouTubeDescriptionBuilder,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         self._confengine_api = confengine_api
         self._mapping_reader = mapping_reader
         self._youtube_api = youtube_api
         self._description_builder = description_builder
+        self._title_builder = title_builder
 
     def execute(
         self,
@@ -89,6 +92,7 @@ class UpdateYouTubeDescriptionsUseCase:
 
             try:
                 video_info = self._youtube_api.get_video_info(video_id=mapping.video_id)
+                new_title = self._title_builder.build(session=session)
                 description = self._description_builder.build(session=session)
 
                 previews.append(
@@ -96,6 +100,7 @@ class UpdateYouTubeDescriptionsUseCase:
                         session_key=session_key,
                         video_id=mapping.video_id,
                         current_title=video_info.title,
+                        new_title=new_title,
                         new_description=description,
                     )
                 )
@@ -103,7 +108,7 @@ class UpdateYouTubeDescriptionsUseCase:
                 if not dry_run:
                     request = VideoUpdateRequest(
                         video_id=mapping.video_id,
-                        title=video_info.title,
+                        title=new_title,
                         description=description,
                         category_id=video_info.category_id,
                     )
@@ -120,6 +125,7 @@ class UpdateYouTubeDescriptionsUseCase:
                         session_key=session_key,
                         video_id=mapping.video_id,
                         current_title=None,
+                        new_title=None,
                         new_description=None,
                         error=error_msg,
                     )

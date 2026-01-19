@@ -14,45 +14,14 @@ class TestSpeaker:
 
     def test_create_speaker(self) -> None:
         """スピーカーを作成できる"""
-        speaker = Speaker(name="Test Speaker")
+        speaker = Speaker(first_name="Test", last_name="Speaker")
 
-        assert speaker.name == "Test Speaker"
+        assert speaker.first_name == "Test"
+        assert speaker.last_name == "Speaker"
 
 
 class TestApiSession:
     """ApiSession のテスト"""
-
-    def test_speaker_names(self) -> None:
-        """speaker_names がスピーカー名のリストを返す"""
-        session = ApiSession(
-            timeslot=datetime(
-                year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=UTC
-            ),
-            title="Test Session",
-            room="Hall A",
-            track="Track 1",
-            url="https://example.com",
-            abstract="",
-            speakers=[Speaker(name="Speaker A"), Speaker(name="Speaker B")],
-        )
-
-        assert session.speaker_names == ["Speaker A", "Speaker B"]
-
-    def test_speaker_names_filters_empty(self) -> None:
-        """speaker_names は空の名前を除外する"""
-        session = ApiSession(
-            timeslot=datetime(
-                year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=UTC
-            ),
-            title="Test Session",
-            room="Hall A",
-            track="Track 1",
-            url="https://example.com",
-            abstract="",
-            speakers=[Speaker(name="Speaker A"), Speaker(name="")],
-        )
-
-        assert session.speaker_names == ["Speaker A"]
 
     def test_abstract_markdown_converts_html(self) -> None:
         """abstract_markdown が HTML を Markdown に変換する"""

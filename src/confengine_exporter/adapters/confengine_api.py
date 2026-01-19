@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from confengine_exporter.adapters.confengine_schema import ScheduleResponse
-from confengine_exporter.domain.session import Session
+from confengine_exporter.domain.session import Session, Speaker
 
 if TYPE_CHECKING:
     from confengine_exporter.infrastructure.http_client import HttpClient
@@ -28,7 +28,9 @@ class ConfEngineApiGateway:
         return sessions, timezone
 
     def _extract_sessions(
-        self, response: ScheduleResponse, timezone: ZoneInfo
+        self,
+        response: ScheduleResponse,
+        timezone: ZoneInfo,
     ) -> list[Session]:
         sessions: list[Session] = []
 
@@ -45,7 +47,13 @@ class ConfEngineApiGateway:
                                     ),
                                     room=api_session.room,
                                     track=api_session.track,
-                                    speakers=api_session.speaker_names,
+                                    speakers=[
+                                        Speaker(
+                                            first_name=speaker.first_name,
+                                            last_name=speaker.last_name,
+                                        )
+                                        for speaker in api_session.speakers
+                                    ],
                                     abstract=api_session.abstract_markdown,
                                     url=api_session.url,
                                 )

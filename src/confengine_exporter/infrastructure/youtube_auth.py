@@ -27,9 +27,7 @@ class YouTubeAuthClient:
         self.token_path = token_path
 
     def get_credentials(self) -> Any:  # noqa: ANN401
-        creds = self._load_token()
-
-        if creds and creds.valid:
+        if (creds := self._load_token()) and creds.valid:
             return creds
 
         if creds and creds.expired and creds.refresh_token:

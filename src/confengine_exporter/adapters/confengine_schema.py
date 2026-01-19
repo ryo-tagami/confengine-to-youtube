@@ -14,7 +14,8 @@ class Speaker(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    name: str
+    first_name: str
+    last_name: str
 
 
 class ApiSession(BaseModel):
@@ -29,12 +30,6 @@ class ApiSession(BaseModel):
     url: str
     abstract: str
     speakers: list[Speaker]
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def speaker_names(self) -> list[str]:
-        """スピーカー名のリストを取得"""
-        return [s.name for s in self.speakers if s.name]
 
     @computed_field  # type: ignore[prop-decorator]
     @property

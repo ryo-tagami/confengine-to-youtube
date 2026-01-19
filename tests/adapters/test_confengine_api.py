@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 from zoneinfo import ZoneInfo
 
 from confengine_exporter.adapters.confengine_api import ConfEngineApiGateway
+from confengine_exporter.domain.session import Speaker
 
 
 class TestConfEngineApiGateway:
@@ -29,7 +30,13 @@ class TestConfEngineApiGateway:
                                             "track": "Track 1",
                                             "url": "https://example.com",
                                             "abstract": "<p>Test</p>",
-                                            "speakers": [{"name": "Speaker A"}],
+                                            "speakers": [
+                                                {
+                                                    "name": "Speaker A",
+                                                    "first_name": "Speaker",
+                                                    "last_name": "A",
+                                                }
+                                            ],
                                         }
                                     ]
                                 }
@@ -56,7 +63,7 @@ class TestConfEngineApiGateway:
         )
         assert session.room == "Hall A"
         assert session.track == "Track 1"
-        assert session.speakers == ["Speaker A"]
+        assert session.speakers == [Speaker(first_name="Speaker", last_name="A")]
         assert session.abstract == "Test"
         assert session.url == "https://example.com"
 
