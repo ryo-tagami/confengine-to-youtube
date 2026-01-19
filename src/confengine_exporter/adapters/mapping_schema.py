@@ -35,8 +35,11 @@ class TimeSlotsSchema(RootModel[dict[time, SessionEntrySchema]]):
 
     @model_validator(mode="before")
     @classmethod
-    def parse_time_keys(cls, data: dict[str, object]) -> dict[time, object]:
-        return {time.fromisoformat(k): v for k, v in data.items()}
+    def parse_time_keys(cls, data: dict[str | time, object]) -> dict[time, object]:
+        return {
+            k if isinstance(k, time) else time.fromisoformat(k): v
+            for k, v in data.items()
+        }
 
 
 class RoomSlotsSchema(RootModel[dict[str, TimeSlotsSchema]]):
@@ -52,8 +55,20 @@ class DateSlotsSchema(RootModel[dict[date, RoomSlotsSchema]]):
 
     @model_validator(mode="before")
     @classmethod
-    def parse_date_keys(cls, data: dict[str, object]) -> dict[date, object]:
-        return {date.fromisoformat(k): v for k, v in data.items()}
+    def parse_date_keys(
+        cls, data: dict[str | date | datetime, object]
+    ) -> dict[date, object]:
+        # datetimeはdateのサブクラスなので、先にdatetimeをチェックする
+        result: dict[date, object] = {}
+        for k, v in data.items():
+            if isinstance(k, datetime):
+                key = k.date()
+            elif isinstance(k, date):
+                key = k
+            else:
+                key = date.fromisoformat(k)
+            result[key] = v
+        return result
 
 
 class MappingFileSchema(BaseModel):
