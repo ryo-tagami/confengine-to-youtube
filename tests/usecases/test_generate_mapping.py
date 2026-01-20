@@ -77,8 +77,8 @@ class TestGenerateMappingUseCase:
         assert isinstance(result, GenerateMappingResult)
         expected = (
             "# ConfEngine Mapping Template\n"
-            "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "conf_id: test-conf\n"
             "# ハッシュタグ\n"
             "# 例:\n"
             "#   hashtags:\n"
@@ -140,8 +140,8 @@ class TestGenerateMappingUseCase:
         assert result.session_count == 0
         expected = (
             "# ConfEngine Mapping Template\n"
-            "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "conf_id: test-conf\n"
             "# ハッシュタグ\n"
             "# 例:\n"
             "#   hashtags:\n"

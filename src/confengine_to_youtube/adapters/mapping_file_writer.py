@@ -38,12 +38,14 @@ class MappingFileWriter:
         conf_id: str,
         generated_at: datetime,
     ) -> None:
-        schema = MappingFileWithCommentSchema.from_sessions(sessions=sessions)
+        schema = MappingFileWithCommentSchema.from_sessions(
+            sessions=sessions,
+            conf_id=conf_id,
+        )
 
         self._schema_to_yaml(
             schema=schema,
             output=output,
-            conf_id=conf_id,
             generated_at=generated_at,
         )
 
@@ -51,16 +53,16 @@ class MappingFileWriter:
         self,
         schema: MappingFileWithCommentSchema,
         output: TextIO,
-        conf_id: str,
         generated_at: datetime,
     ) -> None:
         """PydanticスキーマをコメントつきYAMLとしてファイルに書き込む"""
         root = CommentedMap()
         root.yaml_set_start_comment(
             comment=f"ConfEngine Mapping Template\n"
-            f"Conference: {conf_id}\n"
             f"Generated: {generated_at.isoformat()}"
         )
+
+        root["conf_id"] = schema.conf_id
 
         sessions_map = CommentedMap()
 

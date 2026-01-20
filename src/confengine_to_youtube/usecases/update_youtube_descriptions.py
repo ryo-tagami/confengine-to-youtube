@@ -45,15 +45,13 @@ class UpdateYouTubeDescriptionsUseCase:
 
     def execute(
         self,
-        conf_id: str,
         mapping_file: Path,
         *,
         dry_run: bool = False,
     ) -> YouTubeUpdateResult:
-        sessions, timezone = self._confengine_api.fetch_sessions(conf_id=conf_id)
-        mapping_config = self._mapping_reader.read(
-            file_path=mapping_file, timezone=timezone
-        )
+        schema = self._mapping_reader.read_schema(file_path=mapping_file)
+        sessions, timezone = self._confengine_api.fetch_sessions(conf_id=schema.conf_id)
+        mapping_config = schema.to_domain(timezone=timezone)
 
         return self._execute(
             sessions=sessions, mapping_config=mapping_config, dry_run=dry_run

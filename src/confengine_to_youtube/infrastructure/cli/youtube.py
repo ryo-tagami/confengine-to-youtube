@@ -29,10 +29,6 @@ from confengine_to_youtube.usecases.update_youtube_descriptions import (
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "conf_id",
-        help="カンファレンスID (例: scrum-fest-osaka-2024)",
-    )
-    parser.add_argument(
         "-m",
         "--mapping",
         required=True,
@@ -106,7 +102,6 @@ def run(args: argparse.Namespace) -> None:
             sys.exit(1)
 
         result = usecase.execute(
-            conf_id=args.conf_id,
             mapping_file=mapping_file,
             dry_run=args.dry_run,
         )
