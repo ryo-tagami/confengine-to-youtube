@@ -15,9 +15,9 @@ if TYPE_CHECKING:
     from typing import TextIO
     from zoneinfo import ZoneInfo
 
-    from confengine_to_youtube.adapters.mapping_schema import MappingFileSchema
     from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
     from confengine_to_youtube.domain.session import Session
+    from confengine_to_youtube.domain.video_mapping import MappingConfig
     from confengine_to_youtube.domain.youtube_description import YouTubeDescription
     from confengine_to_youtube.domain.youtube_title import YouTubeTitle
 
@@ -77,10 +77,20 @@ class ConfEngineApiProtocol(Protocol):  # pragma: no cover
         ...
 
 
-class MappingReaderProtocol(Protocol):  # pragma: no cover
+class MappingFile(Protocol):  # pragma: no cover
+    """読み込み済みマッピングファイル"""
+
+    conf_id: str
+
+    def to_domain(self, timezone: ZoneInfo) -> MappingConfig:
+        """ドメインオブジェクトに変換する"""
+        ...
+
+
+class MappingFileReaderProtocol(Protocol):  # pragma: no cover
     """マッピングファイル読み込みプロトコル"""
 
-    def read_schema(self, file_path: Path) -> MappingFileSchema:
+    def read(self, file_path: Path) -> MappingFile:
         """マッピングファイルを読み込む"""
         ...
 

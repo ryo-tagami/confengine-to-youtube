@@ -21,10 +21,10 @@ def sample_session() -> Session:
         ),
         title="Sample Session",
         track="Track 1",
-        speakers=[
+        speakers=(
             Speaker(first_name="Speaker", last_name="A"),
             Speaker(first_name="Speaker", last_name="B"),
-        ],
+        ),
         abstract=AbstractMarkdown(content="This is a sample abstract."),
         url="https://example.com/session/1",
     )
@@ -42,7 +42,7 @@ def empty_session() -> Session:
         ),
         title="Empty Session",
         track="Track 1",
-        speakers=[],
+        speakers=(),
         abstract=AbstractMarkdown(content=""),
         url="https://example.com/session/2",
     )

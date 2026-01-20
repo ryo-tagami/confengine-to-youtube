@@ -28,7 +28,7 @@ class TestYouTubeTitleBuilder:
             ),
             title="Test Session",
             track="Track 1",
-            speakers=[Speaker(first_name="John", last_name="Doe")],
+            speakers=(Speaker(first_name="John", last_name="Doe"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -53,7 +53,7 @@ class TestYouTubeTitleBuilder:
             ),
             title="Test Session",
             track="Track 1",
-            speakers=[Speaker(first_name="", last_name="")],
+            speakers=(Speaker(first_name="", last_name=""),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -71,11 +71,11 @@ class TestYouTubeTitleBuilder:
             ),
             title="Panel Discussion",
             track="Track 1",
-            speakers=[
+            speakers=(
                 Speaker(first_name="John", last_name="Doe"),
                 Speaker(first_name="Jane", last_name="Smith"),
                 Speaker(first_name="Bob", last_name="Wilson"),
-            ],
+            ),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -95,7 +95,7 @@ class TestYouTubeTitleBuilder:
             ),
             title=title_text,
             track="Track 1",
-            speakers=[Speaker(first_name="John", last_name="Doe")],
+            speakers=(Speaker(first_name="John", last_name="Doe"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -116,7 +116,7 @@ class TestYouTubeTitleBuilder:
             ),
             title=title_text,
             track="Track 1",
-            speakers=[Speaker(first_name="John", last_name="Doe")],
+            speakers=(Speaker(first_name="John", last_name="Doe"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -138,7 +138,7 @@ class TestYouTubeTitleBuilder:
             ),
             title=title_text,
             track="Track 1",
-            speakers=[Speaker(first_name="John", last_name="Doe")],
+            speakers=(Speaker(first_name="John", last_name="Doe"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -159,7 +159,7 @@ class TestYouTubeTitleBuilder:
             ),
             title=title_text,
             track="Track 1",
-            speakers=[Speaker(first_name="John", last_name="Doe")],
+            speakers=(Speaker(first_name="John", last_name="Doe"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -181,7 +181,7 @@ class TestYouTubeTitleBuilder:
             ),
             title=title_text,
             track="Track 1",
-            speakers=[Speaker(first_name="John", last_name="Doe")],
+            speakers=(Speaker(first_name="John", last_name="Doe"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -202,7 +202,7 @@ class TestYouTubeTitleBuilder:
             ),
             title="Short",
             track="Track 1",
-            speakers=[Speaker(first_name="V", last_name="W" * 101)],
+            speakers=(Speaker(first_name="V", last_name="W" * 101),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -222,7 +222,7 @@ class TestYouTubeTitleBuilder:
             ),
             title="Test Session",
             track="Track 1",
-            speakers=[Speaker(first_name="", last_name="Doe")],
+            speakers=(Speaker(first_name="", last_name="Doe"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -240,7 +240,7 @@ class TestYouTubeTitleBuilder:
             ),
             title="Test Session",
             track="Track 1",
-            speakers=[Speaker(first_name="John", last_name="")],
+            speakers=(Speaker(first_name="John", last_name=""),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -259,7 +259,7 @@ class TestYouTubeTitleBuilder:
             ),
             title=long_title,
             track="Track 1",
-            speakers=[],
+            speakers=(),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -278,7 +278,7 @@ class TestYouTubeTitleBuilder:
             ),
             title="Test Session",
             track="Track 1",
-            speakers=[Speaker(first_name="Tze Chin", last_name="Tang")],
+            speakers=(Speaker(first_name="Tze Chin", last_name="Tang"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )
@@ -299,7 +299,7 @@ class TestYouTubeTitleBuilder:
             ),
             title=title_text,
             track="Track 1",
-            speakers=[Speaker(first_name="Tze Chin", last_name="Tang")],
+            speakers=(Speaker(first_name="Tze Chin", last_name="Tang"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="https://example.com",
         )

@@ -69,13 +69,13 @@ class ConfEngineApiGateway:
             slot=slot,
             title=api_session.title,
             track=api_session.track,
-            speakers=[
+            speakers=tuple(
                 Speaker(
                     first_name=speaker.first_name,
                     last_name=speaker.last_name,
                 )
                 for speaker in api_session.speakers
-            ],
+            ),
             abstract=abstract,
             url=api_session.url,
         )

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class MappingFileReader:
-    def read_schema(self, file_path: Path) -> MappingFileSchema:
+    def read(self, file_path: Path) -> MappingFileSchema:
         yaml = YAML()
         try:
             with file_path.open(encoding="utf-8") as f:

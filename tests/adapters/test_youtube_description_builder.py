@@ -95,7 +95,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             title="Test Title",
             track="Track 1",
-            speakers=[Speaker(first_name="Speaker", last_name="A")],
+            speakers=(Speaker(first_name="Speaker", last_name="A"),),
             abstract=AbstractMarkdown(content=""),
             url="https://example.com",
         )
@@ -114,7 +114,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             title="Test Title",
             track="Track 1",
-            speakers=[Speaker(first_name="Speaker", last_name="A")],
+            speakers=(Speaker(first_name="Speaker", last_name="A"),),
             abstract=AbstractMarkdown(content="Some abstract"),
             url="",
         )
@@ -133,7 +133,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             title="Title",
             track="Track 1",
-            speakers=[Speaker(first_name="", last_name="Speaker")],
+            speakers=(Speaker(first_name="", last_name="Speaker"),),
             abstract=AbstractMarkdown(content="Short"),
             url="https://example.com",
         )
@@ -156,7 +156,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             title="Title",
             track="Track 1",
-            speakers=[Speaker(first_name="", last_name="Speaker")],
+            speakers=(Speaker(first_name="", last_name="Speaker"),),
             abstract=AbstractMarkdown(content=long_abstract),
             url="https://example.com",
         )
@@ -180,7 +180,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             title="Test",
             track="Track 1",
-            speakers=[Speaker(first_name="", last_name="Speaker")],
+            speakers=(Speaker(first_name="", last_name="Speaker"),),
             abstract=AbstractMarkdown(content="Link: <https://example.com/page>"),
             url="",
         )
@@ -199,7 +199,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             title="Test",
             track="Track 1",
-            speakers=[Speaker(first_name="", last_name="Speaker")],
+            speakers=(Speaker(first_name="", last_name="Speaker"),),
             abstract=AbstractMarkdown(content="See <https://a.com> and <http://b.com>"),
             url="",
         )
@@ -224,7 +224,7 @@ class TestYouTubeDescriptionBuilder:
             ),
             title="Test",
             track="Track 1",
-            speakers=[Speaker(first_name="", last_name="Speaker")],
+            speakers=(Speaker(first_name="", last_name="Speaker"),),
             abstract=AbstractMarkdown(content="> Quote\na < b\nList<T>"),
             url="",
         )

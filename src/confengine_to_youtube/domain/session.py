@@ -50,7 +50,7 @@ class Session:
     slot: ScheduleSlot
     title: str
     track: str
-    speakers: list[Speaker]
+    speakers: tuple[Speaker, ...]
     abstract: AbstractMarkdown
     url: str
 

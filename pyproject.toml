@@ -21,6 +21,7 @@ dependencies = [
 dev = [
     "google-api-python-client-stubs",
     "google-auth-stubs",
+    "import-linter",
     "mypy",
     "pytest",
     "pytest-cov",
@@ -103,5 +104,19 @@ exclude_lines = [
 
 [tool.taskipy.tasks]
 check = "task lint && task test"
-lint = "ruff check && ruff format --check && mypy"
+lint = "ruff check && ruff format --check && mypy && lint-imports"
 test = "pytest"
+
+[tool.importlinter]
+root_package = "confengine_to_youtube"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Clean Architecture layers"
+type = "layers"
+layers = [
+    "confengine_to_youtube.infrastructure",
+    "confengine_to_youtube.adapters",
+    "confengine_to_youtube.usecases",
+    "confengine_to_youtube.domain",
+]

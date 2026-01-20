@@ -92,17 +92,8 @@ def run(args: argparse.Namespace) -> None:
     )
 
     try:
-        mapping_file = Path(args.mapping)
-
-        if not mapping_file.exists():
-            print(  # noqa: T201
-                f"Error: mapping file not found: {mapping_file}",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-
         result = usecase.execute(
-            mapping_file=mapping_file,
+            mapping_file=Path(args.mapping),
             dry_run=args.dry_run,
         )
 
