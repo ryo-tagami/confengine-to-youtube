@@ -10,7 +10,7 @@ from confengine_to_youtube.usecases.protocols import MappingFileError
 
 
 class TestMappingFileReader:
-    def test_read_schema(self, tmp_path: Path) -> None:
+    def test_read(self, tmp_path: Path) -> None:
         yaml_content = """
 conf_id: test-conf
 sessions:
@@ -30,11 +30,11 @@ sessions:
         yaml_file.write_text(data=yaml_content, encoding="utf-8")
 
         reader = MappingFileReader()
-        schema = reader.read_schema(file_path=yaml_file)
+        mapping = reader.read(file_path=yaml_file)
 
-        assert schema.conf_id == "test-conf"
+        assert mapping.conf_id == "test-conf"
 
-        config = schema.to_domain(timezone=jst)
+        config = mapping.to_domain(timezone=jst)
 
         assert len(config.mappings) == 3
 
@@ -62,14 +62,14 @@ sessions:
         assert mapping3 is not None
         assert mapping3.video_id == "ghi789"
 
-    def test_read_schema_file_not_found(self) -> None:
+    def test_read_file_not_found(self) -> None:
         """存在しないファイルはMappingFileErrorを発生"""
         reader = MappingFileReader()
 
         with pytest.raises(expected_exception=MappingFileError, match="not found"):
-            reader.read_schema(file_path=Path("/nonexistent/file.yaml"))
+            reader.read(file_path=Path("/nonexistent/file.yaml"))
 
-    def test_read_schema_invalid_yaml_syntax(self, tmp_path: Path) -> None:
+    def test_read_invalid_yaml_syntax(self, tmp_path: Path) -> None:
         """不正なYAML構文はMappingFileErrorを発生"""
         invalid_yaml = """
 conf_id: test-conf
@@ -86,9 +86,9 @@ sessions:
         with pytest.raises(
             expected_exception=MappingFileError, match="Invalid YAML syntax"
         ):
-            reader.read_schema(file_path=yaml_file)
+            reader.read(file_path=yaml_file)
 
-    def test_read_schema_invalid_schema(self, tmp_path: Path) -> None:
+    def test_read_invalid_schema(self, tmp_path: Path) -> None:
         """スキーマ不一致はMappingFileErrorを発生"""
         invalid_schema = """
 conf_id: test-conf
@@ -105,9 +105,9 @@ sessions:
         with pytest.raises(
             expected_exception=MappingFileError, match="Invalid mapping file format"
         ):
-            reader.read_schema(file_path=yaml_file)
+            reader.read(file_path=yaml_file)
 
-    def test_read_schema_missing_conf_id(self, tmp_path: Path) -> None:
+    def test_read_missing_conf_id(self, tmp_path: Path) -> None:
         """conf_idがないYAMLファイルはMappingFileErrorを発生"""
         missing_conf_id = """
 sessions:
@@ -123,9 +123,9 @@ sessions:
         with pytest.raises(
             expected_exception=MappingFileError, match="Invalid mapping file format"
         ):
-            reader.read_schema(file_path=yaml_file)
+            reader.read(file_path=yaml_file)
 
-    def test_read_schema_unquoted_date_keys(self, tmp_path: Path) -> None:
+    def test_read_unquoted_date_keys(self, tmp_path: Path) -> None:
         """クォートなしの日付キーでも正しく読み込める
 
         ruamel.yamlはクォートなしの日付(例: 2026-01-07)を
@@ -146,19 +146,19 @@ sessions:
         yaml_file.write_text(data=yaml_content, encoding="utf-8")
 
         reader = MappingFileReader()
-        schema = reader.read_schema(file_path=yaml_file)
-        config = schema.to_domain(timezone=jst)
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
 
         assert len(config.mappings) == 1
         slot = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
             room="Hall A",
         )
-        mapping = config.find_mapping(slot=slot)
-        assert mapping is not None
-        assert mapping.video_id == "abc123"
+        video_mapping = config.find_mapping(slot=slot)
+        assert video_mapping is not None
+        assert video_mapping.video_id == "abc123"
 
-    def test_read_schema_datetime_keys(self, tmp_path: Path) -> None:
+    def test_read_datetime_keys(self, tmp_path: Path) -> None:
         """datetime形式のキーでも正しく読み込める
 
         ruamel.yamlはdatetime形式(例: 2026-01-07T10:00:00)を
@@ -179,19 +179,19 @@ sessions:
         yaml_file.write_text(data=yaml_content, encoding="utf-8")
 
         reader = MappingFileReader()
-        schema = reader.read_schema(file_path=yaml_file)
-        config = schema.to_domain(timezone=jst)
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
 
         assert len(config.mappings) == 1
         slot = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
             room="Hall A",
         )
-        mapping = config.find_mapping(slot=slot)
-        assert mapping is not None
-        assert mapping.video_id == "abc123"
+        video_mapping = config.find_mapping(slot=slot)
+        assert video_mapping is not None
+        assert video_mapping.video_id == "abc123"
 
-    def test_read_schema_with_hashtags(self, tmp_path: Path) -> None:
+    def test_read_with_hashtags(self, tmp_path: Path) -> None:
         """hashtagsフィールドを含むYAMLファイルを読み込める"""
         yaml_content = """
 conf_id: test-conf
@@ -211,15 +211,13 @@ sessions:
         yaml_file.write_text(data=yaml_content, encoding="utf-8")
 
         reader = MappingFileReader()
-        schema = reader.read_schema(file_path=yaml_file)
-        config = schema.to_domain(timezone=jst)
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
 
         assert config.hashtags == ("#RSGT2026", "#Agile", "#Scrum")
         assert len(config.mappings) == 1
 
-    def test_read_schema_without_hashtags_defaults_to_empty(
-        self, tmp_path: Path
-    ) -> None:
+    def test_read_without_hashtags_defaults_to_empty(self, tmp_path: Path) -> None:
         """hashtagsフィールドがないYAMLファイルでもエラーにならない"""
         yaml_content = """
 conf_id: test-conf
@@ -235,13 +233,13 @@ sessions:
         yaml_file.write_text(data=yaml_content, encoding="utf-8")
 
         reader = MappingFileReader()
-        schema = reader.read_schema(file_path=yaml_file)
-        config = schema.to_domain(timezone=jst)
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
 
         assert config.hashtags == ()
         assert len(config.mappings) == 1
 
-    def test_read_schema_with_footer(self, tmp_path: Path) -> None:
+    def test_read_with_footer(self, tmp_path: Path) -> None:
         """footerフィールドを含むYAMLファイルを読み込める"""
         yaml_content = """
 conf_id: test-conf
@@ -260,15 +258,15 @@ sessions:
         yaml_file.write_text(data=yaml_content, encoding="utf-8")
 
         reader = MappingFileReader()
-        schema = reader.read_schema(file_path=yaml_file)
-        config = schema.to_domain(timezone=jst)
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
 
         assert (
             config.footer == "Please subscribe to our channel!\nhttps://example.com\n"
         )
         assert len(config.mappings) == 1
 
-    def test_read_schema_without_footer_defaults_to_empty(self, tmp_path: Path) -> None:
+    def test_read_without_footer_defaults_to_empty(self, tmp_path: Path) -> None:
         """footerフィールドがないYAMLファイルでもエラーにならない"""
         yaml_content = """
 conf_id: test-conf
@@ -284,8 +282,8 @@ sessions:
         yaml_file.write_text(data=yaml_content, encoding="utf-8")
 
         reader = MappingFileReader()
-        schema = reader.read_schema(file_path=yaml_file)
-        config = schema.to_domain(timezone=jst)
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
 
         assert config.footer == ""
         assert len(config.mappings) == 1

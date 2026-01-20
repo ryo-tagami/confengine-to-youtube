@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from confengine_to_youtube.usecases.protocols import (
         ConfEngineApiProtocol,
         DescriptionBuilderProtocol,
-        MappingReaderProtocol,
+        MappingFileReaderProtocol,
         TitleBuilderProtocol,
         YouTubeApiProtocol,
     )
@@ -32,7 +32,7 @@ class UpdateYouTubeDescriptionsUseCase:
     def __init__(
         self,
         confengine_api: ConfEngineApiProtocol,
-        mapping_reader: MappingReaderProtocol,
+        mapping_reader: MappingFileReaderProtocol,
         youtube_api: YouTubeApiProtocol,
         description_builder: DescriptionBuilderProtocol,
         title_builder: TitleBuilderProtocol,
@@ -49,9 +49,11 @@ class UpdateYouTubeDescriptionsUseCase:
         *,
         dry_run: bool = False,
     ) -> YouTubeUpdateResult:
-        schema = self._mapping_reader.read_schema(file_path=mapping_file)
-        sessions, timezone = self._confengine_api.fetch_sessions(conf_id=schema.conf_id)
-        mapping_config = schema.to_domain(timezone=timezone)
+        mapping = self._mapping_reader.read(file_path=mapping_file)
+        sessions, timezone = self._confengine_api.fetch_sessions(
+            conf_id=mapping.conf_id
+        )
+        mapping_config = mapping.to_domain(timezone=timezone)
 
         return self._execute(
             sessions=sessions, mapping_config=mapping_config, dry_run=dry_run
@@ -141,12 +143,12 @@ class UpdateYouTubeDescriptionsUseCase:
 
         return YouTubeUpdateResult(
             is_dry_run=dry_run,
-            previews=previews,
+            previews=tuple(previews),
             updated_count=updated_count,
             no_content_count=no_content_count,
             no_mapping_count=no_mapping_count,
             unused_mappings_count=unused_count,
-            errors=errors,
+            errors=tuple(errors),
         )
 
     def _warn_unused_mappings(

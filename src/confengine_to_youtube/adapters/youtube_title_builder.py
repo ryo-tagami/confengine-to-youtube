@@ -58,17 +58,17 @@ class YouTubeTitleBuilder:
         )
 
     @staticmethod
-    def format_speakers_full(speakers: list[Speaker]) -> str:
+    def format_speakers_full(speakers: tuple[Speaker, ...]) -> str:
         """スピーカー部分をフルネームで生成"""
         return ", ".join(s.full_name for s in speakers if s.full_name)
 
     @staticmethod
-    def format_speakers_initials(speakers: list[Speaker]) -> str:
+    def format_speakers_initials(speakers: tuple[Speaker, ...]) -> str:
         """スピーカー部分をイニシャル表記で生成"""
         return ", ".join(s.initial_name for s in speakers if s.initial_name)
 
     @staticmethod
-    def format_speakers_last_name(speakers: list[Speaker]) -> str:
+    def format_speakers_last_name(speakers: tuple[Speaker, ...]) -> str:
         """スピーカー部分をラストネームのみで生成"""
         return ", ".join(s.last_name for s in speakers if s.last_name)
 
@@ -95,7 +95,8 @@ class YouTubeTitleBuilder:
 
         return f"{title[:available]}{ELLIPSIS}{TITLE_SPEAKER_SEPARATOR}{speaker_part}"
 
-    def _truncate(self, text: str, max_length: int) -> str:
+    @staticmethod
+    def _truncate(text: str, max_length: int) -> str:
         """テキストを指定長に切り詰める"""
         if len(text) <= max_length:
             return text

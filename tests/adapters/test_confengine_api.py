@@ -68,7 +68,7 @@ class TestConfEngineApiGateway:
         )
         assert session.slot.room == "Hall A"
         assert session.track == "Track 1"
-        assert session.speakers == [Speaker(first_name="Speaker", last_name="A")]
+        assert session.speakers == (Speaker(first_name="Speaker", last_name="A"),)
         assert session.abstract == AbstractMarkdown(content="Test")
         assert session.url == "https://example.com"
 

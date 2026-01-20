@@ -37,10 +37,10 @@ class TestMappingConfig:
             timeslot=datetime(year=2026, month=1, day=7, hour=11, minute=0, tzinfo=UTC),
             room="Hall A",
         )
-        mappings = [
+        mappings = (
             VideoMapping(slot=slot1, video_id="abc123"),
             VideoMapping(slot=slot2, video_id="def456"),
-        ]
+        )
         config = MappingConfig(
             conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
         )
@@ -60,7 +60,7 @@ class TestMappingConfig:
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC),
             room="Hall A",
         )
-        mappings = [VideoMapping(slot=slot, video_id="abc123")]
+        mappings = (VideoMapping(slot=slot, video_id="abc123"),)
         config = MappingConfig(
             conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
         )
@@ -87,11 +87,11 @@ class TestMappingConfig:
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC),
             room="Hall B",
         )
-        mappings = [
+        mappings = (
             VideoMapping(slot=slot1, video_id="abc123"),
             VideoMapping(slot=slot2, video_id="def456"),
             VideoMapping(slot=slot3, video_id="ghi789"),
-        ]
+        )
         config = MappingConfig(
             conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
         )
@@ -115,7 +115,7 @@ class TestMappingConfig:
         """hashtagsを指定してMappingConfigを作成できる"""
         config = MappingConfig(
             conf_id="test-conf",
-            mappings=[],
+            mappings=(),
             hashtags=("#RSGT2026", "#Agile", "#Scrum"),
             footer="",
         )

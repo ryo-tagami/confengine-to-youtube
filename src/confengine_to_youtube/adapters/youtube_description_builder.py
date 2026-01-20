@@ -50,14 +50,15 @@ class YouTubeDescriptionBuilder:
             )
         )
 
+    @classmethod
     def _calculate_frame_length(
-        self,
+        cls,
         session: Session,
         hashtags: tuple[str, ...],
         footer: str,
     ) -> int:
         placeholder = "X"
-        doc_with_placeholder = self._build_document(
+        doc_with_placeholder = cls._build_document(
             session=session,
             abstract=placeholder,
             hashtags=hashtags,
@@ -66,8 +67,9 @@ class YouTubeDescriptionBuilder:
 
         return len(doc_with_placeholder) - len(placeholder)
 
+    @classmethod
     def _build_document(
-        self,
+        cls,
         session: Session,
         abstract: str,
         hashtags: tuple[str, ...],
@@ -96,9 +98,10 @@ class YouTubeDescriptionBuilder:
         if footer:
             doc.add_paragraph(text=footer)
 
-        return self._sanitize_for_youtube(text=str(doc))
+        return cls._sanitize_for_youtube(text=str(doc))
 
-    def _sanitize_for_youtube(self, text: str) -> str:
+    @staticmethod
+    def _sanitize_for_youtube(text: str) -> str:
         """YouTube description で無効な文字を置換
 
         YouTubeは < > を許可しないため、これらを置換する。

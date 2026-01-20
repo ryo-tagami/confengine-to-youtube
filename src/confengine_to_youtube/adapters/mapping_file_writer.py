@@ -128,21 +128,22 @@ class MappingFileWriter:
         yaml.default_flow_style = False
         yaml.dump(data=root, stream=output)
 
-    def _wrap_comment(self, text: str) -> str:
+    @classmethod
+    def _wrap_comment(cls, text: str) -> str:
         """表示幅を考慮してテキストを分かち書き単位で折り返す"""
-        chunks = self._split_into_chunks(text=text)
+        chunks = cls._split_into_chunks(text=text)
         lines: list[str] = []
         current_line = ""
         current_width = 0
 
         for chunk in chunks:
-            chunk_width = self._display_width(text=chunk)
+            chunk_width = cls._display_width(text=chunk)
 
             if current_width + chunk_width > _COMMENT_WIDTH:
                 if current_line:
                     lines.append(current_line)
                 current_line = chunk.lstrip()
-                current_width = self._display_width(text=current_line)
+                current_width = cls._display_width(text=current_line)
             else:
                 current_line += chunk
                 current_width += chunk_width
@@ -152,7 +153,8 @@ class MappingFileWriter:
 
         return "\n".join(lines)
 
-    def _split_into_chunks(self, text: str) -> list[str]:
+    @staticmethod
+    def _split_into_chunks(text: str) -> list[str]:
         """テキストを折り返し可能なチャンクに分割する
 
         1. TITLE_SPEAKER_SEPARATOR で分割 (タイトルとスピーカーの区切り)
@@ -182,7 +184,8 @@ class MappingFileWriter:
 
         return result
 
-    def _display_width(self, text: str) -> int:
+    @staticmethod
+    def _display_width(text: str) -> int:
         """テキストの表示幅を計算する"""
         width = 0
         for char in text:
