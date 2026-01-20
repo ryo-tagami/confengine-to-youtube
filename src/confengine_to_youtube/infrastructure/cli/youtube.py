@@ -7,23 +7,23 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import argparse
 
-    from confengine_exporter.usecases.dto import YouTubeUpdateResult
+    from confengine_to_youtube.usecases.dto import YouTubeUpdateResult
 
 from rich.console import Console
 
-from confengine_exporter.adapters.confengine_api import ConfEngineApiGateway
-from confengine_exporter.adapters.mapping_file_reader import MappingFileReader
-from confengine_exporter.adapters.youtube_api import YouTubeApiGateway
-from confengine_exporter.adapters.youtube_description_builder import (
+from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
+from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
+from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
+from confengine_to_youtube.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
     YouTubeDescriptionOptions,
 )
-from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
-from confengine_exporter.infrastructure.cli.constants import DEFAULT_FOOTER
-from confengine_exporter.infrastructure.cli.diff_formatter import DiffFormatter
-from confengine_exporter.infrastructure.http_client import HttpClient
-from confengine_exporter.infrastructure.youtube_auth import YouTubeAuthClient
-from confengine_exporter.usecases.update_youtube_descriptions import (
+from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.infrastructure.cli.constants import DEFAULT_FOOTER
+from confengine_to_youtube.infrastructure.cli.diff_formatter import DiffFormatter
+from confengine_to_youtube.infrastructure.http_client import HttpClient
+from confengine_to_youtube.infrastructure.youtube_auth import YouTubeAuthClient
+from confengine_to_youtube.usecases.update_youtube_descriptions import (
     UpdateYouTubeDescriptionsUseCase,
 )
 

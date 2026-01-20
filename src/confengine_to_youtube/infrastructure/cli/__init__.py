@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from confengine_exporter.infrastructure.cli import generate_mapping, youtube
+from confengine_to_youtube.infrastructure.cli import generate_mapping, youtube
 
 
 def main() -> None:

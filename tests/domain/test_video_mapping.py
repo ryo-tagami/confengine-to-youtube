@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from confengine_exporter.domain.video_mapping import MappingConfig, VideoMapping
+from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
 
 
 class TestVideoMapping:

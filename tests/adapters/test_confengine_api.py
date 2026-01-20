@@ -4,8 +4,8 @@ from datetime import datetime
 from unittest.mock import MagicMock
 from zoneinfo import ZoneInfo
 
-from confengine_exporter.adapters.confengine_api import ConfEngineApiGateway
-from confengine_exporter.domain.session import Speaker
+from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
+from confengine_to_youtube.domain.session import Speaker
 
 
 class TestConfEngineApiGateway:

@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from confengine_exporter.usecases.dto import UpdatePreview, YouTubeUpdateResult
-from confengine_exporter.usecases.protocols import (
+from confengine_to_youtube.usecases.dto import UpdatePreview, YouTubeUpdateResult
+from confengine_to_youtube.usecases.protocols import (
     VideoUpdateRequest,
     YouTubeApiError,
 )
@@ -17,9 +17,9 @@ if TYPE_CHECKING:
     from datetime import datetime
     from pathlib import Path
 
-    from confengine_exporter.domain.session import Session
-    from confengine_exporter.domain.video_mapping import MappingConfig
-    from confengine_exporter.usecases.protocols import (
+    from confengine_to_youtube.domain.session import Session
+    from confengine_to_youtube.domain.video_mapping import MappingConfig
+    from confengine_to_youtube.usecases.protocols import (
         ConfEngineApiProtocol,
         DescriptionBuilderProtocol,
         MappingReaderProtocol,

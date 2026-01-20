@@ -2,9 +2,9 @@
 
 from datetime import UTC, datetime
 
-from confengine_exporter.adapters.constants import YOUTUBE_TITLE_MAX_LENGTH
-from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
-from confengine_exporter.domain.session import Session, Speaker
+from confengine_to_youtube.adapters.constants import YOUTUBE_TITLE_MAX_LENGTH
+from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.domain.session import Session, Speaker
 
 
 class TestYouTubeTitleBuilder:

@@ -10,13 +10,13 @@ from typing import TYPE_CHECKING, Self
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
-from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
-from confengine_exporter.domain.video_mapping import MappingConfig, VideoMapping
+from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
 
 if TYPE_CHECKING:
     from zoneinfo import ZoneInfo
 
-    from confengine_exporter.domain.session import Session
+    from confengine_to_youtube.domain.session import Session
 
 # Reader用スキーマ
 

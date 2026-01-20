@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING
 from rich.syntax import Syntax
 from rich.text import Text
 
-from confengine_exporter.infrastructure.cli.constants import PREVIEW_TRUNCATE_LENGTH
+from confengine_to_youtube.infrastructure.cli.constants import PREVIEW_TRUNCATE_LENGTH
 
 if TYPE_CHECKING:
     from rich.console import Console
 
-    from confengine_exporter.usecases.dto import UpdatePreview
+    from confengine_to_youtube.usecases.dto import UpdatePreview
 
 
 class DiffFormatter:

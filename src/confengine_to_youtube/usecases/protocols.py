@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from typing import TextIO
     from zoneinfo import ZoneInfo
 
-    from confengine_exporter.domain.session import Session
-    from confengine_exporter.domain.video_mapping import MappingConfig
+    from confengine_to_youtube.domain.session import Session
+    from confengine_to_youtube.domain.video_mapping import MappingConfig
 
 
 # =============================================================================

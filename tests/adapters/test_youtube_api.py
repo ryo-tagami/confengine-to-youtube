@@ -7,8 +7,8 @@ import pytest
 from googleapiclient.errors import HttpError
 from httplib2 import Response
 
-from confengine_exporter.adapters.youtube_api import YouTubeApiGateway
-from confengine_exporter.usecases.protocols import (
+from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
+from confengine_to_youtube.usecases.protocols import (
     VideoInfo,
     VideoNotFoundError,
     VideoUpdateRequest,

@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING
 
 from snakemd import Document
 
-from confengine_exporter.adapters.constants import (
+from confengine_to_youtube.adapters.constants import (
     ELLIPSIS,
     YOUTUBE_DESCRIPTION_MAX_LENGTH,
 )
-from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
 
 if TYPE_CHECKING:
-    from confengine_exporter.domain.session import Session
+    from confengine_to_youtube.domain.session import Session
 
 
 @dataclass(frozen=True)

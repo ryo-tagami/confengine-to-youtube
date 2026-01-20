@@ -1,1 +1,0 @@
-"""ConfEngine Exporter - カンファレンススケジュールをエクスポート"""
