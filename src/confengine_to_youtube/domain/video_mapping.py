@@ -30,5 +30,5 @@ class MappingConfig:
 
         return None
 
-    def find_unused(self, used_slots: set[ScheduleSlot]) -> list[VideoMapping]:
-        return [m for m in self.mappings if m.slot not in used_slots]
+    def find_unused(self, used_slots: set[ScheduleSlot]) -> tuple[VideoMapping, ...]:
+        return tuple(m for m in self.mappings if m.slot not in used_slots)
