@@ -1,9 +1,6 @@
 """ConfEngine スキーマのテスト"""
 
-from datetime import UTC, datetime
-
 from confengine_to_youtube.adapters.confengine_schema import (
-    ApiSession,
     ScheduleResponse,
     Speaker,
 )
@@ -18,42 +15,6 @@ class TestSpeaker:
 
         assert speaker.first_name == "Test"
         assert speaker.last_name == "Speaker"
-
-
-class TestApiSession:
-    """ApiSession のテスト"""
-
-    def test_abstract_markdown_converts_html(self) -> None:
-        """abstract_markdown が HTML を Markdown に変換する"""
-        session = ApiSession(
-            timeslot=datetime(
-                year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=UTC
-            ),
-            title="Test Session",
-            room="Hall A",
-            track="Track 1",
-            url="https://example.com",
-            abstract="<p>Hello <strong>World</strong></p>",
-            speakers=[],
-        )
-
-        assert session.abstract_markdown == "Hello **World**"
-
-    def test_abstract_markdown_empty(self) -> None:
-        """Abstract が空の場合は空文字列を返す"""
-        session = ApiSession(
-            timeslot=datetime(
-                year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=UTC
-            ),
-            title="Test Session",
-            room="Hall A",
-            track="Track 1",
-            url="https://example.com",
-            abstract="",
-            speakers=[],
-        )
-
-        assert session.abstract_markdown == ""
 
 
 class TestScheduleResponse:

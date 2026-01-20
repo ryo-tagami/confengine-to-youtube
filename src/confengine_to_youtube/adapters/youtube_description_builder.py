@@ -8,11 +8,9 @@ from typing import TYPE_CHECKING
 
 from snakemd import Document
 
-from confengine_to_youtube.adapters.constants import (
-    ELLIPSIS,
-    YOUTUBE_DESCRIPTION_MAX_LENGTH,
-)
+from confengine_to_youtube.adapters.constants import ELLIPSIS
 from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.domain.youtube_description import YouTubeDescription
 
 if TYPE_CHECKING:
     from confengine_to_youtube.domain.session import Session
@@ -27,12 +25,13 @@ class YouTubeDescriptionBuilder:
     def __init__(self, options: YouTubeDescriptionOptions) -> None:
         self.options = options
 
-    def build(self, session: Session, hashtags: tuple[str, ...]) -> str:
-        abstract = session.abstract
+    def build(self, session: Session, hashtags: tuple[str, ...]) -> YouTubeDescription:
+        abstract = str(session.abstract)
+        max_length = YouTubeDescription.MAX_LENGTH
 
         # YouTube説明文の最大文字数に収まるようabstractを調整
         frame_length = self._calculate_frame_length(session=session, hashtags=hashtags)
-        available = YOUTUBE_DESCRIPTION_MAX_LENGTH - frame_length
+        available = max_length - frame_length
 
         if available < len(ELLIPSIS):
             msg = f"フレーム部分だけで文字数制限を超えています ({frame_length=})"
@@ -42,10 +41,12 @@ class YouTubeDescriptionBuilder:
             # 省略記号の文字数を確保して切り詰め
             abstract = abstract[: available - len(ELLIPSIS)] + ELLIPSIS
 
-        return self._build_document(
-            session=session,
-            abstract=abstract,
-            hashtags=hashtags,
+        return YouTubeDescription(
+            value=self._build_document(
+                session=session,
+                abstract=abstract,
+                hashtags=hashtags,
+            )
         )
 
     def _calculate_frame_length(

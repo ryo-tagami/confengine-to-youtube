@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -18,13 +18,9 @@ from confengine_to_youtube.usecases.protocols import (
 
 if TYPE_CHECKING:
     from googleapiclient._apis.youtube.v3 import YouTubeResource
+    from googleapiclient._apis.youtube.v3.schemas import Video, VideoSnippet
 
     from confengine_to_youtube.adapters.protocols import YouTubeAuthProvider
-
-
-# =============================================================================
-# YouTube API スキーマ (レスポンス)
-# =============================================================================
 
 
 class YouTubeSnippet(BaseModel):
@@ -54,35 +50,6 @@ class YouTubeVideosListResponse(BaseModel):
     items: list[YouTubeVideoItem]
 
 
-# =============================================================================
-# YouTube API スキーマ (リクエスト)
-# =============================================================================
-
-
-class YouTubeSnippetUpdate(BaseModel):
-    """YouTube API snippet 更新リクエスト"""
-
-    model_config = ConfigDict(frozen=True)
-
-    title: str
-    description: str
-    categoryId: str  # noqa: N815
-
-
-class YouTubeVideoUpdateBody(BaseModel):
-    """YouTube API videos.update リクエストボディ"""
-
-    model_config = ConfigDict(frozen=True)
-
-    id: str
-    snippet: YouTubeSnippetUpdate
-
-
-# =============================================================================
-# ヘルパー関数
-# =============================================================================
-
-
 def _video_info_from_api_response(item: YouTubeVideoItem) -> VideoInfo:
     """Convert API response to VideoInfo."""
     return VideoInfo(
@@ -93,21 +60,14 @@ def _video_info_from_api_response(item: YouTubeVideoItem) -> VideoInfo:
     )
 
 
-def _to_api_body(request: VideoUpdateRequest) -> dict[str, Any]:
+def _to_api_body(request: VideoUpdateRequest) -> Video:
     """Convert VideoUpdateRequest to API request body."""
-    return YouTubeVideoUpdateBody(
-        id=request.video_id,
-        snippet=YouTubeSnippetUpdate(
-            title=request.title,
-            description=request.description,
-            categoryId=str(request.category_id),
-        ),
-    ).model_dump()
-
-
-# =============================================================================
-# Gateway
-# =============================================================================
+    snippet: VideoSnippet = {
+        "title": request.title,
+        "description": request.description,
+        "categoryId": str(request.category_id),
+    }
+    return {"id": request.video_id, "snippet": snippet}
 
 
 class YouTubeApiGateway:

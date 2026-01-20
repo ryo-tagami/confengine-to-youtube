@@ -4,10 +4,9 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from confengine_to_youtube.adapters.mapping_file_reader import (
-    MappingFileError,
-    MappingFileReader,
-)
+from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
+from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
+from confengine_to_youtube.usecases.protocols import MappingFileError
 
 
 class TestMappingFileReader:
@@ -34,24 +33,27 @@ sessions:
 
         assert len(config.mappings) == 3
 
-        mapping1 = config.find_mapping(
+        slot1 = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
             room="Hall A",
         )
+        mapping1 = config.find_mapping(slot=slot1)
         assert mapping1 is not None
         assert mapping1.video_id == "abc123"
 
-        mapping2 = config.find_mapping(
+        slot2 = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=7, hour=11, minute=0, tzinfo=jst),
             room="Hall A",
         )
+        mapping2 = config.find_mapping(slot=slot2)
         assert mapping2 is not None
         assert mapping2.video_id == "def456"
 
-        mapping3 = config.find_mapping(
+        slot3 = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
             room="Hall B",
         )
+        mapping3 = config.find_mapping(slot=slot3)
         assert mapping3 is not None
         assert mapping3.video_id == "ghi789"
 
@@ -126,10 +128,11 @@ sessions:
         config = reader.read(file_path=yaml_file, timezone=jst)
 
         assert len(config.mappings) == 1
-        mapping = config.find_mapping(
+        slot = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
             room="Hall A",
         )
+        mapping = config.find_mapping(slot=slot)
         assert mapping is not None
         assert mapping.video_id == "abc123"
 
@@ -156,10 +159,11 @@ sessions:
         config = reader.read(file_path=yaml_file, timezone=jst)
 
         assert len(config.mappings) == 1
-        mapping = config.find_mapping(
+        slot = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
             room="Hall A",
         )
+        mapping = config.find_mapping(slot=slot)
         assert mapping is not None
         assert mapping.video_id == "abc123"
 

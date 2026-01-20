@@ -6,18 +6,17 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
-from confengine_to_youtube.adapters.youtube_api import (
-    VideoInfo,
-    YouTubeApiError,
-    YouTubeApiGateway,
-)
+from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
 from confengine_to_youtube.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
     YouTubeDescriptionOptions,
 )
 from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
+from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
 from confengine_to_youtube.usecases.dto import YouTubeUpdateResult
+from confengine_to_youtube.usecases.protocols import VideoInfo, YouTubeApiError
 from confengine_to_youtube.usecases.update_youtube_descriptions import (
     UpdateYouTubeDescriptionsUseCase,
 )
@@ -32,25 +31,29 @@ class TestUpdateYouTubeDescriptionsUseCase:
     def sessions(self) -> list[Session]:
         return [
             Session(
-                title="Session 1",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=JST
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=JST
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Session 1",
                 track="Track 1",
                 speakers=[Speaker(first_name="Speaker", last_name="A")],
-                abstract="Abstract 1",
+                abstract=AbstractMarkdown(content="Abstract 1"),
                 url="https://example.com/1",
             ),
             Session(
-                title="Session 2",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=11, minute=0, second=0, tzinfo=JST
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=11, minute=0, tzinfo=JST
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Session 2",
                 track="Track 1",
                 speakers=[Speaker(first_name="Speaker", last_name="B")],
-                abstract="Abstract 2",
+                abstract=AbstractMarkdown(content="Abstract 2"),
                 url="https://example.com/2",
             ),
         ]
@@ -163,20 +166,22 @@ sessions:
         mock_confengine_api.fetch_sessions.return_value = (
             [
                 Session(
-                    title="Empty Session",
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        second=0,
-                        tzinfo=JST,
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            second=0,
+                            tzinfo=JST,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="Empty Session",
                     track="Track 1",
                     speakers=[],
-                    abstract="",
+                    abstract=AbstractMarkdown(content=""),
                     url="https://example.com/empty",
                 ),
             ],
@@ -213,20 +218,22 @@ sessions:
         mock_confengine_api.fetch_sessions.return_value = (
             [
                 Session(
-                    title="Unmapped Session",
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=8,
-                        hour=14,
-                        minute=0,
-                        second=0,
-                        tzinfo=JST,
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=8,
+                            hour=14,
+                            minute=0,
+                            second=0,
+                            tzinfo=JST,
+                        ),
+                        room="Hall C",
                     ),
-                    room="Hall C",
+                    title="Unmapped Session",
                     track="Track 1",
                     speakers=[Speaker(first_name="", last_name="Speaker")],
-                    abstract="Content",
+                    abstract=AbstractMarkdown(content="Content"),
                     url="https://example.com/unmapped",
                 ),
             ],
@@ -270,20 +277,22 @@ sessions: {}
         mock_confengine_api.fetch_sessions.return_value = (
             [
                 Session(
-                    title="Session 1",
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        second=0,
-                        tzinfo=JST,
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            second=0,
+                            tzinfo=JST,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="Session 1",
                     track="Track 1",
                     speakers=[Speaker(first_name="", last_name="Speaker")],
-                    abstract="Content",
+                    abstract=AbstractMarkdown(content="Content"),
                     url="https://example.com/1",
                 ),
             ],
@@ -397,20 +406,22 @@ sessions:
         mock_confengine_api.fetch_sessions.return_value = (
             [
                 Session(
-                    title="Session 1",
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        second=0,
-                        tzinfo=JST,
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            second=0,
+                            tzinfo=JST,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="Session 1",
                     track="Track 1",
                     speakers=[Speaker(first_name="Speaker", last_name="A")],
-                    abstract="Abstract 1",
+                    abstract=AbstractMarkdown(content="Abstract 1"),
                     url="https://example.com/1",
                 ),
             ],
@@ -448,5 +459,12 @@ sessions:
         )
 
         assert len(result.previews) == 1
-        # hashtagsがdescriptionに含まれることを確認
-        assert "#RSGT2026 #Agile #Scrum" in result.previews[0].new_description
+        expected_description = (
+            "Speaker: Speaker A\n\n"
+            "Abstract 1\n\n"
+            "***\n\n"
+            "https://example.com/1\n\n"
+            "#RSGT2026 #Agile #Scrum\n\n"
+            "***"
+        )
+        assert result.previews[0].new_description == expected_description

@@ -5,6 +5,8 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
+from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
+from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
 
 
@@ -13,14 +15,16 @@ class TestMappingFileWriter:
         jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
-                title="Clean Architecture入門",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Clean Architecture入門",
                 track="技術",
                 speakers=[Speaker(first_name="", last_name="田中太郎")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
             )
         ]
@@ -57,17 +61,19 @@ class TestMappingFileWriter:
         jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
-                title="ペアプロ実践",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=11, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=11, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="ペアプロ実践",
                 track="技術",
                 speakers=[
                     Speaker(first_name="", last_name="田中太郎"),
                     Speaker(first_name="", last_name="山田花子"),
                 ],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
             )
         ]
@@ -104,25 +110,29 @@ class TestMappingFileWriter:
         jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
-                title="Day2 Session",
-                timeslot=datetime(
-                    year=2026, month=1, day=8, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=8, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Day2 Session",
                 track="技術",
                 speakers=[Speaker(first_name="", last_name="佐藤")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session2",
             ),
             Session(
-                title="Day1 Session",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Day1 Session",
                 track="技術",
                 speakers=[Speaker(first_name="", last_name="鈴木")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
             ),
         ]
@@ -164,25 +174,29 @@ class TestMappingFileWriter:
         jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
-                title="Session in Hall B",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall B",
                 ),
-                room="Hall B",
+                title="Session in Hall B",
                 track="技術",
                 speakers=[Speaker(first_name="", last_name="佐藤")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session2",
             ),
             Session(
-                title="Session in Hall A",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Session in Hall A",
                 track="技術",
                 speakers=[Speaker(first_name="", last_name="鈴木")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
             ),
         ]
@@ -251,14 +265,16 @@ class TestMappingFileWriter:
         jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
-                title="パネルディスカッション",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="パネルディスカッション",
                 track="技術",
                 speakers=[],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
             )
         ]
@@ -301,14 +317,16 @@ class TestMappingFileWriter:
         )
         sessions = [
             Session(
-                title=long_title,
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title=long_title,
                 track="技術",
                 speakers=[Speaker(first_name="", last_name="田中太郎")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
             )
         ]
@@ -352,25 +370,29 @@ class TestMappingFileWriter:
         jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
-                title="Session 1",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Session 1",
                 track="技術",
                 speakers=[Speaker(first_name="Speaker", last_name="A")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
             ),
             Session(
-                title="Session 2",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Session 2",
                 track="技術",
                 speakers=[Speaker(first_name="Speaker", last_name="B")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session2",
             ),
         ]
@@ -396,14 +418,16 @@ class TestMappingFileWriter:
         jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
-                title="Test Session",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Test Session",
                 track="技術",
                 speakers=[Speaker(first_name="", last_name="田中")],
-                abstract="概要",
+                abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
             )
         ]

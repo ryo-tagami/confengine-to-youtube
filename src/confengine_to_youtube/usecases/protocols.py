@@ -15,8 +15,11 @@ if TYPE_CHECKING:
     from typing import TextIO
     from zoneinfo import ZoneInfo
 
+    from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
     from confengine_to_youtube.domain.session import Session
     from confengine_to_youtube.domain.video_mapping import MappingConfig
+    from confengine_to_youtube.domain.youtube_description import YouTubeDescription
+    from confengine_to_youtube.domain.youtube_title import YouTubeTitle
 
 
 # =============================================================================
@@ -112,7 +115,7 @@ class YouTubeApiProtocol(Protocol):  # pragma: no cover
 class DescriptionBuilderProtocol(Protocol):  # pragma: no cover
     """YouTube 説明文ビルダープロトコル"""
 
-    def build(self, session: Session, hashtags: tuple[str, ...]) -> str:
+    def build(self, session: Session, hashtags: tuple[str, ...]) -> YouTubeDescription:
         """説明文を生成する"""
         ...
 
@@ -120,6 +123,14 @@ class DescriptionBuilderProtocol(Protocol):  # pragma: no cover
 class TitleBuilderProtocol(Protocol):  # pragma: no cover
     """YouTube タイトルビルダープロトコル"""
 
-    def build(self, session: Session) -> str:
+    def build(self, session: Session) -> YouTubeTitle:
         """タイトルを生成する"""
+        ...
+
+
+class MarkdownConverterProtocol(Protocol):  # pragma: no cover
+    """HTML から Markdown への変換プロトコル"""
+
+    def convert(self, html: str) -> AbstractMarkdown:
+        """HTML を Markdown に変換する"""
         ...

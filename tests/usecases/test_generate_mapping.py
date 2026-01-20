@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
+from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
+from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
 from confengine_to_youtube.usecases.generate_mapping import (
     GenerateMappingResult,
@@ -20,25 +22,29 @@ class TestGenerateMappingUseCase:
     def sessions(self) -> list[Session]:
         return [
             Session(
-                title="Session 1",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=JST
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=JST
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Session 1",
                 track="Track 1",
                 speakers=[Speaker(first_name="Speaker", last_name="A")],
-                abstract="Abstract 1",
+                abstract=AbstractMarkdown(content="Abstract 1"),
                 url="https://example.com/1",
             ),
             Session(
-                title="Session 2",
-                timeslot=datetime(
-                    year=2026, month=1, day=7, hour=11, minute=0, second=0, tzinfo=JST
+                slot=ScheduleSlot(
+                    timeslot=datetime(
+                        year=2026, month=1, day=7, hour=11, minute=0, tzinfo=JST
+                    ),
+                    room="Hall A",
                 ),
-                room="Hall A",
+                title="Session 2",
                 track="Track 1",
                 speakers=[Speaker(first_name="Speaker", last_name="B")],
-                abstract="Abstract 2",
+                abstract=AbstractMarkdown(content="Abstract 2"),
                 url="https://example.com/2",
             ),
         ]
@@ -148,7 +154,21 @@ class TestGenerateMappingUseCase:
             yaml_content = output.getvalue()
 
         assert isinstance(result, GenerateMappingResult)
-        # hashtagsがYAMLに含まれることを確認
-        assert "hashtags:" in yaml_content
-        assert "- '#RSGT2026'" in yaml_content
-        assert "- '#Agile'" in yaml_content
+        expected = (
+            "# ConfEngine Mapping Template\n"
+            "# Conference: test-conf\n"
+            "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "hashtags:\n"
+            "- '#RSGT2026'\n"
+            "- '#Agile'\n"
+            "sessions:\n"
+            "  2026-01-07:\n"
+            "    Hall A:\n"
+            "      10:00:\n"
+            "        # Session 1 - Speaker A\n"
+            "        video_id: ''\n"
+            "      11:00:\n"
+            "        # Session 2 - Speaker B\n"
+            "        video_id: ''\n"
+        )
+        assert yaml_content == expected

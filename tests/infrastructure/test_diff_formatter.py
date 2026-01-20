@@ -16,7 +16,7 @@ class TestDiffFormatter:
     def test_print_preview_with_title_change(self) -> None:
         """タイトル変更がある場合にdiffを表示する"""
         output = StringIO()
-        console = Console(file=output, force_terminal=True, width=120)
+        console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
         preview = UpdatePreview(
@@ -31,14 +31,14 @@ class TestDiffFormatter:
         formatter.print_preview(preview=preview, index=1)
         result = output.getvalue()
 
-        assert "video1" in result
-        assert "-Old Title" in result
-        assert "+New Title" in result
+        assert "Video ID: video1" in result
+        assert "    -Old Title" in result
+        assert "    +New Title" in result
 
     def test_print_preview_with_description_change(self) -> None:
         """description変更がある場合にdiffを表示する"""
         output = StringIO()
-        console = Console(file=output, force_terminal=True, width=120)
+        console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
         preview = UpdatePreview(
@@ -56,12 +56,12 @@ class TestDiffFormatter:
         assert "-Old Description" in result
         assert "+New Description" in result
         # Same Lineは変更なしなので、コンテキスト行として表示
-        assert "Same Line" in result
+        assert " Same Line" in result
 
     def test_print_preview_with_error(self) -> None:
         """エラーがある場合にエラーメッセージを表示する"""
         output = StringIO()
-        console = Console(file=output, force_terminal=True, width=120)
+        console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
         preview = UpdatePreview(
@@ -77,13 +77,12 @@ class TestDiffFormatter:
         formatter.print_preview(preview=preview, index=1)
         result = output.getvalue()
 
-        assert "Error" in result
-        assert "API Error" in result
+        assert "Error: API Error" in result
 
     def test_print_preview_no_title_change(self) -> None:
         """タイトルに変更がない場合は (unchanged) を表示する"""
         output = StringIO()
-        console = Console(file=output, force_terminal=True, width=120)
+        console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
         preview = UpdatePreview(
@@ -98,13 +97,12 @@ class TestDiffFormatter:
         formatter.print_preview(preview=preview, index=1)
         result = output.getvalue()
 
-        assert "unchanged" in result
-        assert "Same Title" in result
+        assert "(unchanged) Same Title" in result
 
     def test_print_preview_no_description_change(self) -> None:
         """descriptionに変更がない場合は (unchanged) を表示する"""
         output = StringIO()
-        console = Console(file=output, force_terminal=True, width=120)
+        console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
         preview = UpdatePreview(
@@ -119,42 +117,41 @@ class TestDiffFormatter:
         formatter.print_preview(preview=preview, index=1)
         result = output.getvalue()
 
-        # descriptionセクションにunchangedが表示される
-        assert "unchanged" in result
+        # Descriptionセクションの後に (unchanged) が表示される
+        assert "Description:" in result
+        assert "(unchanged)" in result
 
     def test_print_summary(self) -> None:
         """サマリーを表示する"""
         output = StringIO()
-        console = Console(file=output, force_terminal=True, width=120)
+        console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
         formatter.print_summary(success_count=5, error_count=2)
         result = output.getvalue()
 
-        assert "5" in result
-        assert "2" in result
-        assert "Would update" in result
+        assert "5 videos" in result
+        assert "2 errors" in result
 
     def test_print_summary_no_errors(self) -> None:
         """エラーがない場合はエラー数を表示しない"""
         output = StringIO()
-        console = Console(file=output, force_terminal=True, width=120)
+        console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
         formatter.print_summary(success_count=3, error_count=0)
         result = output.getvalue()
 
-        assert "3" in result
-        assert "Would update" in result
+        assert "3 videos" in result
         assert "error" not in result.lower()
 
     def test_print_preview_long_description_truncated(self) -> None:
         """200文字を超えるdescriptionは変更なしの場合トランケートされる"""
         output = StringIO()
-        console = Console(file=output, force_terminal=True, width=120)
+        console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
-        long_description = "A" * 250  # 200文字を超える
+        long_description = "X" * 250  # 200文字を超える
 
         preview = UpdatePreview(
             session_key="2026-01-07T10:00:00+09:00_Hall A",
@@ -168,9 +165,8 @@ class TestDiffFormatter:
         formatter.print_preview(preview=preview, index=1)
         result = output.getvalue()
 
-        # トランケートされて "..." が付く
+        # トランケートされて200文字 + "..."
+        assert result.count("X") == 200
         assert "..." in result
-        # 全文は表示されない (250文字のAが全て表示されていない)
-        assert "A" * 250 not in result
         # unchangedも表示される
-        assert "unchanged" in result
+        assert "(unchanged)" in result

@@ -18,7 +18,16 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["ruff", "mypy", "pytest", "pytest-cov", "taskipy"]
+dev = [
+    "google-api-python-client-stubs",
+    "google-auth-stubs",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "taskipy",
+    "types-httplib2",
+]
 
 [project.scripts]
 confengine-to-youtube = "confengine_to_youtube.infrastructure.cli:main"
@@ -62,15 +71,12 @@ ignore = [
 [tool.mypy]
 python_version = "3.14"
 strict = true
-packages = ["confengine_to_youtube"]
+packages = ["confengine_to_youtube", "tests"]
 
 [[tool.mypy.overrides]]
 module = [
     "budoux",
-    "google.auth.*",
-    "google.oauth2.*",
     "google_auth_oauthlib.*",
-    "googleapiclient.*",
     "markdownify",
     "ruamel.*",
     "snakemd.*",

@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
+from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
 from confengine_to_youtube.infrastructure.http_client import HttpClient
 from confengine_to_youtube.usecases.generate_mapping import GenerateMappingUseCase
 
@@ -33,7 +34,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 def run(args: argparse.Namespace) -> None:
     http_client = HttpClient()
-    confengine_api = ConfEngineApiGateway(http_client=http_client)
+    confengine_api = ConfEngineApiGateway(
+        http_client=http_client,
+        markdown_converter=MarkdownConverter(),
+    )
     mapping_writer = MappingFileWriter()
 
     usecase = GenerateMappingUseCase(
