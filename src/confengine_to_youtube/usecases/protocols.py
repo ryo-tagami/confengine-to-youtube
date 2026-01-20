@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from datetime import datetime
     from pathlib import Path
     from typing import TextIO
@@ -72,7 +73,7 @@ class VideoUpdateRequest:
 class ConfEngineApiProtocol(Protocol):  # pragma: no cover
     """ConfEngine API との通信プロトコル"""
 
-    def fetch_sessions(self, conf_id: str) -> tuple[list[Session], ZoneInfo]:
+    def fetch_sessions(self, conf_id: str) -> tuple[tuple[Session, ...], ZoneInfo]:
         """セッション一覧を取得する"""
         ...
 
@@ -100,7 +101,7 @@ class MappingWriterProtocol(Protocol):  # pragma: no cover
 
     def write(
         self,
-        sessions: list[Session],
+        sessions: Sequence[Session],
         output: TextIO,
         conf_id: str,
         generated_at: datetime,

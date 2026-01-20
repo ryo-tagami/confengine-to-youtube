@@ -19,8 +19,8 @@ JST = ZoneInfo(key="Asia/Tokyo")
 
 class TestGenerateMappingUseCase:
     @pytest.fixture
-    def sessions(self) -> list[Session]:
-        return [
+    def sessions(self) -> tuple[Session, ...]:
+        return (
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
@@ -47,10 +47,10 @@ class TestGenerateMappingUseCase:
                 abstract=AbstractMarkdown(content="Abstract 2"),
                 url="https://example.com/2",
             ),
-        ]
+        )
 
     @pytest.fixture
-    def mock_confengine_api(self, sessions: list[Session]) -> MagicMock:
+    def mock_confengine_api(self, sessions: tuple[Session, ...]) -> MagicMock:
         mock = MagicMock()
         mock.fetch_sessions.return_value = (sessions, JST)
         return mock
@@ -120,7 +120,7 @@ class TestGenerateMappingUseCase:
         mock_confengine_api.fetch_sessions.assert_called_once_with(conf_id="test-conf")
 
     def test_execute_with_empty_sessions(self, mock_confengine_api: MagicMock) -> None:
-        mock_confengine_api.fetch_sessions.return_value = ([], JST)
+        mock_confengine_api.fetch_sessions.return_value = ((), JST)
         usecase = GenerateMappingUseCase(
             confengine_api=mock_confengine_api,
             mapping_writer=MappingFileWriter(),

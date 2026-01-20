@@ -24,7 +24,7 @@ class ConfEngineApiGateway:
         self._http_client = http_client
         self._markdown_converter = markdown_converter
 
-    def fetch_sessions(self, conf_id: str) -> tuple[list[Session], ZoneInfo]:
+    def fetch_sessions(self, conf_id: str) -> tuple[tuple[Session, ...], ZoneInfo]:
         url = f"{self.BASE_URL}/conferences/{conf_id}/schedule"
 
         schedule_data = self._http_client.get_json(url=url)
@@ -39,7 +39,7 @@ class ConfEngineApiGateway:
         self,
         response: ScheduleResponse,
         timezone: ZoneInfo,
-    ) -> list[Session]:
+    ) -> tuple[Session, ...]:
         sessions = [
             self._convert_api_session(api_session=api_session, timezone=timezone)
             for day_data in response.conf_schedule
@@ -51,7 +51,7 @@ class ConfEngineApiGateway:
 
         sessions.sort(key=lambda s: (s.slot.timeslot, s.slot.room))
 
-        return sessions
+        return tuple(sessions)
 
     def _convert_api_session(
         self,

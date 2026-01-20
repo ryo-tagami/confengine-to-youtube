@@ -14,6 +14,7 @@ from confengine_to_youtube.usecases.protocols import (
 logger = logging.getLogger(name=__name__)
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from pathlib import Path
 
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
@@ -61,7 +62,7 @@ class UpdateYouTubeDescriptionsUseCase:
 
     def _execute(
         self,
-        sessions: list[Session],
+        sessions: Sequence[Session],
         mapping_config: MappingConfig,
         *,
         dry_run: bool,

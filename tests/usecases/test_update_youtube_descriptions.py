@@ -27,8 +27,8 @@ class TestUpdateYouTubeDescriptionsUseCase:
     """UpdateYouTubeDescriptionsUseCase のテスト"""
 
     @pytest.fixture
-    def sessions(self) -> list[Session]:
-        return [
+    def sessions(self) -> tuple[Session, ...]:
+        return (
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
@@ -55,7 +55,7 @@ class TestUpdateYouTubeDescriptionsUseCase:
                 abstract=AbstractMarkdown(content="Abstract 2"),
                 url="https://example.com/2",
             ),
-        ]
+        )
 
     @pytest.fixture
     def mapping_file(self, tmp_path: Path) -> Path:
@@ -75,7 +75,7 @@ sessions:
         return yaml_file
 
     @pytest.fixture
-    def mock_confengine_api(self, sessions: list[Session]) -> MagicMock:
+    def mock_confengine_api(self, sessions: tuple[Session, ...]) -> MagicMock:
         mock = MagicMock()
         mock.fetch_sessions.return_value = (sessions, JST)
         return mock
@@ -160,7 +160,7 @@ sessions:
     ) -> None:
         """abstractが空のセッションはスキップする"""
         mock_confengine_api.fetch_sessions.return_value = (
-            [
+            (
                 Session(
                     slot=ScheduleSlot(
                         timeslot=datetime(
@@ -180,7 +180,7 @@ sessions:
                     abstract=AbstractMarkdown(content=""),
                     url="https://example.com/empty",
                 ),
-            ],
+            ),
             JST,
         )
 
@@ -209,7 +209,7 @@ sessions:
     ) -> None:
         """マッピングがないセッションはスキップする"""
         mock_confengine_api.fetch_sessions.return_value = (
-            [
+            (
                 Session(
                     slot=ScheduleSlot(
                         timeslot=datetime(
@@ -229,7 +229,7 @@ sessions:
                     abstract=AbstractMarkdown(content="Content"),
                     url="https://example.com/unmapped",
                 ),
-            ],
+            ),
             JST,
         )
 
@@ -266,7 +266,7 @@ sessions: {}
     ) -> None:
         """マッピングにあるがConfEngineにないセッションは未使用として警告する"""
         mock_confengine_api.fetch_sessions.return_value = (
-            [
+            (
                 Session(
                     slot=ScheduleSlot(
                         timeslot=datetime(
@@ -286,7 +286,7 @@ sessions: {}
                     abstract=AbstractMarkdown(content="Content"),
                     url="https://example.com/1",
                 ),
-            ],
+            ),
             JST,
         )
 
@@ -391,7 +391,7 @@ sessions:
     ) -> None:
         """マッピングファイルにhashtagsがある場合、descriptionに含まれる"""
         mock_confengine_api.fetch_sessions.return_value = (
-            [
+            (
                 Session(
                     slot=ScheduleSlot(
                         timeslot=datetime(
@@ -411,7 +411,7 @@ sessions:
                     abstract=AbstractMarkdown(content="Abstract 1"),
                     url="https://example.com/1",
                 ),
-            ],
+            ),
             JST,
         )
 
