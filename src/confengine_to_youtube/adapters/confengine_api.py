@@ -8,6 +8,7 @@ from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
 
 if TYPE_CHECKING:
+    from confengine_to_youtube.adapters.confengine_schema import ApiSession
     from confengine_to_youtube.adapters.protocols import HttpClientProtocol
     from confengine_to_youtube.usecases.protocols import MarkdownConverterProtocol
 
@@ -39,37 +40,42 @@ class ConfEngineApiGateway:
         response: ScheduleResponse,
         timezone: ZoneInfo,
     ) -> list[Session]:
-        sessions: list[Session] = []
-
-        for day_data in response.conf_schedule:
-            for schedule_day in day_data.schedule_days:
-                for slot_sessions in schedule_day.sessions:
-                    for api_sessions in slot_sessions.values():
-                        for api_session in api_sessions:
-                            slot = ScheduleSlot(
-                                timeslot=api_session.timeslot.replace(tzinfo=timezone),
-                                room=api_session.room,
-                            )
-                            abstract = self._markdown_converter.convert(
-                                html=api_session.abstract
-                            )
-                            sessions.append(
-                                Session(
-                                    slot=slot,
-                                    title=api_session.title,
-                                    track=api_session.track,
-                                    speakers=[
-                                        Speaker(
-                                            first_name=speaker.first_name,
-                                            last_name=speaker.last_name,
-                                        )
-                                        for speaker in api_session.speakers
-                                    ],
-                                    abstract=abstract,
-                                    url=api_session.url,
-                                )
-                            )
+        sessions = [
+            self._convert_api_session(api_session=api_session, timezone=timezone)
+            for day_data in response.conf_schedule
+            for schedule_day in day_data.schedule_days
+            for slot_sessions in schedule_day.sessions
+            for api_sessions in slot_sessions.values()
+            for api_session in api_sessions
+        ]
 
         sessions.sort(key=lambda s: (s.slot.timeslot, s.slot.room))
 
         return sessions
+
+    def _convert_api_session(
+        self,
+        api_session: ApiSession,
+        timezone: ZoneInfo,
+    ) -> Session:
+        """APIレスポンスのセッションをドメインオブジェクトに変換"""
+        slot = ScheduleSlot(
+            timeslot=api_session.timeslot.replace(tzinfo=timezone),
+            room=api_session.room,
+        )
+        abstract = self._markdown_converter.convert(html=api_session.abstract)
+
+        return Session(
+            slot=slot,
+            title=api_session.title,
+            track=api_session.track,
+            speakers=[
+                Speaker(
+                    first_name=speaker.first_name,
+                    last_name=speaker.last_name,
+                )
+                for speaker in api_session.speakers
+            ],
+            abstract=abstract,
+            url=api_session.url,
+        )

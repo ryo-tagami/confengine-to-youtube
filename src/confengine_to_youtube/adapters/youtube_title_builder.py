@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from confengine_to_youtube.adapters.constants import ELLIPSIS, TITLE_SPEAKER_SEPARATOR
@@ -12,7 +11,6 @@ if TYPE_CHECKING:
     from confengine_to_youtube.domain.session import Session, Speaker
 
 
-@dataclass(frozen=True)
 class YouTubeTitleBuilder:
     """YouTube動画タイトルを生成するビルダー
 
