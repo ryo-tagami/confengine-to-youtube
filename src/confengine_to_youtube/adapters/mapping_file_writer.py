@@ -37,12 +37,8 @@ class MappingFileWriter:
         output: TextIO,
         conf_id: str,
         generated_at: datetime,
-        hashtags: list[str] | None,
     ) -> None:
-        schema = MappingFileWithCommentSchema.from_sessions(
-            sessions=sessions,
-            hashtags=hashtags,
-        )
+        schema = MappingFileWithCommentSchema.from_sessions(sessions=sessions)
 
         self._schema_to_yaml(
             schema=schema,
@@ -97,6 +93,33 @@ class MappingFileWriter:
             sessions_map[session_date] = rooms_map
 
         root["hashtags"] = schema.hashtags
+        # fmt: off
+        root.yaml_set_comment_before_after_key(
+            key="hashtags",
+            before=(
+                "ハッシュタグ\n"
+                "例:\n"
+                "  hashtags:\n"
+                "    - '#RSGT2026'\n"
+                "    - '#Agile'"
+            ),
+        )
+        # fmt: on
+
+        root["footer"] = schema.footer
+        # fmt: off
+        root.yaml_set_comment_before_after_key(
+            key="footer",
+            before=(
+                "フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+                "例:\n"
+                "  footer: |\n"
+                "    1行目\n"
+                "    2行目"
+            ),
+        )
+        # fmt: on
+
         root["sessions"] = sessions_map
 
         yaml = YAML()

@@ -17,10 +17,8 @@ from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
 from confengine_to_youtube.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
-    YouTubeDescriptionOptions,
 )
 from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
-from confengine_to_youtube.infrastructure.cli.constants import DEFAULT_FOOTER
 from confengine_to_youtube.infrastructure.cli.diff_formatter import DiffFormatter
 from confengine_to_youtube.infrastructure.http_client import HttpClient
 from confengine_to_youtube.infrastructure.youtube_auth import YouTubeAuthClient
@@ -86,10 +84,7 @@ def run(args: argparse.Namespace) -> None:
     )
     youtube_api = YouTubeApiGateway(auth_provider=auth_client)
 
-    description_options = YouTubeDescriptionOptions(
-        footer_text=DEFAULT_FOOTER,
-    )
-    description_builder = YouTubeDescriptionBuilder(options=description_options)
+    description_builder = YouTubeDescriptionBuilder()
     title_builder = YouTubeTitleBuilder()
 
     usecase = UpdateYouTubeDescriptionsUseCase(

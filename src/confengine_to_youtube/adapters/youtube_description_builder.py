@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from snakemd import Document
@@ -16,21 +15,22 @@ if TYPE_CHECKING:
     from confengine_to_youtube.domain.session import Session
 
 
-@dataclass(frozen=True)
-class YouTubeDescriptionOptions:
-    footer_text: str
-
-
 class YouTubeDescriptionBuilder:
-    def __init__(self, options: YouTubeDescriptionOptions) -> None:
-        self.options = options
-
-    def build(self, session: Session, hashtags: tuple[str, ...]) -> YouTubeDescription:
+    def build(
+        self,
+        session: Session,
+        hashtags: tuple[str, ...],
+        footer: str,
+    ) -> YouTubeDescription:
         abstract = str(session.abstract)
         max_length = YouTubeDescription.MAX_LENGTH
 
         # YouTube説明文の最大文字数に収まるようabstractを調整
-        frame_length = self._calculate_frame_length(session=session, hashtags=hashtags)
+        frame_length = self._calculate_frame_length(
+            session=session,
+            hashtags=hashtags,
+            footer=footer,
+        )
         available = max_length - frame_length
 
         if available < len(ELLIPSIS):
@@ -46,6 +46,7 @@ class YouTubeDescriptionBuilder:
                 session=session,
                 abstract=abstract,
                 hashtags=hashtags,
+                footer=footer,
             )
         )
 
@@ -53,12 +54,14 @@ class YouTubeDescriptionBuilder:
         self,
         session: Session,
         hashtags: tuple[str, ...],
+        footer: str,
     ) -> int:
         placeholder = "X"
         doc_with_placeholder = self._build_document(
             session=session,
             abstract=placeholder,
             hashtags=hashtags,
+            footer=footer,
         )
 
         return len(doc_with_placeholder) - len(placeholder)
@@ -68,6 +71,7 @@ class YouTubeDescriptionBuilder:
         session: Session,
         abstract: str,
         hashtags: tuple[str, ...],
+        footer: str,
     ) -> str:
         doc = Document()
 
@@ -89,8 +93,8 @@ class YouTubeDescriptionBuilder:
 
         doc.add_horizontal_rule()
 
-        if self.options.footer_text:
-            doc.add_paragraph(text=self.options.footer_text)
+        if footer:
+            doc.add_paragraph(text=footer)
 
         return self._sanitize_for_youtube(text=str(doc))
 

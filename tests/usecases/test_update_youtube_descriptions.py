@@ -9,7 +9,6 @@ from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
 from confengine_to_youtube.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
-    YouTubeDescriptionOptions,
 )
 from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
@@ -101,9 +100,7 @@ sessions:
             confengine_api=mock_confengine_api,
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(footer_text="")
-            ),
+            description_builder=YouTubeDescriptionBuilder(),
             title_builder=YouTubeTitleBuilder(),
         )
 
@@ -192,9 +189,7 @@ sessions:
             confengine_api=mock_confengine_api,
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(footer_text="")
-            ),
+            description_builder=YouTubeDescriptionBuilder(),
             title_builder=YouTubeTitleBuilder(),
         )
 
@@ -251,9 +246,7 @@ sessions: {}
             confengine_api=mock_confengine_api,
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(footer_text="")
-            ),
+            description_builder=YouTubeDescriptionBuilder(),
             title_builder=YouTubeTitleBuilder(),
         )
 
@@ -316,9 +309,7 @@ sessions:
             confengine_api=mock_confengine_api,
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(footer_text="")
-            ),
+            description_builder=YouTubeDescriptionBuilder(),
             title_builder=YouTubeTitleBuilder(),
         )
 
@@ -446,9 +437,7 @@ sessions:
             confengine_api=mock_confengine_api,
             mapping_reader=MappingFileReader(),
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(
-                options=YouTubeDescriptionOptions(footer_text="")
-            ),
+            description_builder=YouTubeDescriptionBuilder(),
             title_builder=YouTubeTitleBuilder(),
         )
 

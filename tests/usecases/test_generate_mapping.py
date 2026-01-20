@@ -71,7 +71,7 @@ class TestGenerateMappingUseCase:
         ) as mock_datetime:
             mock_datetime.now.return_value = fixed_now
             output = StringIO()
-            result = usecase.execute(conf_id="test-conf", output=output, hashtags=None)
+            result = usecase.execute(conf_id="test-conf", output=output)
             yaml_content = output.getvalue()
 
         assert isinstance(result, GenerateMappingResult)
@@ -79,7 +79,18 @@ class TestGenerateMappingUseCase:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -96,7 +107,7 @@ class TestGenerateMappingUseCase:
         self, usecase: GenerateMappingUseCase
     ) -> None:
         output = StringIO()
-        result = usecase.execute(conf_id="test-conf", output=output, hashtags=None)
+        result = usecase.execute(conf_id="test-conf", output=output)
 
         assert result.session_count == 2
 
@@ -104,7 +115,7 @@ class TestGenerateMappingUseCase:
         self, usecase: GenerateMappingUseCase, mock_confengine_api: MagicMock
     ) -> None:
         output = StringIO()
-        usecase.execute(conf_id="test-conf", output=output, hashtags=None)
+        usecase.execute(conf_id="test-conf", output=output)
 
         mock_confengine_api.fetch_sessions.assert_called_once_with(conf_id="test-conf")
 
@@ -123,7 +134,7 @@ class TestGenerateMappingUseCase:
         ) as mock_datetime:
             mock_datetime.now.return_value = fixed_now
             output = StringIO()
-            result = usecase.execute(conf_id="test-conf", output=output, hashtags=None)
+            result = usecase.execute(conf_id="test-conf", output=output)
             yaml_content = output.getvalue()
 
         assert result.session_count == 0
@@ -131,44 +142,18 @@ class TestGenerateMappingUseCase:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions: {}\n"
-        )
-        assert yaml_content == expected
-
-    def test_execute_with_hashtags(self, usecase: GenerateMappingUseCase) -> None:
-        """hashtagsを指定するとYAMLに出力される"""
-        fixed_now = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=JST
-        )
-        with patch(
-            target="confengine_to_youtube.usecases.generate_mapping.datetime"
-        ) as mock_datetime:
-            mock_datetime.now.return_value = fixed_now
-            output = StringIO()
-            result = usecase.execute(
-                conf_id="test-conf",
-                output=output,
-                hashtags=["#RSGT2026", "#Agile"],
-            )
-            yaml_content = output.getvalue()
-
-        assert isinstance(result, GenerateMappingResult)
-        expected = (
-            "# ConfEngine Mapping Template\n"
-            "# Conference: test-conf\n"
-            "# Generated: 2026-01-19T10:30:00+09:00\n"
-            "hashtags:\n"
-            "- '#RSGT2026'\n"
-            "- '#Agile'\n"
-            "sessions:\n"
-            "  2026-01-07:\n"
-            "    Hall A:\n"
-            "      10:00:\n"
-            "        # Session 1 - Speaker A\n"
-            "        video_id: ''\n"
-            "      11:00:\n"
-            "        # Session 2 - Speaker B\n"
-            "        video_id: ''\n"
         )
         assert yaml_content == expected

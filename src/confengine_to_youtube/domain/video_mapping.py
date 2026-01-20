@@ -19,6 +19,7 @@ class VideoMapping:
 class MappingConfig:
     mappings: list[VideoMapping]
     hashtags: tuple[str, ...]
+    footer: str
 
     def find_mapping(self, slot: ScheduleSlot) -> VideoMapping | None:
         # 線形検索だが、セッション数は通常数百以下のため実用上問題なし

@@ -210,3 +210,48 @@ sessions:
 
         assert config.hashtags == ()
         assert len(config.mappings) == 1
+
+    def test_read_with_footer(self, tmp_path: Path) -> None:
+        """footerフィールドを含むYAMLファイルを読み込める"""
+        yaml_content = """
+footer: |
+  Please subscribe to our channel!
+  https://example.com
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+"""
+        jst = ZoneInfo(key="Asia/Tokyo")
+
+        yaml_file = tmp_path / "with_footer.yaml"
+        yaml_file.write_text(data=yaml_content, encoding="utf-8")
+
+        reader = MappingFileReader()
+        config = reader.read(file_path=yaml_file, timezone=jst)
+
+        assert (
+            config.footer == "Please subscribe to our channel!\nhttps://example.com\n"
+        )
+        assert len(config.mappings) == 1
+
+    def test_read_without_footer_defaults_to_empty(self, tmp_path: Path) -> None:
+        """footerフィールドがないYAMLファイルでもエラーにならない"""
+        yaml_content = """
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+"""
+        jst = ZoneInfo(key="Asia/Tokyo")
+
+        yaml_file = tmp_path / "without_footer.yaml"
+        yaml_file.write_text(data=yaml_content, encoding="utf-8")
+
+        reader = MappingFileReader()
+        config = reader.read(file_path=yaml_file, timezone=jst)
+
+        assert config.footer == ""
+        assert len(config.mappings) == 1
