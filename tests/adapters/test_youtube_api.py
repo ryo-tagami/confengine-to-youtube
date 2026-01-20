@@ -118,7 +118,7 @@ class TestYouTubeApiGateway:
     ) -> None:
         """HTTPエラーが適切なドメイン例外に変換される"""
         http_error = HttpError(
-            resp=Response(info={"status": status}),
+            resp=Response(info={"status": str(status)}),
             content=b"error",
         )
         mock_youtube.videos().list().execute.side_effect = http_error
@@ -147,7 +147,7 @@ class TestYouTubeApiGateway:
     ) -> None:
         """update_videoでHTTPエラーが適切に処理される"""
         http_error = HttpError(
-            resp=Response(info={"status": status}),
+            resp=Response(info={"status": str(status)}),
             content=b"error",
         )
         mock_youtube.videos().update().execute.side_effect = http_error

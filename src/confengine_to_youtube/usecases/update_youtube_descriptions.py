@@ -14,9 +14,9 @@ from confengine_to_youtube.usecases.protocols import (
 logger = logging.getLogger(name=__name__)
 
 if TYPE_CHECKING:
-    from datetime import datetime
     from pathlib import Path
 
+    from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
     from confengine_to_youtube.domain.session import Session
     from confengine_to_youtube.domain.video_mapping import MappingConfig
     from confengine_to_youtube.usecases.protocols import (
@@ -71,24 +71,22 @@ class UpdateYouTubeDescriptionsUseCase:
         no_content_count = 0
         no_mapping_count = 0
         errors: list[str] = []
-        used_mappings: set[tuple[datetime, str]] = set()
+        used_slots: set[ScheduleSlot] = set()
 
         for session in sessions:
             if not session.has_content:
                 no_content_count += 1
                 continue
 
-            mapping = mapping_config.find_mapping(
-                timeslot=session.timeslot, room=session.room
-            )
+            mapping = mapping_config.find_mapping(slot=session.slot)
 
             if mapping is None:
                 no_mapping_count += 1
                 continue
 
-            used_mappings.add((session.timeslot, session.room))
+            used_slots.add(session.slot)
 
-            session_key = f"{session.timeslot.isoformat()}_{session.room}"
+            session_key = str(session.slot)
 
             try:
                 video_info = self._youtube_api.get_video_info(video_id=mapping.video_id)
@@ -103,16 +101,16 @@ class UpdateYouTubeDescriptionsUseCase:
                         video_id=mapping.video_id,
                         current_title=video_info.title,
                         current_description=video_info.description,
-                        new_title=new_title,
-                        new_description=description,
+                        new_title=str(new_title),
+                        new_description=str(description),
                     )
                 )
 
                 if not dry_run:
                     request = VideoUpdateRequest(
                         video_id=mapping.video_id,
-                        title=new_title,
-                        description=description,
+                        title=str(new_title),
+                        description=str(description),
                         category_id=video_info.category_id,
                     )
                     self._youtube_api.update_video(request=request)
@@ -136,7 +134,7 @@ class UpdateYouTubeDescriptionsUseCase:
                 )
 
         unused_count = self._warn_unused_mappings(
-            mapping_config=mapping_config, used_mappings=used_mappings
+            mapping_config=mapping_config, used_slots=used_slots
         )
 
         return YouTubeUpdateResult(
@@ -152,16 +150,15 @@ class UpdateYouTubeDescriptionsUseCase:
     def _warn_unused_mappings(
         self,
         mapping_config: MappingConfig,
-        used_mappings: set[tuple[datetime, str]],
+        used_slots: set[ScheduleSlot],
     ) -> int:
         """未使用のマッピングを警告し、件数を返す"""
-        unused = mapping_config.find_unused(used_keys=used_mappings)
+        unused = mapping_config.find_unused(used_slots=used_slots)
 
         for mapping in unused:
             logger.warning(
-                "Unused mapping %s %s (%s)",
-                mapping.timeslot,
-                mapping.room,
+                "Unused mapping %s (%s)",
+                mapping.slot,
                 mapping.video_id,
             )
 

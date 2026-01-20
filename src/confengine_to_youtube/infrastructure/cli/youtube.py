@@ -13,6 +13,7 @@ from rich.console import Console
 
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
+from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
 from confengine_to_youtube.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
@@ -58,7 +59,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 def run(args: argparse.Namespace) -> None:
     http_client = HttpClient()
-    confengine_api = ConfEngineApiGateway(http_client=http_client)
+    confengine_api = ConfEngineApiGateway(
+        http_client=http_client,
+        markdown_converter=MarkdownConverter(),
+    )
 
     mapping_reader = MappingFileReader()
 

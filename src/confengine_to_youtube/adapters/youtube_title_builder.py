@@ -5,11 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from confengine_to_youtube.adapters.constants import (
-    ELLIPSIS,
-    TITLE_SPEAKER_SEPARATOR,
-    YOUTUBE_TITLE_MAX_LENGTH,
-)
+from confengine_to_youtube.adapters.constants import ELLIPSIS, TITLE_SPEAKER_SEPARATOR
+from confengine_to_youtube.domain.youtube_title import YouTubeTitle
 
 if TYPE_CHECKING:
     from confengine_to_youtube.domain.session import Session, Speaker
@@ -27,12 +24,13 @@ class YouTubeTitleBuilder:
     4. タイトルを切り詰め (ラストネーム維持)
     """
 
-    def build(self, session: Session) -> str:
+    def build(self, session: Session) -> YouTubeTitle:
         """セッションからYouTube用タイトルを生成"""
+        max_length = YouTubeTitle.MAX_LENGTH
+
         if not session.speakers:
-            return self._truncate(
-                text=session.title,
-                max_length=YOUTUBE_TITLE_MAX_LENGTH,
+            return YouTubeTitle(
+                value=self._truncate(text=session.title, max_length=max_length)
             )
 
         # スピーカー名のフォーマット戦略: フルネーム → イニシャル → ラストネーム
@@ -47,18 +45,19 @@ class YouTubeTitleBuilder:
         for format_func in format_strategies:
             if not (speaker_part := format_func(speakers=session.speakers)):
                 # 全スピーカーの名前が空の場合はタイトルのみ
-                return self._truncate(
-                    text=session.title,
-                    max_length=YOUTUBE_TITLE_MAX_LENGTH,
+                return YouTubeTitle(
+                    value=self._truncate(text=session.title, max_length=max_length)
                 )
 
             full_title = self.combine(title=session.title, speaker_part=speaker_part)
 
-            if len(full_title) <= YOUTUBE_TITLE_MAX_LENGTH:
-                return full_title
+            if len(full_title) <= max_length:
+                return YouTubeTitle(value=full_title)
 
         # どのフォーマットでも収まらない場合はタイトルを切り詰める
-        return self._truncate_title(title=session.title, speaker_part=speaker_part)
+        return YouTubeTitle(
+            value=self._truncate_title(title=session.title, speaker_part=speaker_part)
+        )
 
     @staticmethod
     def format_speakers_full(speakers: list[Speaker]) -> str:
@@ -88,15 +87,13 @@ class YouTubeTitleBuilder:
 
     def _truncate_title(self, title: str, speaker_part: str) -> str:
         """スピーカー名を優先してタイトルを切り詰める"""
+        max_length = YouTubeTitle.MAX_LENGTH
         reserved = len(TITLE_SPEAKER_SEPARATOR) + len(speaker_part) + len(ELLIPSIS)
-        available = YOUTUBE_TITLE_MAX_LENGTH - reserved
+        available = max_length - reserved
 
         if available <= 0:
             # スピーカー名だけで制限を超える場合はスピーカー名を切り詰め
-            return self._truncate(
-                text=speaker_part,
-                max_length=YOUTUBE_TITLE_MAX_LENGTH,
-            )
+            return self._truncate(text=speaker_part, max_length=max_length)
 
         return f"{title[:available]}{ELLIPSIS}{TITLE_SPEAKER_SEPARATOR}{speaker_part}"
 

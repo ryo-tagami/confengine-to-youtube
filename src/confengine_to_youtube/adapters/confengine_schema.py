@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import re
 from datetime import datetime  # noqa: TC003
 
-from markdownify import markdownify as md
-from pydantic import BaseModel, ConfigDict, computed_field
+from pydantic import BaseModel, ConfigDict
 
 
 class Speaker(BaseModel):
@@ -30,19 +28,6 @@ class ApiSession(BaseModel):
     url: str
     abstract: str
     speakers: list[Speaker]
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def abstract_markdown(self) -> str:
-        """abstractをMarkdownに変換"""
-        if not self.abstract:
-            return ""
-
-        text = md(html=self.abstract, heading_style="ATX", strip=["script", "style"])
-        text = text.strip()
-        text = re.sub(pattern=r"\n{3,}", repl="\n\n", string=text)
-
-        return text  # noqa: RET504
 
 
 # スロット開始時刻 (Unixタイムスタンプ) をキーとしたセッション辞書

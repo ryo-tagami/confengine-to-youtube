@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Self
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
 from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
 
 if TYPE_CHECKING:
@@ -91,15 +92,17 @@ class MappingFileSchema(BaseModel):
         for parsed_date, rooms in self.sessions.root.items():
             for room, times in rooms.root.items():
                 for parsed_time, session in times.root.items():
-                    timeslot = datetime.combine(
-                        date=parsed_date,
-                        time=parsed_time,
-                        tzinfo=timezone,
+                    slot = ScheduleSlot(
+                        timeslot=datetime.combine(
+                            date=parsed_date,
+                            time=parsed_time,
+                            tzinfo=timezone,
+                        ),
+                        room=room,
                     )
                     mappings.append(
                         VideoMapping(
-                            timeslot=timeslot,
-                            room=room,
+                            slot=slot,
                             video_id=session.video_id,
                         )
                     )
@@ -156,9 +159,9 @@ class MappingFileWithCommentSchema(BaseModel):
         date_slots: dict[date, RoomSlotsWithCommentSchema] = {}
 
         for session in sessions:
-            session_date = session.timeslot.date()
-            session_time = session.timeslot.time()
-            room = session.room
+            session_date = session.slot.timeslot.date()
+            session_time = session.slot.timeslot.time()
+            room = session.slot.room
 
             if speakers_str := YouTubeTitleBuilder.format_speakers_full(
                 speakers=session.speakers

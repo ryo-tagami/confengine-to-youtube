@@ -5,6 +5,8 @@ from unittest.mock import MagicMock
 from zoneinfo import ZoneInfo
 
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
+from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
+from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
 from confengine_to_youtube.domain.session import Speaker
 
 
@@ -47,7 +49,10 @@ class TestConfEngineApiGateway:
             ],
         }
 
-        gateway = ConfEngineApiGateway(http_client=mock_http_client)
+        gateway = ConfEngineApiGateway(
+            http_client=mock_http_client,
+            markdown_converter=MarkdownConverter(),
+        )
         sessions, timezone = gateway.fetch_sessions(conf_id="test-conf")
 
         assert len(sessions) == 1
@@ -58,13 +63,13 @@ class TestConfEngineApiGateway:
         assert timezone == jst
 
         assert session.title == "Test Session"
-        assert session.timeslot == datetime(
+        assert session.slot.timeslot == datetime(
             year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=jst
         )
-        assert session.room == "Hall A"
+        assert session.slot.room == "Hall A"
         assert session.track == "Track 1"
         assert session.speakers == [Speaker(first_name="Speaker", last_name="A")]
-        assert session.abstract == "Test"
+        assert session.abstract == AbstractMarkdown(content="Test")
         assert session.url == "https://example.com"
 
         # 正しいURLでAPIが呼ばれたことを検証
@@ -120,7 +125,10 @@ class TestConfEngineApiGateway:
             ],
         }
 
-        gateway = ConfEngineApiGateway(http_client=mock_http_client)
+        gateway = ConfEngineApiGateway(
+            http_client=mock_http_client,
+            markdown_converter=MarkdownConverter(),
+        )
         sessions, _ = gateway.fetch_sessions(conf_id="test-conf")
 
         assert len(sessions) == 3

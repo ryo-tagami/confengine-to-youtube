@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
+    from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 
 
 @dataclass(frozen=True)
@@ -45,14 +46,13 @@ class Speaker:
 
 @dataclass(frozen=True)
 class Session:
+    slot: ScheduleSlot
     title: str
-    timeslot: datetime
-    room: str
     track: str
     speakers: list[Speaker]
-    abstract: str
+    abstract: AbstractMarkdown
     url: str
 
     @property
     def has_content(self) -> bool:
-        return bool(self.abstract)
+        return bool(self.abstract.content)

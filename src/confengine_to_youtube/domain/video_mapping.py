@@ -6,13 +6,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 
 
 @dataclass(frozen=True)
 class VideoMapping:
-    timeslot: datetime
-    room: str
+    slot: ScheduleSlot
     video_id: str
 
 
@@ -21,20 +20,13 @@ class MappingConfig:
     mappings: list[VideoMapping]
     hashtags: tuple[str, ...]
 
-    def find_mapping(
-        self,
-        timeslot: datetime,
-        room: str,
-    ) -> VideoMapping | None:
+    def find_mapping(self, slot: ScheduleSlot) -> VideoMapping | None:
         # 線形検索だが、セッション数は通常数百以下のため実用上問題なし
         for mapping in self.mappings:
-            if mapping.timeslot == timeslot and mapping.room == room:
+            if mapping.slot == slot:
                 return mapping
 
         return None
 
-    def find_unused(
-        self,
-        used_keys: set[tuple[datetime, str]],
-    ) -> list[VideoMapping]:
-        return [m for m in self.mappings if (m.timeslot, m.room) not in used_keys]
+    def find_unused(self, used_slots: set[ScheduleSlot]) -> list[VideoMapping]:
+        return [m for m in self.mappings if m.slot not in used_slots]
