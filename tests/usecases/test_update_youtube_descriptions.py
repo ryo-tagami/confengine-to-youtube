@@ -5,20 +5,20 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from confengine_exporter.adapters.mapping_file_reader import MappingFileReader
-from confengine_exporter.adapters.youtube_api import (
+from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
+from confengine_to_youtube.adapters.youtube_api import (
     VideoInfo,
     YouTubeApiError,
     YouTubeApiGateway,
 )
-from confengine_exporter.adapters.youtube_description_builder import (
+from confengine_to_youtube.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
     YouTubeDescriptionOptions,
 )
-from confengine_exporter.adapters.youtube_title_builder import YouTubeTitleBuilder
-from confengine_exporter.domain.session import Session, Speaker
-from confengine_exporter.usecases.dto import YouTubeUpdateResult
-from confengine_exporter.usecases.update_youtube_descriptions import (
+from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.domain.session import Session, Speaker
+from confengine_to_youtube.usecases.dto import YouTubeUpdateResult
+from confengine_to_youtube.usecases.update_youtube_descriptions import (
     UpdateYouTubeDescriptionsUseCase,
 )
 

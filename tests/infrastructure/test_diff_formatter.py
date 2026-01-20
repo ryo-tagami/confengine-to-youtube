@@ -6,8 +6,8 @@ from io import StringIO
 
 from rich.console import Console
 
-from confengine_exporter.infrastructure.cli.diff_formatter import DiffFormatter
-from confengine_exporter.usecases.dto import UpdatePreview
+from confengine_to_youtube.infrastructure.cli.diff_formatter import DiffFormatter
+from confengine_to_youtube.usecases.dto import UpdatePreview
 
 
 class TestDiffFormatter:

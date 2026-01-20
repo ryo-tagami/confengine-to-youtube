@@ -4,8 +4,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from confengine_exporter.adapters.mapping_file_writer import MappingFileWriter
-from confengine_exporter.domain.session import Session, Speaker
+from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
+from confengine_to_youtube.domain.session import Session, Speaker
 
 
 class TestMappingFileWriter:

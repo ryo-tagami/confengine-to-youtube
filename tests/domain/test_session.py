@@ -1,6 +1,6 @@
 """Session エンティティのテスト"""
 
-from confengine_exporter.domain.session import Session, Speaker
+from confengine_to_youtube.domain.session import Session, Speaker
 
 
 class TestSpeaker:

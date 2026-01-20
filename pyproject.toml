@@ -1,7 +1,7 @@
 [project]
-name = "confengine-exporter"
+name = "confengine-to-youtube"
 version = "0.1.0"
-description = "ConfEngineのスケジュールをエクスポート"
+description = "ConfEngineのセッション情報でYouTube動画を更新"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -21,7 +21,7 @@ dependencies = [
 dev = ["ruff", "mypy", "pytest", "pytest-cov", "taskipy"]
 
 [project.scripts]
-confengine-export = "confengine_exporter.infrastructure.cli:main"
+confengine-to-youtube = "confengine_to_youtube.infrastructure.cli:main"
 
 [tool.uv]
 package = true
@@ -62,7 +62,7 @@ ignore = [
 [tool.mypy]
 python_version = "3.14"
 strict = true
-packages = ["confengine_exporter"]
+packages = ["confengine_to_youtube"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -79,13 +79,13 @@ module = [
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = "--cov=confengine_exporter --cov-branch --cov-report=term-missing"
+addopts = "--cov=confengine_to_youtube --cov-branch --cov-report=term-missing"
 
 [tool.coverage.run]
 branch = true
-source = ["src/confengine_exporter"]
+source = ["src/confengine_to_youtube"]
 omit = [
-    "src/confengine_exporter/infrastructure/*",
+    "src/confengine_to_youtube/infrastructure/*",
 ]
 
 [tool.coverage.report]

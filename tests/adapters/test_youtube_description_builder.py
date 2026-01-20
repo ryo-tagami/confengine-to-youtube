@@ -4,12 +4,12 @@ from datetime import UTC, datetime
 
 import pytest
 
-from confengine_exporter.adapters.constants import YOUTUBE_DESCRIPTION_MAX_LENGTH
-from confengine_exporter.adapters.youtube_description_builder import (
+from confengine_to_youtube.adapters.constants import YOUTUBE_DESCRIPTION_MAX_LENGTH
+from confengine_to_youtube.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
     YouTubeDescriptionOptions,
 )
-from confengine_exporter.domain.session import Session, Speaker
+from confengine_to_youtube.domain.session import Session, Speaker
 
 
 class TestYouTubeDescriptionBuilder:

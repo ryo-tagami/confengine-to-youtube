@@ -5,9 +5,9 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from confengine_exporter.adapters.mapping_file_writer import MappingFileWriter
-from confengine_exporter.domain.session import Session, Speaker
-from confengine_exporter.usecases.generate_mapping import (
+from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
+from confengine_to_youtube.domain.session import Session, Speaker
+from confengine_to_youtube.usecases.generate_mapping import (
     GenerateMappingResult,
     GenerateMappingUseCase,
 )
@@ -61,7 +61,7 @@ class TestGenerateMappingUseCase:
             year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=JST
         )
         with patch(
-            target="confengine_exporter.usecases.generate_mapping.datetime"
+            target="confengine_to_youtube.usecases.generate_mapping.datetime"
         ) as mock_datetime:
             mock_datetime.now.return_value = fixed_now
             output = StringIO()
@@ -113,7 +113,7 @@ class TestGenerateMappingUseCase:
             year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=JST
         )
         with patch(
-            target="confengine_exporter.usecases.generate_mapping.datetime"
+            target="confengine_to_youtube.usecases.generate_mapping.datetime"
         ) as mock_datetime:
             mock_datetime.now.return_value = fixed_now
             output = StringIO()
@@ -136,7 +136,7 @@ class TestGenerateMappingUseCase:
             year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=JST
         )
         with patch(
-            target="confengine_exporter.usecases.generate_mapping.datetime"
+            target="confengine_to_youtube.usecases.generate_mapping.datetime"
         ) as mock_datetime:
             mock_datetime.now.return_value = fixed_now
             output = StringIO()

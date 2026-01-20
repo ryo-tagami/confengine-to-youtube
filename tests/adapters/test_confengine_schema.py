@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from confengine_exporter.adapters.confengine_schema import (
+from confengine_to_youtube.adapters.confengine_schema import (
     ApiSession,
     ScheduleResponse,
     Speaker,

@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from confengine_exporter.adapters.mapping_file_reader import (
+from confengine_to_youtube.adapters.mapping_file_reader import (
     MappingFileError,
     MappingFileReader,
 )

@@ -7,14 +7,14 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 from wcwidth import wcwidth
 
-from confengine_exporter.adapters.constants import TITLE_SPEAKER_SEPARATOR
-from confengine_exporter.adapters.mapping_schema import MappingFileWithCommentSchema
+from confengine_to_youtube.adapters.constants import TITLE_SPEAKER_SEPARATOR
+from confengine_to_youtube.adapters.mapping_schema import MappingFileWithCommentSchema
 
 if TYPE_CHECKING:
     from datetime import datetime
     from typing import TextIO
 
-    from confengine_exporter.domain.session import Session
+    from confengine_to_youtube.domain.session import Session
 
 # コメント行の最大幅 (80文字 - インデント8文字 - "# " 2文字 = 70文字)
 _COMMENT_WIDTH = 70

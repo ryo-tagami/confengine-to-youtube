@@ -6,14 +6,14 @@ from pydantic import ValidationError
 from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 
-from confengine_exporter.adapters.mapping_schema import MappingFileSchema
-from confengine_exporter.usecases.protocols import MappingFileError
+from confengine_to_youtube.adapters.mapping_schema import MappingFileSchema
+from confengine_to_youtube.usecases.protocols import MappingFileError
 
 if TYPE_CHECKING:
     from pathlib import Path
     from zoneinfo import ZoneInfo
 
-    from confengine_exporter.domain.video_mapping import MappingConfig
+    from confengine_to_youtube.domain.video_mapping import MappingConfig
 
 
 class MappingFileReader:

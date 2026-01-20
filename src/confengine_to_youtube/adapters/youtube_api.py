@@ -9,7 +9,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from pydantic import BaseModel, ConfigDict
 
-from confengine_exporter.usecases.protocols import (
+from confengine_to_youtube.usecases.protocols import (
     VideoInfo,
     VideoNotFoundError,
     VideoUpdateRequest,
@@ -19,7 +19,7 @@ from confengine_exporter.usecases.protocols import (
 if TYPE_CHECKING:
     from googleapiclient._apis.youtube.v3 import YouTubeResource
 
-    from confengine_exporter.adapters.protocols import YouTubeAuthProvider
+    from confengine_to_youtube.adapters.protocols import YouTubeAuthProvider
 
 
 # =============================================================================

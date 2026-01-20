@@ -17,7 +17,7 @@ uv run ruff format .       # フォーマット
 Clean Architectureに基づく4層構造:
 
 ```
-confengine_exporter/
+confengine_to_youtube/
 ├── domain/          # ビジネスエンティティ (Session, Speaker, VideoMapping)
 ├── usecases/        # ビジネスロジック (依存性は注入)
 ├── adapters/        # 外部サービスとのインターフェース

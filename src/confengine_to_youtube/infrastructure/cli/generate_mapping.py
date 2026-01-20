@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import argparse
 
-from confengine_exporter.adapters.confengine_api import ConfEngineApiGateway
-from confengine_exporter.adapters.mapping_file_writer import MappingFileWriter
-from confengine_exporter.infrastructure.http_client import HttpClient
-from confengine_exporter.usecases.generate_mapping import GenerateMappingUseCase
+from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
+from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
+from confengine_to_youtube.infrastructure.http_client import HttpClient
+from confengine_to_youtube.usecases.generate_mapping import GenerateMappingUseCase
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:

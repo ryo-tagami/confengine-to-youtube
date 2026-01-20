@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-from confengine_exporter.adapters.confengine_schema import ScheduleResponse
-from confengine_exporter.domain.session import Session, Speaker
+from confengine_to_youtube.adapters.confengine_schema import ScheduleResponse
+from confengine_to_youtube.domain.session import Session, Speaker
 
 if TYPE_CHECKING:
-    from confengine_exporter.adapters.protocols import HttpClientProtocol
+    from confengine_to_youtube.adapters.protocols import HttpClientProtocol
 
 
 class ConfEngineApiGateway:

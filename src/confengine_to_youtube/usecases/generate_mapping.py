@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import TextIO
 
-    from confengine_exporter.usecases.protocols import (
+    from confengine_to_youtube.usecases.protocols import (
         ConfEngineApiProtocol,
         MappingWriterProtocol,
     )

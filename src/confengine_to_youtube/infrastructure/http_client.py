@@ -30,7 +30,7 @@ class InvalidResponseError(HttpClientError):
 
 class HttpClient:
     # API提供者側でのリクエスト識別用。バージョンの厳密性は要件ではない
-    def __init__(self, user_agent: str = "ConfEngine-Exporter/1.0") -> None:
+    def __init__(self, user_agent: str = "ConfEngine-to-YouTube/1.0") -> None:
         self.user_agent = user_agent
 
     def get_json(self, url: str) -> Any:  # noqa: ANN401

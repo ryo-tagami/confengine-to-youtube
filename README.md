@@ -1,4 +1,4 @@
-# confengine-exporter
+# confengine-to-youtube
 
 ConfEngineのセッション情報を使ってYouTube動画のタイトルとdescriptionを更新するCLIツール。
 
@@ -23,10 +23,10 @@ ConfEngineからセッション情報を取得し、マッピングファイル�
 
 ```bash
 # stdoutに出力
-uv run confengine-export generate-mapping <カンファレンスID>
+uv run confengine-to-youtube generate-mapping <カンファレンスID>
 
 # ファイルに出力
-uv run confengine-export generate-mapping <カンファレンスID> -o mapping.yaml
+uv run confengine-to-youtube generate-mapping <カンファレンスID> -o mapping.yaml
 ```
 
 | 引数/オプション | 説明 |
@@ -53,7 +53,7 @@ uv run confengine-export generate-mapping <カンファレンスID> -o mapping.y
 ### コマンド
 
 ```bash
-uv run confengine-export youtube-update <カンファレンスID> -m <マッピングファイル> [オプション]
+uv run confengine-to-youtube youtube-update <カンファレンスID> -m <マッピングファイル> [オプション]
 ```
 
 | 引数/オプション | 説明 |
@@ -82,12 +82,12 @@ sessions:
 
 ```bash
 # プレビュー (実際の更新なし)
-uv run confengine-export youtube-update regional-scrum-gathering-tokyo-2026 \
+uv run confengine-to-youtube youtube-update regional-scrum-gathering-tokyo-2026 \
   -m mapping.yaml \
   --dry-run
 
 # 実際に更新
-uv run confengine-export youtube-update regional-scrum-gathering-tokyo-2026 \
+uv run confengine-to-youtube youtube-update regional-scrum-gathering-tokyo-2026 \
   -m mapping.yaml
 ```
 

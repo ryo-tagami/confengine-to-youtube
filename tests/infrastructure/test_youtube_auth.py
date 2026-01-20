@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from confengine_exporter.infrastructure.youtube_auth import YouTubeAuthClient
+from confengine_to_youtube.infrastructure.youtube_auth import YouTubeAuthClient
 
 
 class TestYouTubeAuthClient:
@@ -37,7 +37,7 @@ class TestYouTubeAuthClient:
         client.token_path.write_text(data=token_content, encoding="utf-8")
 
         with patch(
-            target="confengine_exporter.infrastructure.youtube_auth.Credentials"
+            target="confengine_to_youtube.infrastructure.youtube_auth.Credentials"
         ) as mock_credentials:
             mock_creds = MagicMock()
             mock_credentials.from_authorized_user_file.return_value = mock_creds
