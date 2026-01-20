@@ -275,7 +275,7 @@ class TestMappingFileWriter:
 
     def test_write_empty_sessions(self) -> None:
         jst = ZoneInfo(key="Asia/Tokyo")
-        sessions: list[Session] = []
+        sessions: tuple[Session, ...] = ()
         generated_at = datetime(
             year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
         )

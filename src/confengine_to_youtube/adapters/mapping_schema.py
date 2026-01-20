@@ -15,6 +15,7 @@ from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from zoneinfo import ZoneInfo
 
     from confengine_to_youtube.domain.session import Session
@@ -161,7 +162,7 @@ class MappingFileWithCommentSchema(BaseModel):
     @classmethod
     def from_sessions(
         cls,
-        sessions: list[Session],
+        sessions: Sequence[Session],
         conf_id: str,
     ) -> Self:
         """Sessionリストからマッピングファイルのテンプレートを生成する。

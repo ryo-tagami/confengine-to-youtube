@@ -12,6 +12,7 @@ from confengine_to_youtube.adapters.constants import TITLE_SPEAKER_SEPARATOR
 from confengine_to_youtube.adapters.mapping_schema import MappingFileWithCommentSchema
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from datetime import datetime
     from typing import TextIO
 
@@ -33,7 +34,7 @@ def _get_budoux_parser() -> budoux.Parser:
 class MappingFileWriter:
     def write(
         self,
-        sessions: list[Session],
+        sessions: Sequence[Session],
         output: TextIO,
         conf_id: str,
         generated_at: datetime,
