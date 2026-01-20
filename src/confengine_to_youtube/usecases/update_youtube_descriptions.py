@@ -117,6 +117,8 @@ class UpdateYouTubeDescriptionsUseCase:
                     updated_count += 1
                     logger.info("Updated: %s (%s)", session.title, mapping.video_id)
 
+            # NOTE: ValueError (タイトル/説明文の文字数超過) は意図的にキャッチしない。
+            # データ不整合を示すため、処理を中断して早期に修正を促す。
             except YouTubeApiError as e:
                 error_msg = str(e)
                 errors.append(error_msg)

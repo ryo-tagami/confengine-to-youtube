@@ -6,7 +6,10 @@ infrastructure 層でこれらを実装する。
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from google.oauth2.credentials import Credentials
 
 
 class HttpClientProtocol(Protocol):  # pragma: no cover
@@ -20,6 +23,6 @@ class HttpClientProtocol(Protocol):  # pragma: no cover
 class YouTubeAuthProvider(Protocol):  # pragma: no cover
     """YouTube 認証プロバイダープロトコル"""
 
-    def get_credentials(self) -> Any:  # noqa: ANN401
+    def get_credentials(self) -> Credentials:
         """認証情報を取得する"""
         ...

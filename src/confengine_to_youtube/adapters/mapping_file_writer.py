@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 from typing import TYPE_CHECKING
 
 import budoux
@@ -19,8 +20,14 @@ if TYPE_CHECKING:
 # コメント行の最大幅 (80文字 - インデント8文字 - "# " 2文字 = 70文字)
 _COMMENT_WIDTH = 70
 
-# 日本語分かち書きパーサー
-_BUDOUX_PARSER = budoux.load_default_japanese_parser()
+
+@functools.cache
+def _get_budoux_parser() -> budoux.Parser:
+    """日本語分かち書きパーサーを取得する (遅延初期化)
+
+    モジュールインポート時ではなく、初回使用時にパーサーを読み込む。
+    """
+    return budoux.load_default_japanese_parser()
 
 
 class MappingFileWriter:
@@ -135,7 +142,7 @@ class MappingFileWriter:
                 result.append(TITLE_SPEAKER_SEPARATOR)
 
             # budouxで分かち書き
-            budoux_chunks = _BUDOUX_PARSER.parse(sentence=segment)
+            budoux_chunks = _get_budoux_parser().parse(sentence=segment)
 
             for budoux_chunk in budoux_chunks:
                 if " " in budoux_chunk:

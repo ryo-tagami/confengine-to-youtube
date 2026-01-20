@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import sys
+from contextlib import AbstractContextManager, nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import argparse
+    from typing import TextIO
 
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
@@ -46,27 +48,27 @@ def run(args: argparse.Namespace) -> None:
     )
 
     try:
+        output_context: AbstractContextManager[TextIO]
+
         if args.output:
             output_path = Path(args.output)
-
-            with output_path.open(mode="w", encoding="utf-8") as f:
-                result = usecase.execute(
-                    conf_id=args.conf_id,
-                    output=f,
-                    hashtags=args.hashtags,
-                )
-
-            msg = f"Generated: {output_path} ({result.session_count} sessions)"
-            print(msg, file=sys.stderr)  # noqa: T201
+            output_context = output_path.open(mode="w", encoding="utf-8")
+            output_name = str(output_path)
         else:
+            output_context = nullcontext(sys.stdout)
+            output_name = "stdout"
+
+        with output_context as f:
             result = usecase.execute(
                 conf_id=args.conf_id,
-                output=sys.stdout,
+                output=f,
                 hashtags=args.hashtags,
             )
 
-            msg = f"Generated: stdout ({result.session_count} sessions)"
-            print(msg, file=sys.stderr)  # noqa: T201
+        print(  # noqa: T201
+            f"Generated: {output_name} ({result.session_count} sessions)",
+            file=sys.stderr,
+        )
 
     # CLIエントリポイントで全例外をキャッチし、ユーザーフレンドリーなエラー表示を行う
     except Exception as e:  # noqa: BLE001

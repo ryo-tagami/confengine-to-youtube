@@ -38,6 +38,7 @@ class Speaker:
             return None
 
         if self.first_name:
+            # str.split() は空文字列を含まないため part[0] は安全
             initials = " ".join(f"{part[0]}." for part in self.first_name.split())
             return f"{initials} {self.last_name}".strip()
 
