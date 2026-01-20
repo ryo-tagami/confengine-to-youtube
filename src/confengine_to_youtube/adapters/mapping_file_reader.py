@@ -11,13 +11,10 @@ from confengine_to_youtube.usecases.protocols import MappingFileError
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from zoneinfo import ZoneInfo
-
-    from confengine_to_youtube.domain.video_mapping import MappingConfig
 
 
 class MappingFileReader:
-    def read(self, file_path: Path, timezone: ZoneInfo) -> MappingConfig:
+    def read_schema(self, file_path: Path) -> MappingFileSchema:
         yaml = YAML()
         try:
             with file_path.open(encoding="utf-8") as f:
@@ -30,9 +27,7 @@ class MappingFileReader:
             raise MappingFileError(msg) from e
 
         try:
-            schema = MappingFileSchema.model_validate(obj=data)
+            return MappingFileSchema.model_validate(obj=data)
         except ValidationError as e:
             msg = f"Invalid mapping file format in {file_path}:\n{e}"
             raise MappingFileError(msg) from e
-
-        return schema.to_domain(timezone=timezone)

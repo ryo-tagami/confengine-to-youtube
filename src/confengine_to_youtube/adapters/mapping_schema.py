@@ -82,6 +82,7 @@ class MappingFileSchema(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    conf_id: str
     hashtags: list[str] = Field(default_factory=list)
     footer: str = ""
     sessions: DateSlotsSchema
@@ -109,6 +110,7 @@ class MappingFileSchema(BaseModel):
                     )
 
         return MappingConfig(
+            conf_id=self.conf_id,
             mappings=mappings,
             hashtags=tuple(self.hashtags),
             footer=self.footer,
@@ -151,6 +153,7 @@ class MappingFileWithCommentSchema(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    conf_id: str
     hashtags: list[str] = Field(default_factory=list)
     footer: str = ""
     sessions: DateSlotsWithCommentSchema
@@ -159,6 +162,7 @@ class MappingFileWithCommentSchema(BaseModel):
     def from_sessions(
         cls,
         sessions: list[Session],
+        conf_id: str,
     ) -> Self:
         """Sessionリストからマッピングファイルのテンプレートを生成する。
 
@@ -206,6 +210,7 @@ class MappingFileWithCommentSchema(BaseModel):
             )
 
         return cls(
+            conf_id=conf_id,
             hashtags=[],
             footer="",
             sessions=DateSlotsWithCommentSchema(root=date_slots),

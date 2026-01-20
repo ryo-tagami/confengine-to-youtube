@@ -61,6 +61,7 @@ class TestUpdateYouTubeDescriptionsUseCase:
     def mapping_file(self, tmp_path: Path) -> Path:
         """テスト用マッピングファイル"""
         yaml_content = """
+conf_id: test-conf
 sessions:
   "2026-01-07":
     "Hall A":
@@ -111,7 +112,6 @@ sessions:
     ) -> None:
         """dry-runモードでプレビューを返す"""
         result = usecase.execute(
-            conf_id="test-conf",
             mapping_file=mapping_file,
             dry_run=True,
         )
@@ -138,7 +138,6 @@ sessions:
     ) -> None:
         """更新モードで動画を更新する"""
         result = usecase.execute(
-            conf_id="test-conf",
             mapping_file=mapping_file,
             dry_run=False,
         )
@@ -194,7 +193,6 @@ sessions:
         )
 
         result = usecase.execute(
-            conf_id="test-conf",
             mapping_file=mapping_file,
             dry_run=False,
         )
@@ -237,6 +235,7 @@ sessions:
 
         # 空のマッピングファイル
         yaml_content = """
+conf_id: test-conf
 sessions: {}
 """
         mapping_file = tmp_path / "empty_mapping.yaml"
@@ -251,7 +250,6 @@ sessions: {}
         )
 
         result = usecase.execute(
-            conf_id="test-conf",
             mapping_file=mapping_file,
             dry_run=False,
         )
@@ -294,6 +292,7 @@ sessions: {}
 
         # マッピングには2セッション (1つは使われない)
         yaml_content = """
+conf_id: test-conf
 sessions:
   "2026-01-07":
     "Hall A":
@@ -314,7 +313,6 @@ sessions:
         )
 
         result = usecase.execute(
-            conf_id="test-conf",
             mapping_file=mapping_file,
             dry_run=False,
         )
@@ -342,7 +340,6 @@ sessions:
         ]
 
         result = usecase.execute(
-            conf_id="test-conf",
             mapping_file=mapping_file,
             dry_run=False,
         )
@@ -370,7 +367,6 @@ sessions:
         ]
 
         result = usecase.execute(
-            conf_id="test-conf",
             mapping_file=mapping_file,
             dry_run=True,
         )
@@ -420,6 +416,7 @@ sessions:
         )
 
         yaml_content = """
+conf_id: test-conf
 hashtags:
   - "#RSGT2026"
   - "#Agile"
@@ -442,7 +439,6 @@ sessions:
         )
 
         result = usecase.execute(
-            conf_id="test-conf",
             mapping_file=mapping_file,
             dry_run=True,
         )

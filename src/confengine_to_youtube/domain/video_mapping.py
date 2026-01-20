@@ -17,6 +17,7 @@ class VideoMapping:
 
 @dataclass(frozen=True)
 class MappingConfig:
+    conf_id: str
     mappings: list[VideoMapping]
     hashtags: tuple[str, ...]
     footer: str

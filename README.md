@@ -52,12 +52,11 @@ uv run confengine-to-youtube generate-mapping <カンファレンスID> -o mappi
 ### コマンド
 
 ```bash
-uv run confengine-to-youtube youtube-update <カンファレンスID> -m <マッピングファイル> [オプション]
+uv run confengine-to-youtube youtube-update -m <マッピングファイル> [オプション]
 ```
 
 | 引数/オプション | 説明 |
 |----------------|------|
-| `conf_id` | カンファレンスID |
 | `-m, --mapping` | セッションと動画のマッピングYAMLファイル (必須) |
 | `--credentials` | OAuth credentials.jsonのパス (デフォルト: `.credentials.json`) |
 | `--token` | トークン保存先 (デフォルト: `.token.json`) |
@@ -66,6 +65,7 @@ uv run confengine-to-youtube youtube-update <カンファレンスID> -m <マッ
 ### マッピングファイルの形式
 
 ```yaml
+conf_id: regional-scrum-gathering-tokyo-2026
 hashtags:
   - "#RSGT2026"
 footer: "カンファレンス公式サイト: https://example.com"
@@ -82,13 +82,10 @@ sessions:
 
 ```bash
 # プレビュー (実際の更新なし)
-uv run confengine-to-youtube youtube-update regional-scrum-gathering-tokyo-2026 \
-  -m mapping.yaml \
-  --dry-run
+uv run confengine-to-youtube youtube-update -m mapping.yaml --dry-run
 
 # 実際に更新
-uv run confengine-to-youtube youtube-update regional-scrum-gathering-tokyo-2026 \
-  -m mapping.yaml
+uv run confengine-to-youtube youtube-update -m mapping.yaml
 ```
 
 ## 開発
