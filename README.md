@@ -33,9 +33,8 @@ uv run confengine-to-youtube generate-mapping <カンファレンスID> -o mappi
 |----------------|------|
 | `conf_id` | カンファレンスID |
 | `-o, --output` | 出力ファイルパス (省略時はstdoutに出力) |
-| `--hashtags` | descriptionに追加するハッシュタグ (複数指定可) |
 
-生成されたYAMLの `video_id` フィールドにYouTube動画IDを入力してください。
+生成されたYAMLを編集し、`video_id` にYouTube動画IDを、`hashtags` と `footer` に必要な値を入力してください。
 
 ### 事前準備: YouTube API 認証設定
 
@@ -69,6 +68,7 @@ uv run confengine-to-youtube youtube-update <カンファレンスID> -m <マッ
 ```yaml
 hashtags:
   - "#RSGT2026"
+footer: "カンファレンス公式サイト: https://example.com"
 sessions:
   2026-01-08:
     Hall A:

@@ -26,12 +26,6 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         "--output",
         help="出力ファイルパス (省略時はstdoutに出力)",
     )
-    parser.add_argument(
-        "--hashtags",
-        action="append",
-        metavar="TAG",
-        help="descriptionに追加するハッシュタグ (複数指定可)",
-    )
 
 
 def run(args: argparse.Namespace) -> None:
@@ -62,7 +56,6 @@ def run(args: argparse.Namespace) -> None:
             result = usecase.execute(
                 conf_id=args.conf_id,
                 output=f,
-                hashtags=args.hashtags,
             )
 
         print(  # noqa: T201

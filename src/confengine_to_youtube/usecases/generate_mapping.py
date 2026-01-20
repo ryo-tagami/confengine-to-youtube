@@ -33,7 +33,6 @@ class GenerateMappingUseCase:
         self,
         conf_id: str,
         output: TextIO,
-        hashtags: list[str] | None,
     ) -> GenerateMappingResult:
         sessions, timezone = self._confengine_api.fetch_sessions(conf_id=conf_id)
 
@@ -42,7 +41,6 @@ class GenerateMappingUseCase:
             output=output,
             conf_id=conf_id,
             generated_at=datetime.now(tz=timezone),
-            hashtags=hashtags,
         )
 
         return GenerateMappingResult(session_count=len(sessions))

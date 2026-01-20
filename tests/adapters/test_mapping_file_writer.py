@@ -39,7 +39,6 @@ class TestMappingFileWriter:
             output=output,
             conf_id="test-conf",
             generated_at=generated_at,
-            hashtags=None,
         )
         result = output.getvalue()
 
@@ -47,7 +46,18 @@ class TestMappingFileWriter:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -88,7 +98,6 @@ class TestMappingFileWriter:
             output=output,
             conf_id="test-conf",
             generated_at=generated_at,
-            hashtags=None,
         )
         result = output.getvalue()
 
@@ -96,7 +105,18 @@ class TestMappingFileWriter:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -147,7 +167,6 @@ class TestMappingFileWriter:
             output=output,
             conf_id="test-conf",
             generated_at=generated_at,
-            hashtags=None,
         )
         result = output.getvalue()
 
@@ -155,7 +174,18 @@ class TestMappingFileWriter:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -211,7 +241,6 @@ class TestMappingFileWriter:
             output=output,
             conf_id="test-conf",
             generated_at=generated_at,
-            hashtags=None,
         )
         result = output.getvalue()
 
@@ -219,7 +248,18 @@ class TestMappingFileWriter:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -247,7 +287,6 @@ class TestMappingFileWriter:
             output=output,
             conf_id="test-conf",
             generated_at=generated_at,
-            hashtags=None,
         )
         result = output.getvalue()
 
@@ -255,7 +294,18 @@ class TestMappingFileWriter:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions: {}\n"
         )
         assert result == expected
@@ -289,7 +339,6 @@ class TestMappingFileWriter:
             output=output,
             conf_id="test-conf",
             generated_at=generated_at,
-            hashtags=None,
         )
         result = output.getvalue()
 
@@ -297,7 +346,18 @@ class TestMappingFileWriter:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -341,7 +401,6 @@ class TestMappingFileWriter:
             output=output,
             conf_id="test-conf",
             generated_at=generated_at,
-            hashtags=None,
         )
         result = output.getvalue()
 
@@ -354,7 +413,18 @@ class TestMappingFileWriter:
             "# ConfEngine Mapping Template\n"
             "# Conference: test-conf\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
             "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -410,55 +480,4 @@ class TestMappingFileWriter:
                 output=output,
                 conf_id="test-conf",
                 generated_at=generated_at,
-                hashtags=None,
             )
-
-    def test_write_with_hashtags(self) -> None:
-        """hashtagsを指定するとYAMLに出力される"""
-        jst = ZoneInfo(key="Asia/Tokyo")
-        sessions = [
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
-                    ),
-                    room="Hall A",
-                ),
-                title="Test Session",
-                track="技術",
-                speakers=[Speaker(first_name="", last_name="田中")],
-                abstract=AbstractMarkdown(content="概要"),
-                url="https://example.com/session1",
-            )
-        ]
-        generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
-        )
-
-        writer = MappingFileWriter()
-        output = StringIO()
-        writer.write(
-            sessions=sessions,
-            output=output,
-            conf_id="test-conf",
-            generated_at=generated_at,
-            hashtags=["#RSGT2026", "#Agile", "#Scrum"],
-        )
-        result = output.getvalue()
-
-        expected = (
-            "# ConfEngine Mapping Template\n"
-            "# Conference: test-conf\n"
-            "# Generated: 2026-01-19T10:30:00+09:00\n"
-            "hashtags:\n"
-            "- '#RSGT2026'\n"
-            "- '#Agile'\n"
-            "- '#Scrum'\n"
-            "sessions:\n"
-            "  2026-01-07:\n"
-            "    Hall A:\n"
-            "      10:00:\n"
-            "        # Test Session - 田中\n"
-            "        video_id: ''\n"
-        )
-        assert result == expected

@@ -41,7 +41,7 @@ class TestMappingConfig:
             VideoMapping(slot=slot1, video_id="abc123"),
             VideoMapping(slot=slot2, video_id="def456"),
         ]
-        config = MappingConfig(mappings=mappings, hashtags=())
+        config = MappingConfig(mappings=mappings, hashtags=(), footer="")
 
         search_slot = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC),
@@ -59,7 +59,7 @@ class TestMappingConfig:
             room="Hall A",
         )
         mappings = [VideoMapping(slot=slot, video_id="abc123")]
-        config = MappingConfig(mappings=mappings, hashtags=())
+        config = MappingConfig(mappings=mappings, hashtags=(), footer="")
 
         search_slot = ScheduleSlot(
             timeslot=datetime(year=2026, month=1, day=8, hour=14, minute=0, tzinfo=UTC),
@@ -88,7 +88,7 @@ class TestMappingConfig:
             VideoMapping(slot=slot2, video_id="def456"),
             VideoMapping(slot=slot3, video_id="ghi789"),
         ]
-        config = MappingConfig(mappings=mappings, hashtags=())
+        config = MappingConfig(mappings=mappings, hashtags=(), footer="")
 
         # 1つだけ使用
         used_slots = {
@@ -110,6 +110,7 @@ class TestMappingConfig:
         config = MappingConfig(
             mappings=[],
             hashtags=("#RSGT2026", "#Agile", "#Scrum"),
+            footer="",
         )
 
         assert config.hashtags == ("#RSGT2026", "#Agile", "#Scrum")

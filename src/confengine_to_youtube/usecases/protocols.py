@@ -94,7 +94,6 @@ class MappingWriterProtocol(Protocol):  # pragma: no cover
         output: TextIO,
         conf_id: str,
         generated_at: datetime,
-        hashtags: list[str] | None,
     ) -> None:
         """マッピングファイルを書き込む"""
         ...
@@ -115,7 +114,12 @@ class YouTubeApiProtocol(Protocol):  # pragma: no cover
 class DescriptionBuilderProtocol(Protocol):  # pragma: no cover
     """YouTube 説明文ビルダープロトコル"""
 
-    def build(self, session: Session, hashtags: tuple[str, ...]) -> YouTubeDescription:
+    def build(
+        self,
+        session: Session,
+        hashtags: tuple[str, ...],
+        footer: str,
+    ) -> YouTubeDescription:
         """説明文を生成する"""
         ...
 

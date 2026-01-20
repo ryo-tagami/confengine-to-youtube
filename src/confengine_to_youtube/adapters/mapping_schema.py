@@ -83,6 +83,7 @@ class MappingFileSchema(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     hashtags: list[str] = Field(default_factory=list)
+    footer: str = ""
     sessions: DateSlotsSchema
 
     def to_domain(self, timezone: ZoneInfo) -> MappingConfig:
@@ -107,7 +108,11 @@ class MappingFileSchema(BaseModel):
                         )
                     )
 
-        return MappingConfig(mappings=mappings, hashtags=tuple(self.hashtags))
+        return MappingConfig(
+            mappings=mappings,
+            hashtags=tuple(self.hashtags),
+            footer=self.footer,
+        )
 
 
 # Writer用スキーマ
@@ -147,15 +152,19 @@ class MappingFileWithCommentSchema(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     hashtags: list[str] = Field(default_factory=list)
+    footer: str = ""
     sessions: DateSlotsWithCommentSchema
 
     @classmethod
     def from_sessions(
         cls,
         sessions: list[Session],
-        hashtags: list[str] | None,
     ) -> Self:
-        """Sessionリストからスキーマを構築"""
+        """Sessionリストからマッピングファイルのテンプレートを生成する。
+
+        hashtagsとfooterは空で初期化される。
+        生成されたYAMLファイルをユーザーが手動で編集することを想定している。
+        """
         date_slots: dict[date, RoomSlotsWithCommentSchema] = {}
 
         for session in sessions:
@@ -197,6 +206,7 @@ class MappingFileWithCommentSchema(BaseModel):
             )
 
         return cls(
-            hashtags=hashtags or [],
+            hashtags=[],
+            footer="",
             sessions=DateSlotsWithCommentSchema(root=date_slots),
         )

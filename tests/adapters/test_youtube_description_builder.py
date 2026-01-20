@@ -6,7 +6,6 @@ import pytest
 
 from confengine_to_youtube.adapters.youtube_description_builder import (
     YouTubeDescriptionBuilder,
-    YouTubeDescriptionOptions,
 )
 from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
@@ -19,9 +18,8 @@ class TestYouTubeDescriptionBuilder:
 
     def test_build_basic(self, sample_session: Session) -> None:
         """基本的なMarkdown生成"""
-        options = YouTubeDescriptionOptions(footer_text="")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=sample_session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(session=sample_session, hashtags=(), footer="")
 
         expected = (
             "Speaker: Speaker A, Speaker B\n"
@@ -38,9 +36,10 @@ class TestYouTubeDescriptionBuilder:
 
     def test_build_with_hashtags(self, sample_session: Session) -> None:
         """ハッシュタグ付きのMarkdown生成"""
-        options = YouTubeDescriptionOptions(footer_text="")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=sample_session, hashtags=("#Test", "#Hash"))
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(
+            session=sample_session, hashtags=("#Test", "#Hash"), footer=""
+        )
 
         expected = (
             "Speaker: Speaker A, Speaker B\n"
@@ -59,9 +58,10 @@ class TestYouTubeDescriptionBuilder:
 
     def test_build_with_footer(self, sample_session: Session) -> None:
         """フッター付きのMarkdown生成"""
-        options = YouTubeDescriptionOptions(footer_text="Footer text here")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=sample_session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(
+            session=sample_session, hashtags=(), footer="Footer text here"
+        )
 
         expected = (
             "Speaker: Speaker A, Speaker B\n"
@@ -80,9 +80,8 @@ class TestYouTubeDescriptionBuilder:
 
     def test_build_without_speakers(self, empty_session: Session) -> None:
         """スピーカーがいない場合"""
-        options = YouTubeDescriptionOptions(footer_text="")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=empty_session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(session=empty_session, hashtags=(), footer="")
 
         expected = "***\n\nhttps://example.com/session/2\n\n***"
         assert str(markdown) == expected
@@ -100,9 +99,8 @@ class TestYouTubeDescriptionBuilder:
             abstract=AbstractMarkdown(content=""),
             url="https://example.com",
         )
-        options = YouTubeDescriptionOptions(footer_text="")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(session=session, hashtags=(), footer="")
 
         expected = "Speaker: Speaker A\n\n***\n\nhttps://example.com\n\n***"
         assert str(markdown) == expected
@@ -120,9 +118,8 @@ class TestYouTubeDescriptionBuilder:
             abstract=AbstractMarkdown(content="Some abstract"),
             url="",
         )
-        options = YouTubeDescriptionOptions(footer_text="")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(session=session, hashtags=(), footer="")
 
         expected = "Speaker: Speaker A\n\nSome abstract\n\n***\n\n***"
         assert str(markdown) == expected
@@ -142,14 +139,11 @@ class TestYouTubeDescriptionBuilder:
         )
         # 5000文字を超えるフッターを用意
         long_footer = "X" * 6000
-        options = YouTubeDescriptionOptions(
-            footer_text=long_footer,
-        )
-        builder = YouTubeDescriptionBuilder(options=options)
+        builder = YouTubeDescriptionBuilder()
 
         expected_msg = "フレーム部分だけで文字数制限を超えています"
         with pytest.raises(expected_exception=ValueError, match=expected_msg):
-            builder.build(session=session, hashtags=())
+            builder.build(session=session, hashtags=(), footer=long_footer)
 
     def test_long_abstract_is_truncated(self) -> None:
         """長いabstractはYouTube説明文の最大文字数に収まるよう切り詰められる"""
@@ -166,11 +160,8 @@ class TestYouTubeDescriptionBuilder:
             abstract=AbstractMarkdown(content=long_abstract),
             url="https://example.com",
         )
-        options = YouTubeDescriptionOptions(
-            footer_text="Footer",
-        )
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(session=session, hashtags=(), footer="Footer")
 
         result = str(markdown)
         # 最大文字数以下に収まる
@@ -193,9 +184,8 @@ class TestYouTubeDescriptionBuilder:
             abstract=AbstractMarkdown(content="Link: <https://example.com/page>"),
             url="",
         )
-        options = YouTubeDescriptionOptions(footer_text="")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(session=session, hashtags=(), footer="")
 
         expected = "Speaker: Speaker\n\nLink: https://example.com/page\n\n***\n\n***"
         assert str(markdown) == expected
@@ -213,9 +203,8 @@ class TestYouTubeDescriptionBuilder:
             abstract=AbstractMarkdown(content="See <https://a.com> and <http://b.com>"),
             url="",
         )
-        options = YouTubeDescriptionOptions(footer_text="")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(session=session, hashtags=(), footer="")
 
         expected = (
             "Speaker: Speaker\n\nSee https://a.com and http://b.com\n\n***\n\n***"
@@ -239,9 +228,8 @@ class TestYouTubeDescriptionBuilder:
             abstract=AbstractMarkdown(content="> Quote\na < b\nList<T>"),
             url="",
         )
-        options = YouTubeDescriptionOptions(footer_text="")
-        builder = YouTubeDescriptionBuilder(options=options)
-        markdown = builder.build(session=session, hashtags=())
+        builder = YouTubeDescriptionBuilder()
+        markdown = builder.build(session=session, hashtags=(), footer="")
 
         # > is replaced with U+203A, < is replaced with U+2039
         expected = (
