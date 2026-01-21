@@ -18,7 +18,7 @@ class VideoMapping:
 @dataclass(frozen=True)
 class MappingConfig:
     conf_id: str
-    mappings: tuple[VideoMapping, ...]
+    mappings: frozenset[VideoMapping]
     hashtags: tuple[str, ...]
     footer: str
 
@@ -30,5 +30,5 @@ class MappingConfig:
 
         return None
 
-    def find_unused(self, used_slots: set[ScheduleSlot]) -> tuple[VideoMapping, ...]:
-        return tuple(m for m in self.mappings if m.slot not in used_slots)
+    def find_unused(self, used_slots: set[ScheduleSlot]) -> frozenset[VideoMapping]:
+        return frozenset(m for m in self.mappings if m.slot not in used_slots)

@@ -112,7 +112,7 @@ class MappingFileSchema(BaseModel):
 
         return MappingConfig(
             conf_id=self.conf_id,
-            mappings=tuple(mappings),
+            mappings=frozenset(mappings),
             hashtags=tuple(self.hashtags),
             footer=self.footer,
         )
