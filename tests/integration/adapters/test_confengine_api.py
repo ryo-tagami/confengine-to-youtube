@@ -14,7 +14,7 @@ from confengine_to_youtube.domain.session import Speaker
 class TestConfEngineApiGateway:
     """ConfEngineApiGateway のテスト"""
 
-    def test_fetch_sessions(self) -> None:
+    def test_fetch_sessions(self, jst: ZoneInfo) -> None:
         """APIからセッションを取得できる"""
         mock_http_client = create_autospec(HttpClientProtocol, spec_set=True)
         mock_http_client.get_json.return_value = {
@@ -60,7 +60,6 @@ class TestConfEngineApiGateway:
         session = sessions[0]
 
         # 全フィールドのマッピングを検証
-        jst = ZoneInfo(key="Asia/Tokyo")
         assert timezone == jst
 
         assert session.title == "Test Session"
