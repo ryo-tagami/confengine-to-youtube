@@ -4,12 +4,8 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    import argparse
-
-    from confengine_to_youtube.usecases.dto import YouTubeUpdateResult
-
-from rich.console import Console
+from returns.io import IOFailure, IOSuccess
+from returns.unsafe import unsafe_perform_io
 
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
@@ -20,11 +16,22 @@ from confengine_to_youtube.adapters.youtube_description_builder import (
 )
 from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_to_youtube.infrastructure.cli.diff_formatter import DiffFormatter
+from confengine_to_youtube.infrastructure.cli.result_aggregator import (
+    aggregate_session_results,
+)
 from confengine_to_youtube.infrastructure.http_client import HttpClient
 from confengine_to_youtube.infrastructure.youtube_auth import YouTubeAuthClient
+from confengine_to_youtube.usecases.deps import UpdateYouTubeDeps
 from confengine_to_youtube.usecases.update_youtube_descriptions import (
-    UpdateYouTubeDescriptionsUseCase,
+    update_youtube_descriptions,
 )
+
+if TYPE_CHECKING:
+    import argparse
+
+    from confengine_to_youtube.usecases.dto import YouTubeUpdateResult
+
+from rich.console import Console
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:
@@ -83,7 +90,8 @@ def run(args: argparse.Namespace) -> None:
     description_builder = YouTubeDescriptionBuilder()
     title_builder = YouTubeTitleBuilder()
 
-    usecase = UpdateYouTubeDescriptionsUseCase(
+    # 依存関係を組み立て
+    deps = UpdateYouTubeDeps(
         confengine_api=confengine_api,
         mapping_reader=mapping_reader,
         youtube_api=youtube_api,
@@ -91,18 +99,21 @@ def run(args: argparse.Namespace) -> None:
         title_builder=title_builder,
     )
 
-    try:
-        result = usecase.execute(
-            mapping_file=Path(args.mapping),
-            dry_run=args.dry_run,
-        )
+    # RequiresContextを実行
+    result = update_youtube_descriptions(
+        mapping_file=Path(args.mapping),
+        dry_run=args.dry_run,
+    )(deps)
 
-        _print_result(result=result)
-
-    # CLIエントリポイントで全例外をキャッチし、ユーザーフレンドリーなエラー表示を行う
-    except Exception as e:  # noqa: BLE001
-        print(f"Error: {type(e).__name__}: {e}", file=sys.stderr)  # noqa: T201
-        sys.exit(1)
+    match result:
+        case IOFailure():
+            error = unsafe_perform_io(result.failure())
+            print(f"Error: {error}", file=sys.stderr)  # noqa: T201
+            sys.exit(1)
+        case IOSuccess():
+            batch = unsafe_perform_io(result.unwrap())
+            youtube_result = aggregate_session_results(batch=batch)
+            _print_result(result=youtube_result)
 
 
 def _print_result(result: YouTubeUpdateResult) -> None:

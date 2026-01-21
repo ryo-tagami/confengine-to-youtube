@@ -5,169 +5,240 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from confengine_to_youtube.usecases.dto import UpdatePreview, YouTubeUpdateResult
-from confengine_to_youtube.usecases.protocols import (
-    VideoUpdateRequest,
-    YouTubeApiError,
+from returns.context import RequiresContextIOResultE
+from returns.io import IOResult, IOSuccess
+
+from confengine_to_youtube.usecases.deps import UpdateYouTubeDeps
+from confengine_to_youtube.usecases.dto import (
+    SessionProcessingBatch,
+    SessionProcessingError,
+    UpdatePreview,
 )
+from confengine_to_youtube.usecases.protocols import VideoInfo, VideoUpdateRequest
 
 logger = logging.getLogger(name=__name__)
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from pathlib import Path
 
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
     from confengine_to_youtube.domain.session import Session
-    from confengine_to_youtube.domain.video_mapping import MappingConfig
-    from confengine_to_youtube.usecases.protocols import (
-        ConfEngineApiProtocol,
-        DescriptionBuilderProtocol,
-        MappingFileReaderProtocol,
-        TitleBuilderProtocol,
-        YouTubeApiProtocol,
+    from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
+    from confengine_to_youtube.domain.youtube_description import YouTubeDescription
+    from confengine_to_youtube.domain.youtube_title import YouTubeTitle
+
+
+def update_youtube_descriptions(
+    mapping_file: Path,
+    *,
+    dry_run: bool,
+) -> RequiresContextIOResultE[SessionProcessingBatch, UpdateYouTubeDeps]:
+    """YouTube説明文を更新する
+
+    Returns:
+        SessionProcessingBatch: 未集約のセッション処理結果。
+        CLI層で aggregate_session_results() を使って YouTubeUpdateResult に変換する。
+
+    """
+    return RequiresContextIOResultE[SessionProcessingBatch, UpdateYouTubeDeps](
+        lambda deps: _execute(deps=deps, mapping_file=mapping_file, dry_run=dry_run),
     )
 
 
-class UpdateYouTubeDescriptionsUseCase:
-    def __init__(
-        self,
-        confengine_api: ConfEngineApiProtocol,
-        mapping_reader: MappingFileReaderProtocol,
-        youtube_api: YouTubeApiProtocol,
-        description_builder: DescriptionBuilderProtocol,
-        title_builder: TitleBuilderProtocol,
-    ) -> None:
-        self._confengine_api = confengine_api
-        self._mapping_reader = mapping_reader
-        self._youtube_api = youtube_api
-        self._description_builder = description_builder
-        self._title_builder = title_builder
-
-    def execute(
-        self,
-        mapping_file: Path,
-        *,
-        dry_run: bool = False,
-    ) -> YouTubeUpdateResult:
-        mapping = self._mapping_reader.read(file_path=mapping_file)
-        sessions, timezone = self._confengine_api.fetch_sessions(
+def _execute(
+    deps: UpdateYouTubeDeps,
+    mapping_file: Path,
+    *,
+    dry_run: bool,
+) -> IOResult[SessionProcessingBatch, Exception]:
+    """メインの実行ロジック"""
+    return IOResult.do(
+        _process_sessions(
+            deps=deps,
+            sessions=sessions,
+            mapping_config=mapping.to_domain(timezone=timezone),
+            dry_run=dry_run,
+        )
+        for mapping in deps.mapping_reader.read(file_path=mapping_file)
+        for (sessions, timezone) in deps.confengine_api.fetch_sessions(
             conf_id=mapping.conf_id,
         )
-        mapping_config = mapping.to_domain(timezone=timezone)
+    )
 
-        return self._execute(
-            sessions=sessions,
+
+def _process_sessions(
+    deps: UpdateYouTubeDeps,
+    sessions: tuple[Session, ...],
+    mapping_config: MappingConfig,
+    *,
+    dry_run: bool,
+) -> SessionProcessingBatch:
+    """全セッションを処理 (未集約の結果を返す)"""
+    # 1. コンテンツなしセッションを除外
+    content_sessions = tuple(session for session in sessions if session.has_content)
+    no_content_count = len(sessions) - len(content_sessions)
+
+    # 2. マッピングを付与し、マッピングなしを分離
+    sessions_with_mapping = tuple(
+        (session, mapping_config.find_mapping(slot=session.slot))
+        for session in content_sessions
+    )
+    processable = tuple(
+        (session, mapping)
+        for session, mapping in sessions_with_mapping
+        if mapping is not None
+    )
+    no_mapping_count = len(sessions_with_mapping) - len(processable)
+
+    # 3. 処理可能なセッションを処理
+    results = tuple(
+        _process_session(
+            deps=deps,
+            session=session,
+            mapping=mapping,
             mapping_config=mapping_config,
             dry_run=dry_run,
         )
+        for session, mapping in processable
+    )
 
-    def _execute(
-        self,
-        sessions: Sequence[Session],
-        mapping_config: MappingConfig,
-        *,
-        dry_run: bool,
-    ) -> YouTubeUpdateResult:
-        previews: list[UpdatePreview] = []
-        updated_count = 0
-        no_content_count = 0
-        no_mapping_count = 0
-        errors: list[str] = []
-        used_slots: set[ScheduleSlot] = set()
+    # 4. 使用済みスロットから未使用マッピングを計算
+    used_slots = frozenset(session.slot for session, _ in processable)
+    unused_count = _warn_unused_mappings(
+        mapping_config=mapping_config,
+        used_slots=used_slots,
+    )
 
-        for session in sessions:
-            if not session.has_content:
-                no_content_count += 1
-                continue
+    return SessionProcessingBatch(
+        results=results,
+        no_content_count=no_content_count,
+        no_mapping_count=no_mapping_count,
+        unused_mappings_count=unused_count,
+        is_dry_run=dry_run,
+    )
 
-            mapping = mapping_config.find_mapping(slot=session.slot)
 
-            if mapping is None:
-                no_mapping_count += 1
-                continue
+def _process_session(
+    deps: UpdateYouTubeDeps,
+    session: Session,
+    mapping: VideoMapping,
+    mapping_config: MappingConfig,
+    *,
+    dry_run: bool,
+) -> IOResult[UpdatePreview, SessionProcessingError]:
+    """単一セッションを処理"""
+    session_key = str(session.slot)
 
-            used_slots.add(session.slot)
-
-            session_key = str(session.slot)
-
-            try:
-                video_info = self._youtube_api.get_video_info(video_id=mapping.video_id)
-                new_title = self._title_builder.build(session=session)
-                description = self._description_builder.build(
-                    session=session,
-                    hashtags=mapping_config.hashtags,
-                    footer=mapping_config.footer,
-                )
-
-                previews.append(
-                    UpdatePreview(
-                        session_key=session_key,
-                        video_id=mapping.video_id,
-                        current_title=video_info.title,
-                        current_description=video_info.description,
-                        new_title=str(new_title),
-                        new_description=str(description),
-                    ),
-                )
-
-                if not dry_run:
-                    request = VideoUpdateRequest(
-                        video_id=mapping.video_id,
-                        title=str(new_title),
-                        description=str(description),
-                        category_id=video_info.category_id,
-                    )
-                    self._youtube_api.update_video(request=request)
-                    updated_count += 1
-                    logger.info("Updated: %s (%s)", session.title, mapping.video_id)
-
-            # NOTE: ValueError (タイトル/説明文の文字数超過) は意図的にキャッチしない。
-            # データ不整合を示すため、処理を中断して早期に修正を促す。
-            except YouTubeApiError as e:
-                error_msg = str(e)
-                errors.append(error_msg)
-                logger.exception("YouTube API error")
-                previews.append(
-                    UpdatePreview(
-                        session_key=session_key,
-                        video_id=mapping.video_id,
-                        current_title=None,
-                        current_description=None,
-                        new_title=None,
-                        new_description=None,
-                        error=error_msg,
-                    ),
-                )
-
-        unused_count = self._warn_unused_mappings(
-            mapping_config=mapping_config,
-            used_slots=used_slots,
+    def to_error(message: str) -> SessionProcessingError:
+        return SessionProcessingError(
+            session_key=session_key,
+            video_id=mapping.video_id,
+            message=message,
         )
 
-        return YouTubeUpdateResult(
-            is_dry_run=dry_run,
-            previews=tuple(previews),
-            updated_count=updated_count,
-            no_content_count=no_content_count,
-            no_mapping_count=no_mapping_count,
-            unused_mappings_count=unused_count,
-            errors=tuple(errors),
+    # 動画情報を取得 → タイトル生成 → 説明文生成 → プレビュー作成
+    return IOResult.do(
+        preview
+        for video_info in deps.youtube_api.get_video_info(
+            video_id=mapping.video_id,
+        ).alt(lambda e: to_error(str(e)))
+        for new_title in IOResult.from_result(
+            deps.title_builder.build(session=session).alt(
+                lambda e: to_error(e.message),
+            ),
+        )
+        for description in IOResult.from_result(
+            deps.description_builder.build(
+                session=session,
+                hashtags=mapping_config.hashtags,
+                footer=mapping_config.footer,
+            ).alt(lambda e: to_error(e.message)),
+        )
+        for preview in _create_preview_and_update(
+            deps=deps,
+            session=session,
+            mapping=mapping,
+            video_info=video_info,
+            new_title=new_title,
+            description=description,
+            dry_run=dry_run,
+        )
+    )
+
+
+def _create_preview_and_update(  # noqa: PLR0913
+    deps: UpdateYouTubeDeps,
+    session: Session,
+    mapping: VideoMapping,
+    video_info: VideoInfo,
+    new_title: YouTubeTitle,
+    description: YouTubeDescription,
+    *,
+    dry_run: bool,
+) -> IOResult[UpdatePreview, SessionProcessingError]:
+    """プレビューを作成し、必要に応じて更新を実行"""
+    session_key = str(session.slot)
+    preview = UpdatePreview(
+        session_key=session_key,
+        video_id=mapping.video_id,
+        current_title=video_info.title,
+        current_description=video_info.description,
+        new_title=str(new_title),
+        new_description=str(description),
+    )
+
+    if dry_run:
+        return IOSuccess(preview)
+
+    request = VideoUpdateRequest(
+        video_id=mapping.video_id,
+        title=str(new_title),
+        description=str(description),
+        category_id=video_info.category_id,
+    )
+
+    def on_update_success(_: None) -> UpdatePreview:
+        return _log_and_return_preview(
+            session=session,
+            mapping=mapping,
+            preview=preview,
         )
 
-    def _warn_unused_mappings(
-        self,
-        mapping_config: MappingConfig,
-        used_slots: set[ScheduleSlot],
-    ) -> int:
-        """未使用のマッピングを警告し、件数を返す"""
-        unused = mapping_config.find_unused(used_slots=used_slots)
+    return (
+        deps.youtube_api.update_video(request=request)
+        .alt(
+            lambda e: SessionProcessingError(
+                session_key=session_key,
+                video_id=mapping.video_id,
+                message=str(e),
+            ),
+        )
+        .map(on_update_success)
+    )
 
-        for mapping in unused:
-            logger.warning(
-                "Unused mapping %s (%s)",
-                mapping.slot,
-                mapping.video_id,
-            )
 
-        return len(unused)
+def _log_and_return_preview(
+    session: Session,
+    mapping: VideoMapping,
+    preview: UpdatePreview,
+) -> UpdatePreview:
+    """ログを出力してプレビューを返す"""
+    logger.info("Updated: %s (%s)", session.title, mapping.video_id)
+    return preview
+
+
+def _warn_unused_mappings(
+    mapping_config: MappingConfig,
+    used_slots: frozenset[ScheduleSlot],
+) -> int:
+    """未使用のマッピングを警告し、件数を返す"""
+    unused = mapping_config.find_unused(used_slots=used_slots)
+
+    for mapping in unused:
+        logger.warning(
+            "Unused mapping %s (%s)",
+            mapping.slot,
+            mapping.video_id,
+        )
+
+    return len(unused)

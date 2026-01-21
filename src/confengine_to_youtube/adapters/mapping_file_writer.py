@@ -4,6 +4,7 @@ import functools
 from typing import TYPE_CHECKING
 
 import budoux
+from returns.io import IOResult, impure_safe
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 from wcwidth import wcwidth
@@ -38,13 +39,14 @@ class MappingFileWriter:
         output: TextIO,
         conf_id: str,
         generated_at: datetime,
-    ) -> None:
+    ) -> IOResult[None, Exception]:
+        """マッピングファイルを書き込む"""
         schema = MappingFileWithCommentSchema.from_sessions(
             sessions=sessions,
             conf_id=conf_id,
         )
 
-        self._schema_to_yaml(
+        return impure_safe(self._schema_to_yaml)(
             schema=schema,
             output=output,
             generated_at=generated_at,
@@ -175,6 +177,7 @@ class MappingFileWriter:
             for budoux_chunk in budoux_chunks:
                 if " " in budoux_chunk:
                     words = budoux_chunk.split(sep=" ")
+
                     for j, word in enumerate(iterable=words):
                         if j > 0:
                             result.append(" ")
@@ -189,7 +192,9 @@ class MappingFileWriter:
     def _display_width(text: str) -> int:
         """テキストの表示幅を計算する"""
         width = 0
+
         for char in text:
             char_w = wcwidth(wc=char)
             width += char_w if char_w >= 0 else 1
+
         return width

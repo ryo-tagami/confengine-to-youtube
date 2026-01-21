@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Set as AbstractSet
+
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 
 
@@ -30,5 +32,8 @@ class MappingConfig:
 
         return None
 
-    def find_unused(self, used_slots: set[ScheduleSlot]) -> frozenset[VideoMapping]:
+    def find_unused(
+        self,
+        used_slots: AbstractSet[ScheduleSlot],
+    ) -> frozenset[VideoMapping]:
         return frozenset(m for m in self.mappings if m.slot not in used_slots)

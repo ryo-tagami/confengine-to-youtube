@@ -10,12 +10,13 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from google.oauth2.credentials import Credentials
+    from returns.io import IOResult
 
 
 class HttpClientProtocol(Protocol):  # pragma: no cover
     """HTTP クライアントプロトコル"""
 
-    def get_json(self, url: str) -> Any:  # noqa: ANN401
+    def get_json(self, url: str) -> IOResult[Any, Exception]:
         """URL から JSON を取得する"""
         ...
 

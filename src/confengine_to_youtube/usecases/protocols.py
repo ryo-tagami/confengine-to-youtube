@@ -16,28 +16,18 @@ if TYPE_CHECKING:
     from typing import TextIO
     from zoneinfo import ZoneInfo
 
+    from returns.io import IOResult
+    from returns.result import Result
+
     from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
+    from confengine_to_youtube.domain.errors import (
+        DescriptionValidationError,
+        TitleValidationError,
+    )
     from confengine_to_youtube.domain.session import Session
     from confengine_to_youtube.domain.video_mapping import MappingConfig
     from confengine_to_youtube.domain.youtube_description import YouTubeDescription
     from confengine_to_youtube.domain.youtube_title import YouTubeTitle
-
-
-# =============================================================================
-# 例外クラス
-# =============================================================================
-
-
-class YouTubeApiError(Exception):
-    """YouTube API エラーの基底クラス"""
-
-
-class VideoNotFoundError(YouTubeApiError):
-    """動画が見つからないエラー"""
-
-
-class MappingFileError(Exception):
-    """マッピングファイル読み込みエラー"""
 
 
 # =============================================================================
@@ -73,7 +63,10 @@ class VideoUpdateRequest:
 class ConfEngineApiProtocol(Protocol):  # pragma: no cover
     """ConfEngine API との通信プロトコル"""
 
-    def fetch_sessions(self, conf_id: str) -> tuple[tuple[Session, ...], ZoneInfo]:
+    def fetch_sessions(
+        self,
+        conf_id: str,
+    ) -> IOResult[tuple[tuple[Session, ...], ZoneInfo], Exception]:
         """セッション一覧を取得する"""
         ...
 
@@ -91,7 +84,7 @@ class MappingFile(Protocol):  # pragma: no cover
 class MappingFileReaderProtocol(Protocol):  # pragma: no cover
     """マッピングファイル読み込みプロトコル"""
 
-    def read(self, file_path: Path) -> MappingFile:
+    def read(self, file_path: Path) -> IOResult[MappingFile, Exception]:
         """マッピングファイルを読み込む"""
         ...
 
@@ -105,7 +98,7 @@ class MappingWriterProtocol(Protocol):  # pragma: no cover
         output: TextIO,
         conf_id: str,
         generated_at: datetime,
-    ) -> None:
+    ) -> IOResult[None, Exception]:
         """マッピングファイルを書き込む"""
         ...
 
@@ -113,11 +106,14 @@ class MappingWriterProtocol(Protocol):  # pragma: no cover
 class YouTubeApiProtocol(Protocol):  # pragma: no cover
     """YouTube API との通信プロトコル"""
 
-    def get_video_info(self, video_id: str) -> VideoInfo:
+    def get_video_info(self, video_id: str) -> IOResult[VideoInfo, Exception]:
         """動画情報を取得する"""
         ...
 
-    def update_video(self, request: VideoUpdateRequest) -> None:
+    def update_video(
+        self,
+        request: VideoUpdateRequest,
+    ) -> IOResult[None, Exception]:
         """動画を更新する"""
         ...
 
@@ -130,7 +126,7 @@ class DescriptionBuilderProtocol(Protocol):  # pragma: no cover
         session: Session,
         hashtags: tuple[str, ...],
         footer: str,
-    ) -> YouTubeDescription:
+    ) -> Result[YouTubeDescription, DescriptionValidationError]:
         """説明文を生成する"""
         ...
 
@@ -138,7 +134,7 @@ class DescriptionBuilderProtocol(Protocol):  # pragma: no cover
 class TitleBuilderProtocol(Protocol):  # pragma: no cover
     """YouTube タイトルビルダープロトコル"""
 
-    def build(self, session: Session) -> YouTubeTitle:
+    def build(self, session: Session) -> Result[YouTubeTitle, TitleValidationError]:
         """タイトルを生成する"""
         ...
 

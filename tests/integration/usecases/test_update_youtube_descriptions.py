@@ -4,6 +4,8 @@ from unittest.mock import create_autospec
 from zoneinfo import ZoneInfo
 
 import pytest
+from returns.io import IOFailure, IOSuccess
+from returns.pipeline import is_successful
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
@@ -12,21 +14,24 @@ from confengine_to_youtube.adapters.youtube_description_builder import (
 )
 from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_to_youtube.domain.session import Session
+from confengine_to_youtube.infrastructure.cli.result_aggregator import (
+    aggregate_session_results,
+)
+from confengine_to_youtube.usecases.deps import UpdateYouTubeDeps
 from confengine_to_youtube.usecases.protocols import (
     ConfEngineApiProtocol,
     VideoInfo,
-    YouTubeApiError,
     YouTubeApiProtocol,
 )
 from confengine_to_youtube.usecases.update_youtube_descriptions import (
-    UpdateYouTubeDescriptionsUseCase,
+    update_youtube_descriptions,
 )
-from tests.conftest import create_session, write_yaml_file
+from tests.conftest import create_session, extract_io_success, write_yaml_file
 from tests.integration.usecases.conftest import create_mock_confengine_api
 
 
-class TestUpdateYouTubeDescriptionsUseCase:
-    """UpdateYouTubeDescriptionsUseCase のテスト"""
+class TestUpdateYouTubeDescriptions:
+    """update_youtube_descriptions のテスト"""
 
     @pytest.fixture
     def sessions(self, jst: ZoneInfo) -> tuple[Session, ...]:
@@ -94,23 +99,26 @@ sessions:
     def mock_youtube_api(self) -> YouTubeApiProtocol:
         """モックYouTube API"""
         mock = create_autospec(YouTubeApiGateway, spec_set=True)
-        mock.get_video_info.side_effect = lambda video_id: VideoInfo(
-            video_id=video_id,
-            title=f"Title for {video_id}",
-            description=f"Description for {video_id}",
-            category_id=28,
+        mock.get_video_info.side_effect = lambda video_id: IOSuccess(
+            VideoInfo(
+                video_id=video_id,
+                title=f"Title for {video_id}",
+                description=f"Description for {video_id}",
+                category_id=28,
+            ),
         )
+        mock.update_video.return_value = IOSuccess(None)
         return mock  # type: ignore[no-any-return]
 
     @pytest.fixture
-    def usecase(
+    def deps(
         self,
         mock_confengine_api: ConfEngineApiProtocol,
         mock_youtube_api: YouTubeApiProtocol,
         mapping_reader: MappingFileReader,
-    ) -> UpdateYouTubeDescriptionsUseCase:
-        """テスト用ユースケース"""
-        return UpdateYouTubeDescriptionsUseCase(
+    ) -> UpdateYouTubeDeps:
+        """テスト用依存関係"""
+        return UpdateYouTubeDeps(
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
@@ -120,26 +128,30 @@ sessions:
 
     def test_execute_dry_run(
         self,
-        usecase: UpdateYouTubeDescriptionsUseCase,
+        deps: UpdateYouTubeDeps,
         mapping_file: Path,
         mock_confengine_api: ConfEngineApiProtocol,
     ) -> None:
         """dry-runモードでプレビューを返す"""
-        result = usecase.execute(
+        result = update_youtube_descriptions(
             mapping_file=mapping_file,
             dry_run=True,
-        )
+        )(deps)
 
-        assert result.is_dry_run is True
-        assert result.updated_count == 0
-        assert len(result.previews) == 2
-        assert len(result.errors) == 0
+        assert is_successful(result)
+        batch = extract_io_success(result)
+        youtube_result = aggregate_session_results(batch=batch)
+
+        assert youtube_result.is_dry_run is True
+        assert youtube_result.updated_count == 0
+        assert len(youtube_result.previews) == 2
+        assert len(youtube_result.errors) == 0
 
         # ConfEngine APIが呼ばれたことを検証
         mock_confengine_api.fetch_sessions.assert_called_once()  # type: ignore[attr-defined]
 
         # プレビューの内容を確認
-        preview1 = result.previews[0]
+        preview1 = youtube_result.previews[0]
         assert preview1.video_id == "video1"
         expected_description = (
             "Speaker: Speaker A\n\nAbstract 1\n\n***\n\nhttps://example.com/1\n\n***"
@@ -148,21 +160,25 @@ sessions:
 
     def test_execute_update(
         self,
-        usecase: UpdateYouTubeDescriptionsUseCase,
+        deps: UpdateYouTubeDeps,
         mapping_file: Path,
         mock_youtube_api: YouTubeApiProtocol,
     ) -> None:
         """更新モードで動画を更新する"""
-        result = usecase.execute(
+        result = update_youtube_descriptions(
             mapping_file=mapping_file,
             dry_run=False,
-        )
+        )(deps)
 
-        assert result.is_dry_run is False
-        assert result.updated_count == 2
-        assert result.no_content_count == 0
-        assert result.no_mapping_count == 0
-        assert len(result.errors) == 0
+        assert is_successful(result)
+        batch = extract_io_success(result)
+        youtube_result = aggregate_session_results(batch=batch)
+
+        assert youtube_result.is_dry_run is False
+        assert youtube_result.updated_count == 2
+        assert youtube_result.no_content_count == 0
+        assert youtube_result.no_mapping_count == 0
+        assert len(youtube_result.errors) == 0
 
         # YouTube APIが呼ばれたことを確認
         assert mock_youtube_api.update_video.call_count == 2  # type: ignore[attr-defined]
@@ -188,7 +204,7 @@ sessions:
             timezone=jst,
         )
 
-        usecase = UpdateYouTubeDescriptionsUseCase(
+        deps = UpdateYouTubeDeps(
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
@@ -196,13 +212,17 @@ sessions:
             title_builder=YouTubeTitleBuilder(),
         )
 
-        result = usecase.execute(
+        result = update_youtube_descriptions(
             mapping_file=mapping_file,
             dry_run=False,
-        )
+        )(deps)
 
-        assert result.updated_count == 0
-        assert result.no_content_count == 1
+        assert is_successful(result)
+        batch = extract_io_success(result)
+        youtube_result = aggregate_session_results(batch=batch)
+
+        assert youtube_result.updated_count == 0
+        assert youtube_result.no_content_count == 1
 
     def test_execute_skips_unmapped_sessions(
         self,
@@ -236,7 +256,7 @@ sessions: {}
             filename="empty_mapping.yaml",
         )
 
-        usecase = UpdateYouTubeDescriptionsUseCase(
+        deps = UpdateYouTubeDeps(
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
@@ -244,13 +264,17 @@ sessions: {}
             title_builder=YouTubeTitleBuilder(),
         )
 
-        result = usecase.execute(
+        result = update_youtube_descriptions(
             mapping_file=mapping_file,
             dry_run=False,
-        )
+        )(deps)
 
-        assert result.updated_count == 0
-        assert result.no_mapping_count == 1
+        assert is_successful(result)
+        batch = extract_io_success(result)
+        youtube_result = aggregate_session_results(batch=batch)
+
+        assert youtube_result.updated_count == 0
+        assert youtube_result.no_mapping_count == 1
 
     def test_execute_warns_unused_mappings(
         self,
@@ -290,7 +314,7 @@ sessions:
             filename="unused_mapping.yaml",
         )
 
-        usecase = UpdateYouTubeDescriptionsUseCase(
+        deps = UpdateYouTubeDeps(
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
@@ -298,73 +322,89 @@ sessions:
             title_builder=YouTubeTitleBuilder(),
         )
 
-        result = usecase.execute(
+        result = update_youtube_descriptions(
             mapping_file=mapping_file,
             dry_run=False,
-        )
+        )(deps)
 
-        assert result.updated_count == 1
-        assert result.unused_mappings_count == 1
+        assert is_successful(result)
+        batch = extract_io_success(result)
+        youtube_result = aggregate_session_results(batch=batch)
+
+        assert youtube_result.updated_count == 1
+        assert youtube_result.unused_mappings_count == 1
 
     def test_execute_handles_youtube_api_error(
         self,
-        usecase: UpdateYouTubeDescriptionsUseCase,
+        deps: UpdateYouTubeDeps,
         mapping_file: Path,
         mock_youtube_api: YouTubeApiProtocol,
     ) -> None:
-        """YouTubeApiErrorが発生してもエラーリストに追加して処理を継続する"""
+        """YouTube APIエラーが発生してもエラーリストに追加して処理を継続する"""
         # 1つ目の動画でAPIエラー、2つ目は成功
         mock_youtube_api.get_video_info.side_effect = [  # type: ignore[attr-defined]
-            YouTubeApiError("Rate limit exceeded"),
-            VideoInfo(
-                video_id="video2",
-                title="Title 2",
-                description="Description 2",
-                category_id=28,
+            IOFailure(Exception("Rate limit exceeded")),
+            IOSuccess(
+                VideoInfo(
+                    video_id="video2",
+                    title="Title 2",
+                    description="Description 2",
+                    category_id=28,
+                ),
             ),
         ]
 
-        result = usecase.execute(
+        result = update_youtube_descriptions(
             mapping_file=mapping_file,
             dry_run=False,
-        )
+        )(deps)
 
-        assert result.updated_count == 1  # 2つ目だけ成功
-        assert len(result.errors) == 1
-        assert result.errors[0] == "Rate limit exceeded"
+        assert is_successful(result)
+        batch = extract_io_success(result)
+        youtube_result = aggregate_session_results(batch=batch)
+
+        assert youtube_result.updated_count == 1  # 2つ目だけ成功
+        assert len(youtube_result.errors) == 1
+        assert youtube_result.errors[0] == "Rate limit exceeded"
 
     def test_execute_dry_run_handles_youtube_api_error(
         self,
-        usecase: UpdateYouTubeDescriptionsUseCase,
+        deps: UpdateYouTubeDeps,
         mapping_file: Path,
         mock_youtube_api: YouTubeApiProtocol,
     ) -> None:
-        """dry-runモードでもYouTubeApiErrorを適切に処理する"""
+        """dry-runモードでもYouTube APIエラーを適切に処理する"""
         mock_youtube_api.get_video_info.side_effect = [  # type: ignore[attr-defined]
-            YouTubeApiError("Authentication failed"),
-            VideoInfo(
-                video_id="video2",
-                title="Title 2",
-                description="Description 2",
-                category_id=28,
+            IOFailure(Exception("Authentication failed")),
+            IOSuccess(
+                VideoInfo(
+                    video_id="video2",
+                    title="Title 2",
+                    description="Description 2",
+                    category_id=28,
+                ),
             ),
         ]
 
-        result = usecase.execute(
+        result = update_youtube_descriptions(
             mapping_file=mapping_file,
             dry_run=True,
-        )
+        )(deps)
 
-        assert len(result.previews) == 2  # エラー時もプレビュー生成
+        assert is_successful(result)
+        batch = extract_io_success(result)
+        youtube_result = aggregate_session_results(batch=batch)
+
+        assert len(youtube_result.previews) == 2  # エラー時もプレビュー生成
         # 1件目はエラー
-        assert result.previews[0].error == "Authentication failed"
-        assert result.previews[0].current_title is None
-        assert result.previews[0].new_description is None
+        assert youtube_result.previews[0].error == "Authentication failed"
+        assert youtube_result.previews[0].current_title is None
+        assert youtube_result.previews[0].new_description is None
         # 2件目は正常
-        assert result.previews[1].error is None
-        assert result.previews[1].current_title == "Title 2"
-        assert len(result.errors) == 1
-        assert result.errors[0] == "Authentication failed"
+        assert youtube_result.previews[1].error is None
+        assert youtube_result.previews[1].current_title == "Title 2"
+        assert len(youtube_result.errors) == 1
+        assert youtube_result.errors[0] == "Authentication failed"
 
     def test_execute_with_hashtags_in_mapping(
         self,
@@ -405,7 +445,7 @@ sessions:
             filename="mapping_with_hashtags.yaml",
         )
 
-        usecase = UpdateYouTubeDescriptionsUseCase(
+        deps = UpdateYouTubeDeps(
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
@@ -413,12 +453,16 @@ sessions:
             title_builder=YouTubeTitleBuilder(),
         )
 
-        result = usecase.execute(
+        result = update_youtube_descriptions(
             mapping_file=mapping_file,
             dry_run=True,
-        )
+        )(deps)
 
-        assert len(result.previews) == 1
+        assert is_successful(result)
+        batch = extract_io_success(result)
+        youtube_result = aggregate_session_results(batch=batch)
+
+        assert len(youtube_result.previews) == 1
         expected_description = (
             "Speaker: Speaker A\n\n"
             "Abstract 1\n\n"
@@ -427,4 +471,4 @@ sessions:
             "#RSGT2026 #Agile #Scrum\n\n"
             "***"
         )
-        assert result.previews[0].new_description == expected_description
+        assert youtube_result.previews[0].new_description == expected_description

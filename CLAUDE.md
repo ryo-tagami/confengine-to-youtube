@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 uv run task check          # lint + test を実行
+uv run task format         # add-trailing-comma + ruff format
 uv run task lint           # ruff check, ruff format --check, mypy
 uv run task test           # pytest (カバレッジ付き)
 uv run pytest tests/path/to/test.py::test_name  # 単一テスト実行
-uv run ruff format .       # フォーマット
 ```
 
 ## アーキテクチャ
@@ -28,14 +28,16 @@ confengine_to_youtube/
 
 ### ユースケース
 
-- `UpdateYouTubeDescriptionsUseCase`: セッション情報でYouTube動画のタイトルとdescriptionを更新
-- `GenerateMappingUseCase`: マッピングYAML雛形を生成
+関数型スタイルで実装。`RequiresContextIOResultE` で依存性を注入:
+
+- `update_youtube_descriptions`: セッション情報でYouTube動画のタイトルとdescriptionを更新
+- `generate_mapping`: マッピングYAML雛形を生成
 
 ### データフロー
 
-1. CLI (`infrastructure/cli/`) が引数をパースし依存性を組み立て
-2. UseCase がビジネスロジックを実行
-3. Adapter (`adapters/`) が外部APIとの通信を担当
+1. CLI (`infrastructure/cli/`) が引数をパースし依存性（`Deps`）を組み立て
+2. ユースケース関数を `Deps` で呼び出し、`IOResult` を取得
+3. Adapter (`adapters/`) が外部APIとの通信を担当（`IOResult` を返す）
 
 ## コーディング規約
 
@@ -45,6 +47,71 @@ confengine_to_youtube/
 - `from __future__ import annotations` を全ファイルで使用（`__init__.py` と `tests/` を除く）
 - 型ヒント専用のimportは `TYPE_CHECKING` ブロック内に配置
 - 関数・メソッド呼び出しでは、キーワード引数で渡せる引数は常にキーワード引数を使用する（位置専用引数を除く）
+
+## エラー処理（dry-python/returns）
+
+例外を使わず `Result`/`IOResult` 型でエラーを表現する:
+
+### 使い分け
+
+| 型 | 用途 |
+|---|---|
+| `Result[T, E]` | 純粋な計算（I/Oなし）。バリデーション、ビルダー等 |
+| `IOResult[T, E]` | I/Oを伴う処理。API呼び出し、ファイル読み書き等 |
+| `RequiresContextIOResultE[T, Deps]` | 依存性注入が必要なユースケース |
+
+### エラー型の定義
+
+`RequiresContextIOResultE` で使うエラー型は `Exception` を継承する:
+
+```python
+@dataclass(frozen=True)
+class MyError(Exception):
+    message: str
+```
+
+### 値の取り出し（Railway-Oriented Programming）
+
+`.bind()` / `.map()` / `.alt()` を使った関数合成を推奨:
+
+```python
+# 推奨: Railway-Oriented Programming スタイル
+def _execute(deps: MyDeps) -> IOResult[Result, MyError]:
+    return (
+        deps.api_a.fetch()
+        .bind(lambda a: deps.api_b.fetch(a_id=a.id).map(lambda b: (a, b)))
+        .map(lambda data: process(data[0], data[1]))
+    )
+```
+
+`isinstance` チェックは避け、CLI層での値の取り出しには `unsafe_perform_io` を使う:
+
+```python
+# 非推奨: isinstance チェックと手動アンラップ
+if isinstance(result, IOSuccess):
+    value = result.unwrap()  # IO[T] が返る
+
+# 推奨: CLI層で unsafe_perform_io を使う
+from returns.unsafe import unsafe_perform_io
+
+match result:
+    case IOSuccess():
+        value = unsafe_perform_io(result.unwrap())
+    case IOFailure():
+        error = unsafe_perform_io(result.failure())
+```
+
+### ユースケースの実装パターン
+
+```python
+def my_usecase(arg: str) -> RequiresContextIOResultE[Result, MyDeps]:
+    return RequiresContextIOResultE[Result, MyDeps](
+        lambda deps: _execute(deps=deps, arg=arg),
+    )
+
+def _execute(deps: MyDeps, arg: str) -> IOResult[Result, MyError]:
+    return deps.some_api.fetch(arg).map(lambda data: process(data))
+```
 
 ## テストコード
 
@@ -79,12 +146,12 @@ confengine_to_youtube/
 - モック特有のメソッド（`assert_called_once`, `side_effect` 等）を使う箇所には `# type: ignore[attr-defined]` を追加する
 
 ```python
-# 例
+# 例（IOResult を返すモック）
 def create_mock_confengine_api(
     sessions: tuple[Session, ...], timezone: ZoneInfo
 ) -> ConfEngineApiProtocol:
     mock = create_autospec(ConfEngineApiProtocol, spec_set=True)
-    mock.fetch_sessions.return_value = (sessions, timezone)
+    mock.fetch_sessions.return_value = IOSuccess((sessions, timezone))
     return mock  # type: ignore[no-any-return]
 
 # モック特有のメソッドを使う場合

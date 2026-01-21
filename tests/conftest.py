@@ -6,6 +6,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import pytest
+from returns.io import IOResult  # noqa: TC002
+from returns.unsafe import unsafe_perform_io
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.adapters.youtube_description_builder import (
@@ -15,6 +17,15 @@ from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBui
 from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
+
+
+def extract_io_success[T](io_result: IOResult[T, Exception]) -> T:
+    """テスト用: IOResultから成功値を取り出す
+
+    is_successful() で成功を確認した後に呼び出すこと。
+    失敗時は UnwrapFailedError が発生する。
+    """
+    return unsafe_perform_io(io_result.unwrap())
 
 
 def create_session(  # noqa: PLR0913

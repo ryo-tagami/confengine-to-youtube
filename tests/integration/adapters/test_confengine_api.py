@@ -4,6 +4,10 @@ from datetime import datetime
 from unittest.mock import create_autospec
 from zoneinfo import ZoneInfo
 
+from returns.io import IOSuccess
+from returns.pipeline import is_successful
+from returns.unsafe import unsafe_perform_io
+
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
 from confengine_to_youtube.adapters.protocols import HttpClientProtocol
@@ -17,44 +21,49 @@ class TestConfEngineApiGateway:
     def test_fetch_sessions(self, jst: ZoneInfo) -> None:
         """APIからセッションを取得できる"""
         mock_http_client = create_autospec(HttpClientProtocol, spec_set=True)
-        mock_http_client.get_json.return_value = {
-            "conf_timezone": "Asia/Tokyo",
-            "conf_schedule": [
-                {
-                    "schedule_days": [
-                        {
-                            "sessions": [
-                                {
-                                    "1234567890": [
-                                        {
-                                            "timeslot": "2026-01-07 10:00:00",
-                                            "title": "Test Session",
-                                            "room": "Hall A",
-                                            "track": "Track 1",
-                                            "url": "https://example.com",
-                                            "abstract": "<p>Test</p>",
-                                            "speakers": [
-                                                {
-                                                    "name": "Speaker A",
-                                                    "first_name": "Speaker",
-                                                    "last_name": "A",
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        }
+        mock_http_client.get_json.return_value = IOSuccess(
+            {
+                "conf_timezone": "Asia/Tokyo",
+                "conf_schedule": [
+                    {
+                        "schedule_days": [
+                            {
+                                "sessions": [
+                                    {
+                                        "1234567890": [
+                                            {
+                                                "timeslot": "2026-01-07 10:00:00",
+                                                "title": "Test Session",
+                                                "room": "Hall A",
+                                                "track": "Track 1",
+                                                "url": "https://example.com",
+                                                "abstract": "<p>Test</p>",
+                                                "speakers": [
+                                                    {
+                                                        "name": "Speaker A",
+                                                        "first_name": "Speaker",
+                                                        "last_name": "A",
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        )
 
         gateway = ConfEngineApiGateway(
             http_client=mock_http_client,
             markdown_converter=MarkdownConverter(),
         )
-        sessions, timezone = gateway.fetch_sessions(conf_id="test-conf")
+        result = gateway.fetch_sessions(conf_id="test-conf")
+
+        assert is_successful(result)
+        sessions, timezone = unsafe_perform_io(result.unwrap())
 
         assert len(sessions) == 1
         session = sessions[0]
@@ -86,56 +95,61 @@ class TestConfEngineApiGateway:
     def test_sessions_sorted_by_timeslot_and_room(self) -> None:
         """セッションがtimeslotとroomでソートされる"""
         mock_http_client = create_autospec(HttpClientProtocol, spec_set=True)
-        mock_http_client.get_json.return_value = {
-            "conf_timezone": "Asia/Tokyo",
-            "conf_schedule": [
-                {
-                    "schedule_days": [
-                        {
-                            "sessions": [
-                                {
-                                    "1": [
-                                        {
-                                            "timeslot": "2026-01-07 11:00:00",
-                                            "title": "Session B",
-                                            "room": "Hall A",
-                                            "track": "Track 1",
-                                            "url": "https://example.com",
-                                            "abstract": "",
-                                            "speakers": [],
-                                        },
-                                        {
-                                            "timeslot": "2026-01-07 10:00:00",
-                                            "title": "Session A",
-                                            "room": "Hall B",
-                                            "track": "Track 1",
-                                            "url": "https://example.com",
-                                            "abstract": "",
-                                            "speakers": [],
-                                        },
-                                        {
-                                            "timeslot": "2026-01-07 10:00:00",
-                                            "title": "Session C",
-                                            "room": "Hall A",
-                                            "track": "Track 1",
-                                            "url": "https://example.com",
-                                            "abstract": "",
-                                            "speakers": [],
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        }
+        mock_http_client.get_json.return_value = IOSuccess(
+            {
+                "conf_timezone": "Asia/Tokyo",
+                "conf_schedule": [
+                    {
+                        "schedule_days": [
+                            {
+                                "sessions": [
+                                    {
+                                        "1": [
+                                            {
+                                                "timeslot": "2026-01-07 11:00:00",
+                                                "title": "Session B",
+                                                "room": "Hall A",
+                                                "track": "Track 1",
+                                                "url": "https://example.com",
+                                                "abstract": "",
+                                                "speakers": [],
+                                            },
+                                            {
+                                                "timeslot": "2026-01-07 10:00:00",
+                                                "title": "Session A",
+                                                "room": "Hall B",
+                                                "track": "Track 1",
+                                                "url": "https://example.com",
+                                                "abstract": "",
+                                                "speakers": [],
+                                            },
+                                            {
+                                                "timeslot": "2026-01-07 10:00:00",
+                                                "title": "Session C",
+                                                "room": "Hall A",
+                                                "track": "Track 1",
+                                                "url": "https://example.com",
+                                                "abstract": "",
+                                                "speakers": [],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        )
 
         gateway = ConfEngineApiGateway(
             http_client=mock_http_client,
             markdown_converter=MarkdownConverter(),
         )
-        sessions, _ = gateway.fetch_sessions(conf_id="test-conf")
+        result = gateway.fetch_sessions(conf_id="test-conf")
+
+        assert is_successful(result)
+        sessions, _ = unsafe_perform_io(result.unwrap())
 
         assert len(sessions) == 3
         assert sessions[0].title == "Session C"  # 10:00, Hall A
