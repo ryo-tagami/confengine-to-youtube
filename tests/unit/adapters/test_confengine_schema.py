@@ -39,13 +39,13 @@ class TestScheduleResponse:
                                             "url": "https://example.com",
                                             "abstract": "",
                                             "speakers": [],
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
             ],
         }
         response = ScheduleResponse.model_validate(obj=data)

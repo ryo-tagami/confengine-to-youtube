@@ -43,7 +43,9 @@ sessions:
     ) -> None:
         """YAMLファイルを正しく読み込める"""
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=self._YAML_CONTENT, filename="mapping.yaml"
+            tmp_path=tmp_path,
+            content=self._YAML_CONTENT,
+            filename="mapping.yaml",
         )
 
         reader = MappingFileReader()
@@ -57,7 +59,12 @@ sessions:
 
         slot = ScheduleSlot(
             timeslot=datetime(
-                year=2026, month=1, day=7, hour=hour, minute=0, tzinfo=jst
+                year=2026,
+                month=1,
+                day=7,
+                hour=hour,
+                minute=0,
+                tzinfo=jst,
             ),
             room=room,
         )
@@ -83,12 +90,15 @@ sessions:
         video_id: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=invalid_yaml, filename="invalid.yaml"
+            tmp_path=tmp_path,
+            content=invalid_yaml,
+            filename="invalid.yaml",
         )
 
         reader = MappingFileReader()
         with pytest.raises(
-            expected_exception=MappingFileError, match="Invalid YAML syntax"
+            expected_exception=MappingFileError,
+            match="Invalid YAML syntax",
         ):
             reader.read(file_path=yaml_file)
 
@@ -103,12 +113,15 @@ sessions:
         wrong_field: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=invalid_schema, filename="invalid_schema.yaml"
+            tmp_path=tmp_path,
+            content=invalid_schema,
+            filename="invalid_schema.yaml",
         )
 
         reader = MappingFileReader()
         with pytest.raises(
-            expected_exception=MappingFileError, match="Invalid mapping file format"
+            expected_exception=MappingFileError,
+            match="Invalid mapping file format",
         ):
             reader.read(file_path=yaml_file)
 
@@ -122,12 +135,15 @@ sessions:
         video_id: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=missing_conf_id, filename="missing_conf_id.yaml"
+            tmp_path=tmp_path,
+            content=missing_conf_id,
+            filename="missing_conf_id.yaml",
         )
 
         reader = MappingFileReader()
         with pytest.raises(
-            expected_exception=MappingFileError, match="Invalid mapping file format"
+            expected_exception=MappingFileError,
+            match="Invalid mapping file format",
         ):
             reader.read(file_path=yaml_file)
 
@@ -147,7 +163,9 @@ sessions:
         video_id: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="unquoted_date.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="unquoted_date.yaml",
         )
 
         reader = MappingFileReader()
@@ -179,7 +197,9 @@ sessions:
         video_id: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="datetime_key.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="datetime_key.yaml",
         )
 
         reader = MappingFileReader()
@@ -210,7 +230,9 @@ sessions:
         video_id: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="with_hashtags.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="with_hashtags.yaml",
         )
 
         reader = MappingFileReader()
@@ -221,7 +243,9 @@ sessions:
         assert len(config.mappings) == 1
 
     def test_read_without_hashtags_defaults_to_empty(
-        self, tmp_path: Path, jst: ZoneInfo
+        self,
+        tmp_path: Path,
+        jst: ZoneInfo,
     ) -> None:
         """hashtagsフィールドがないYAMLファイルでもエラーにならない"""
         yaml_content = """
@@ -233,7 +257,9 @@ sessions:
         video_id: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="without_hashtags.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="without_hashtags.yaml",
         )
 
         reader = MappingFileReader()
@@ -257,7 +283,9 @@ sessions:
         video_id: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="with_footer.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="with_footer.yaml",
         )
 
         reader = MappingFileReader()
@@ -270,7 +298,9 @@ sessions:
         assert len(config.mappings) == 1
 
     def test_read_without_footer_defaults_to_empty(
-        self, tmp_path: Path, jst: ZoneInfo
+        self,
+        tmp_path: Path,
+        jst: ZoneInfo,
     ) -> None:
         """footerフィールドがないYAMLファイルでもエラーにならない"""
         yaml_content = """
@@ -282,7 +312,9 @@ sessions:
         video_id: "abc123"
 """
         yaml_file = write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="without_footer.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="without_footer.yaml",
         )
 
         reader = MappingFileReader()

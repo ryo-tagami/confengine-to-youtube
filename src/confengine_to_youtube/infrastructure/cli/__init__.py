@@ -8,7 +8,7 @@ from confengine_to_youtube.infrastructure.cli import generate_mapping, youtube
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="ConfEngineのセッション情報でYouTube動画のdescriptionを更新"
+        description="ConfEngineのセッション情報でYouTube動画のdescriptionを更新",
     )
 
     subparsers = parser.add_subparsers(dest="command")

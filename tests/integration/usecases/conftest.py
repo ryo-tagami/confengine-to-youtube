@@ -8,7 +8,8 @@ from confengine_to_youtube.usecases.protocols import ConfEngineApiProtocol
 
 
 def create_mock_confengine_api(
-    sessions: tuple[Session, ...], timezone: ZoneInfo
+    sessions: tuple[Session, ...],
+    timezone: ZoneInfo,
 ) -> ConfEngineApiProtocol:
     """ConfEngine API のモックを作成するヘルパー"""
     mock = create_autospec(ConfEngineApiProtocol, spec_set=True)

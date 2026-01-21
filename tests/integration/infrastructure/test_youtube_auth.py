@@ -32,7 +32,8 @@ class TestYouTubeAuthClient:
         )
 
     def test_load_token_returns_none_when_file_not_exists(
-        self, client: YouTubeAuthClient
+        self,
+        client: YouTubeAuthClient,
     ) -> None:
         """トークンファイルが存在しない場合はNoneを返す"""
         result = client._load_token()
@@ -40,7 +41,8 @@ class TestYouTubeAuthClient:
         assert result is None
 
     def test_load_token_loads_credentials_from_file(
-        self, client: YouTubeAuthClient
+        self,
+        client: YouTubeAuthClient,
     ) -> None:
         """トークンファイルが存在する場合はCredentialsを読み込む"""
         token_content = '{"token": "t", "refresh_token": "r", "client_id": "i", "client_secret": "s"}'  # noqa: S105, E501
@@ -76,7 +78,8 @@ class TestYouTubeAuthClient:
         assert nested_path.exists()
 
     def test_save_token_sets_file_permissions_to_0600(
-        self, client: YouTubeAuthClient
+        self,
+        client: YouTubeAuthClient,
     ) -> None:
         """トークンファイルのパーミッションを0600に設定する"""
         mock_credentials = create_autospec(Credentials, spec_set=True)

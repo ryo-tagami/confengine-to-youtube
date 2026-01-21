@@ -18,7 +18,12 @@ class TestVideoMapping:
         mapping = VideoMapping(slot=slot, video_id="abc123")
 
         assert mapping.slot.timeslot == datetime(
-            year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC
+            year=2026,
+            month=1,
+            day=7,
+            hour=10,
+            minute=0,
+            tzinfo=UTC,
         )
         assert mapping.slot.room == "Hall A"
         assert mapping.video_id == "abc123"
@@ -41,10 +46,13 @@ class TestMappingConfig:
             {
                 VideoMapping(slot=slot1, video_id="abc123"),
                 VideoMapping(slot=slot2, video_id="def456"),
-            }
+            },
         )
         config = MappingConfig(
-            conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
+            conf_id="test-conf",
+            mappings=mappings,
+            hashtags=(),
+            footer="",
         )
 
         search_slot = ScheduleSlot(
@@ -64,7 +72,10 @@ class TestMappingConfig:
         )
         mappings = frozenset({VideoMapping(slot=slot, video_id="abc123")})
         config = MappingConfig(
-            conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
+            conf_id="test-conf",
+            mappings=mappings,
+            hashtags=(),
+            footer="",
         )
 
         search_slot = ScheduleSlot(
@@ -94,20 +105,28 @@ class TestMappingConfig:
                 VideoMapping(slot=slot1, video_id="abc123"),
                 VideoMapping(slot=slot2, video_id="def456"),
                 VideoMapping(slot=slot3, video_id="ghi789"),
-            }
+            },
         )
         config = MappingConfig(
-            conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
+            conf_id="test-conf",
+            mappings=mappings,
+            hashtags=(),
+            footer="",
         )
 
         # 1つだけ使用
         used_slots = {
             ScheduleSlot(
                 timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC
+                    year=2026,
+                    month=1,
+                    day=7,
+                    hour=10,
+                    minute=0,
+                    tzinfo=UTC,
                 ),
                 room="Hall A",
-            )
+            ),
         }
         unused = config.find_unused(used_slots=used_slots)
 

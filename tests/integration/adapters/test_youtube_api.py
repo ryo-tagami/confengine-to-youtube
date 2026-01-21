@@ -40,7 +40,9 @@ class TestYouTubeApiGateway:
         )
 
     def test_get_video_info_success(
-        self, gateway: YouTubeApiGateway, mock_youtube: MagicMock
+        self,
+        gateway: YouTubeApiGateway,
+        mock_youtube: MagicMock,
     ) -> None:
         """動画情報を取得できる"""
         mock_youtube.videos().list().execute.return_value = {
@@ -52,8 +54,8 @@ class TestYouTubeApiGateway:
                         "description": "Test Description",
                         "categoryId": "28",
                     },
-                }
-            ]
+                },
+            ],
         }
 
         result = gateway.get_video_info(video_id="abc123")
@@ -64,7 +66,9 @@ class TestYouTubeApiGateway:
         assert result.category_id == 28
 
     def test_get_video_info_not_found(
-        self, gateway: YouTubeApiGateway, mock_youtube: MagicMock
+        self,
+        gateway: YouTubeApiGateway,
+        mock_youtube: MagicMock,
     ) -> None:
         """動画が見つからない場合は例外"""
         mock_youtube.videos().list().execute.return_value = {"items": []}
@@ -73,7 +77,9 @@ class TestYouTubeApiGateway:
             gateway.get_video_info(video_id="nonexistent")
 
     def test_update_video(
-        self, gateway: YouTubeApiGateway, mock_youtube: MagicMock
+        self,
+        gateway: YouTubeApiGateway,
+        mock_youtube: MagicMock,
     ) -> None:
         """動画を更新できる"""
         request = VideoUpdateRequest(
@@ -123,7 +129,8 @@ class TestYouTubeApiGateway:
         mock_youtube.videos().list().execute.side_effect = http_error
 
         with pytest.raises(
-            expected_exception=expected_exception, match=expected_message
+            expected_exception=expected_exception,
+            match=expected_message,
         ):
             gateway.get_video_info(video_id="abc123")
 

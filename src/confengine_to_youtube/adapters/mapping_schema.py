@@ -60,7 +60,8 @@ class DateSlotsSchema(RootModel[dict[date, RoomSlotsSchema]]):
     @model_validator(mode="before")
     @classmethod
     def parse_date_keys(
-        cls, data: dict[str | date | datetime, object]
+        cls,
+        data: dict[str | date | datetime, object],
     ) -> dict[date, object]:
         # datetimeはdateのサブクラスなので、先にdatetimeをチェックする
         result: dict[date, object] = {}
@@ -107,7 +108,7 @@ class MappingFileSchema(BaseModel):
                         VideoMapping(
                             slot=slot,
                             video_id=session.video_id,
-                        )
+                        ),
                     )
 
         return MappingConfig(
@@ -178,7 +179,7 @@ class MappingFileWithCommentSchema(BaseModel):
             room = session.slot.room
 
             if speakers_str := YouTubeTitleBuilder.format_speakers_full(
-                speakers=session.speakers
+                speakers=session.speakers,
             ):
                 comment = YouTubeTitleBuilder.combine(
                     title=session.title,
@@ -188,10 +189,12 @@ class MappingFileWithCommentSchema(BaseModel):
                 comment = session.title
 
             room_slots = date_slots.setdefault(
-                session_date, RoomSlotsWithCommentSchema(root={})
+                session_date,
+                RoomSlotsWithCommentSchema(root={}),
             ).root
             time_slots = room_slots.setdefault(
-                room, TimeSlotsWithCommentSchema(root={})
+                room,
+                TimeSlotsWithCommentSchema(root={}),
             ).root
 
             # 重複チェック

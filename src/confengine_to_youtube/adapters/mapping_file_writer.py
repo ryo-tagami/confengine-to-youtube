@@ -60,7 +60,7 @@ class MappingFileWriter:
         root = CommentedMap()
         root.yaml_set_start_comment(
             comment=f"ConfEngine Mapping Template\n"
-            f"Generated: {generated_at.isoformat()}"
+            f"Generated: {generated_at.isoformat()}",
         )
 
         root["conf_id"] = schema.conf_id

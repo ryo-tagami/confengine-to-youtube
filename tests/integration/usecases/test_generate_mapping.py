@@ -20,7 +20,13 @@ class TestGenerateMappingUseCase:
     def fixed_clock(self, jst: ZoneInfo) -> datetime:
         """テスト用の固定時刻"""
         return datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
     @pytest.fixture
@@ -31,7 +37,12 @@ class TestGenerateMappingUseCase:
                 speakers=[("Speaker", "A")],
                 abstract="Abstract 1",
                 timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    year=2026,
+                    month=1,
+                    day=7,
+                    hour=10,
+                    minute=0,
+                    tzinfo=jst,
                 ),
                 room="Hall A",
                 url="https://example.com/1",
@@ -41,7 +52,12 @@ class TestGenerateMappingUseCase:
                 speakers=[("Speaker", "B")],
                 abstract="Abstract 2",
                 timeslot=datetime(
-                    year=2026, month=1, day=7, hour=11, minute=0, tzinfo=jst
+                    year=2026,
+                    month=1,
+                    day=7,
+                    hour=11,
+                    minute=0,
+                    tzinfo=jst,
                 ),
                 room="Hall A",
                 url="https://example.com/2",
@@ -50,13 +66,17 @@ class TestGenerateMappingUseCase:
 
     @pytest.fixture
     def mock_confengine_api(
-        self, sessions: tuple[Session, ...], jst: ZoneInfo
+        self,
+        sessions: tuple[Session, ...],
+        jst: ZoneInfo,
     ) -> ConfEngineApiProtocol:
         return create_mock_confengine_api(sessions=sessions, timezone=jst)
 
     @pytest.fixture
     def usecase(
-        self, mock_confengine_api: ConfEngineApiProtocol, fixed_clock: datetime
+        self,
+        mock_confengine_api: ConfEngineApiProtocol,
+        fixed_clock: datetime,
     ) -> GenerateMappingUseCase:
         return GenerateMappingUseCase(
             confengine_api=mock_confengine_api,
@@ -100,7 +120,8 @@ class TestGenerateMappingUseCase:
         assert yaml_content == expected
 
     def test_execute_returns_session_count(
-        self, usecase: GenerateMappingUseCase
+        self,
+        usecase: GenerateMappingUseCase,
     ) -> None:
         output = StringIO()
         result = usecase.execute(conf_id="test-conf", output=output)
@@ -118,7 +139,9 @@ class TestGenerateMappingUseCase:
         mock_confengine_api.fetch_sessions.assert_called_once_with(conf_id="test-conf")  # type: ignore[attr-defined]
 
     def test_execute_with_empty_sessions(
-        self, fixed_clock: datetime, jst: ZoneInfo
+        self,
+        fixed_clock: datetime,
+        jst: ZoneInfo,
     ) -> None:
         """セッションが空の場合も正しく生成される"""
         mock_confengine_api = create_mock_confengine_api(sessions=(), timezone=jst)

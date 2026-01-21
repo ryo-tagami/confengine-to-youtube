@@ -36,7 +36,12 @@ class TestUpdateYouTubeDescriptionsUseCase:
                 speakers=[("Speaker", "A")],
                 abstract="Abstract 1",
                 timeslot=datetime(
-                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                    year=2026,
+                    month=1,
+                    day=7,
+                    hour=10,
+                    minute=0,
+                    tzinfo=jst,
                 ),
                 room="Hall A",
                 url="https://example.com/1",
@@ -46,7 +51,12 @@ class TestUpdateYouTubeDescriptionsUseCase:
                 speakers=[("Speaker", "B")],
                 abstract="Abstract 2",
                 timeslot=datetime(
-                    year=2026, month=1, day=7, hour=11, minute=0, tzinfo=jst
+                    year=2026,
+                    month=1,
+                    day=7,
+                    hour=11,
+                    minute=0,
+                    tzinfo=jst,
                 ),
                 room="Hall A",
                 url="https://example.com/2",
@@ -67,12 +77,16 @@ sessions:
         video_id: "video2"
 """
         return write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="mapping.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="mapping.yaml",
         )
 
     @pytest.fixture
     def mock_confengine_api(
-        self, sessions: tuple[Session, ...], jst: ZoneInfo
+        self,
+        sessions: tuple[Session, ...],
+        jst: ZoneInfo,
     ) -> ConfEngineApiProtocol:
         return create_mock_confengine_api(sessions=sessions, timezone=jst)
 
@@ -170,7 +184,8 @@ sessions:
             url="https://example.com/empty",
         )
         mock_confengine_api = create_mock_confengine_api(
-            sessions=(empty_session,), timezone=jst
+            sessions=(empty_session,),
+            timezone=jst,
         )
 
         usecase = UpdateYouTubeDescriptionsUseCase(
@@ -206,7 +221,8 @@ sessions:
             url="https://example.com/unmapped",
         )
         mock_confengine_api = create_mock_confengine_api(
-            sessions=(unmapped_session,), timezone=jst
+            sessions=(unmapped_session,),
+            timezone=jst,
         )
 
         # 空のマッピングファイル
@@ -215,7 +231,9 @@ conf_id: test-conf
 sessions: {}
 """
         mapping_file = write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="empty_mapping.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="empty_mapping.yaml",
         )
 
         usecase = UpdateYouTubeDescriptionsUseCase(
@@ -251,7 +269,8 @@ sessions: {}
             url="https://example.com/1",
         )
         mock_confengine_api = create_mock_confengine_api(
-            sessions=(session,), timezone=jst
+            sessions=(session,),
+            timezone=jst,
         )
 
         # マッピングには2セッション (1つは使われない)
@@ -266,7 +285,9 @@ sessions:
         video_id: "video_unused"
 """
         mapping_file = write_yaml_file(
-            tmp_path=tmp_path, content=yaml_content, filename="unused_mapping.yaml"
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="unused_mapping.yaml",
         )
 
         usecase = UpdateYouTubeDescriptionsUseCase(
@@ -362,7 +383,8 @@ sessions:
             url="https://example.com/1",
         )
         mock_confengine_api = create_mock_confengine_api(
-            sessions=(session,), timezone=jst
+            sessions=(session,),
+            timezone=jst,
         )
 
         yaml_content = """

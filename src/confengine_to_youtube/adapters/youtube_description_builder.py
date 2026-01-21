@@ -47,7 +47,7 @@ class YouTubeDescriptionBuilder:
                 abstract=abstract,
                 hashtags=hashtags,
                 footer=footer,
-            )
+            ),
         )
 
     @classmethod
@@ -78,7 +78,7 @@ class YouTubeDescriptionBuilder:
         doc = Document()
 
         if speakers_str := YouTubeTitleBuilder.format_speakers_full(
-            speakers=session.speakers
+            speakers=session.speakers,
         ):
             doc.add_paragraph(text=f"Speaker: {speakers_str}")
 

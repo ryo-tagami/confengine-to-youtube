@@ -81,7 +81,9 @@ class YouTubeApiGateway:
         if youtube is None:
             credentials = auth_provider.get_credentials()
             self._youtube: YouTubeResource = build(
-                serviceName="youtube", version="v3", credentials=credentials
+                serviceName="youtube",
+                version="v3",
+                credentials=credentials,
             )
         else:
             self._youtube = youtube

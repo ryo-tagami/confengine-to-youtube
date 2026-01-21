@@ -20,11 +20,15 @@ class TestYouTubeDescriptionBuilder:
     """YouTubeDescriptionBuilder のテスト"""
 
     def test_build_basic(
-        self, sample_session: Session, description_builder: YouTubeDescriptionBuilder
+        self,
+        sample_session: Session,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """基本的なMarkdown生成"""
         markdown = description_builder.build(
-            session=sample_session, hashtags=(), footer=""
+            session=sample_session,
+            hashtags=(),
+            footer="",
         )
 
         expected = (
@@ -41,11 +45,15 @@ class TestYouTubeDescriptionBuilder:
         assert str(markdown) == expected
 
     def test_build_with_hashtags(
-        self, sample_session: Session, description_builder: YouTubeDescriptionBuilder
+        self,
+        sample_session: Session,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """ハッシュタグ付きのMarkdown生成"""
         markdown = description_builder.build(
-            session=sample_session, hashtags=("#Test", "#Hash"), footer=""
+            session=sample_session,
+            hashtags=("#Test", "#Hash"),
+            footer="",
         )
 
         expected = (
@@ -64,11 +72,15 @@ class TestYouTubeDescriptionBuilder:
         assert str(markdown) == expected
 
     def test_build_with_footer(
-        self, sample_session: Session, description_builder: YouTubeDescriptionBuilder
+        self,
+        sample_session: Session,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """フッター付きのMarkdown生成"""
         markdown = description_builder.build(
-            session=sample_session, hashtags=(), footer="Footer text here"
+            session=sample_session,
+            hashtags=(),
+            footer="Footer text here",
         )
 
         expected = (
@@ -87,18 +99,23 @@ class TestYouTubeDescriptionBuilder:
         assert str(markdown) == expected
 
     def test_build_without_speakers(
-        self, empty_session: Session, description_builder: YouTubeDescriptionBuilder
+        self,
+        empty_session: Session,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """スピーカーがいない場合"""
         markdown = description_builder.build(
-            session=empty_session, hashtags=(), footer=""
+            session=empty_session,
+            hashtags=(),
+            footer="",
         )
 
         expected = "***\n\nhttps://example.com/session/2\n\n***"
         assert str(markdown) == expected
 
     def test_build_without_abstract(
-        self, description_builder: YouTubeDescriptionBuilder
+        self,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """abstractが空の場合"""
         session = create_session(
@@ -115,7 +132,8 @@ class TestYouTubeDescriptionBuilder:
         assert str(markdown) == expected
 
     def test_build_without_url(
-        self, description_builder: YouTubeDescriptionBuilder
+        self,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """URLが空の場合"""
         session = create_session(
@@ -132,7 +150,8 @@ class TestYouTubeDescriptionBuilder:
         assert str(markdown) == expected
 
     def test_frame_exceeds_max_length_raises_error(
-        self, description_builder: YouTubeDescriptionBuilder
+        self,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """フレーム部分だけで文字数制限を超える場合はValueErrorを発生"""
         session = create_session(
@@ -151,7 +170,8 @@ class TestYouTubeDescriptionBuilder:
             description_builder.build(session=session, hashtags=(), footer=long_footer)
 
     def test_long_abstract_is_truncated(
-        self, description_builder: YouTubeDescriptionBuilder
+        self,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """長いabstractはYouTube説明文の最大文字数に収まるよう切り詰められる"""
         # 5000文字を超えるabstractを用意
@@ -165,7 +185,9 @@ class TestYouTubeDescriptionBuilder:
             url=URL,
         )
         markdown = description_builder.build(
-            session=session, hashtags=(), footer="Footer"
+            session=session,
+            hashtags=(),
+            footer="Footer",
         )
 
         result = str(markdown)
@@ -177,7 +199,8 @@ class TestYouTubeDescriptionBuilder:
         assert result.endswith("...\n\n***\n\nhttps://example.com\n\n***\n\nFooter")
 
     def test_sanitize_removes_angle_brackets_from_urls(
-        self, description_builder: YouTubeDescriptionBuilder
+        self,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """Markdownオートリンク記法 <URL> を URL に変換する"""
         session = create_session(
@@ -194,7 +217,8 @@ class TestYouTubeDescriptionBuilder:
         assert str(markdown) == expected
 
     def test_sanitize_handles_multiple_autolinks(
-        self, description_builder: YouTubeDescriptionBuilder
+        self,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """複数のオートリンクを処理"""
         session = create_session(
@@ -213,7 +237,8 @@ class TestYouTubeDescriptionBuilder:
         assert str(markdown) == expected
 
     def test_sanitize_replaces_non_url_angle_brackets(
-        self, description_builder: YouTubeDescriptionBuilder
+        self,
+        description_builder: YouTubeDescriptionBuilder,
     ) -> None:
         """非URLの山括弧をUnicode引用符に置換する
 
