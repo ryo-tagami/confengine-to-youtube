@@ -1,78 +1,74 @@
 from datetime import datetime
 from io import StringIO
-from unittest.mock import MagicMock, patch
 from zoneinfo import ZoneInfo
 
 import pytest
 
 from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
-from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
-from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-from confengine_to_youtube.domain.session import Session, Speaker
+from confengine_to_youtube.domain.session import Session
 from confengine_to_youtube.usecases.generate_mapping import (
     GenerateMappingResult,
     GenerateMappingUseCase,
 )
-
-JST = ZoneInfo(key="Asia/Tokyo")
+from confengine_to_youtube.usecases.protocols import ConfEngineApiProtocol
+from tests.conftest import create_session
+from tests.usecases.conftest import create_mock_confengine_api
 
 
 class TestGenerateMappingUseCase:
     @pytest.fixture
-    def sessions(self) -> tuple[Session, ...]:
+    def fixed_clock(self, jst: ZoneInfo) -> datetime:
+        """テスト用の固定時刻"""
+        return datetime(
+            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+        )
+
+    @pytest.fixture
+    def sessions(self, jst: ZoneInfo) -> tuple[Session, ...]:
         return (
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=JST
-                    ),
-                    room="Hall A",
-                ),
+            create_session(
                 title="Session 1",
-                track="Track 1",
-                speakers=(Speaker(first_name="Speaker", last_name="A"),),
-                abstract=AbstractMarkdown(content="Abstract 1"),
+                speakers=[("Speaker", "A")],
+                abstract="Abstract 1",
+                timeslot=datetime(
+                    year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                ),
+                room="Hall A",
                 url="https://example.com/1",
             ),
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026, month=1, day=7, hour=11, minute=0, tzinfo=JST
-                    ),
-                    room="Hall A",
-                ),
+            create_session(
                 title="Session 2",
-                track="Track 1",
-                speakers=(Speaker(first_name="Speaker", last_name="B"),),
-                abstract=AbstractMarkdown(content="Abstract 2"),
+                speakers=[("Speaker", "B")],
+                abstract="Abstract 2",
+                timeslot=datetime(
+                    year=2026, month=1, day=7, hour=11, minute=0, tzinfo=jst
+                ),
+                room="Hall A",
                 url="https://example.com/2",
             ),
         )
 
     @pytest.fixture
-    def mock_confengine_api(self, sessions: tuple[Session, ...]) -> MagicMock:
-        mock = MagicMock()
-        mock.fetch_sessions.return_value = (sessions, JST)
-        return mock
+    def mock_confengine_api(
+        self, sessions: tuple[Session, ...], jst: ZoneInfo
+    ) -> ConfEngineApiProtocol:
+        return create_mock_confengine_api(sessions=sessions, timezone=jst)
 
     @pytest.fixture
-    def usecase(self, mock_confengine_api: MagicMock) -> GenerateMappingUseCase:
+    def usecase(
+        self, mock_confengine_api: ConfEngineApiProtocol, fixed_clock: datetime
+    ) -> GenerateMappingUseCase:
         return GenerateMappingUseCase(
             confengine_api=mock_confengine_api,
             mapping_writer=MappingFileWriter(),
+            clock=lambda: fixed_clock,
         )
 
     def test_execute_writes_yaml_content(self, usecase: GenerateMappingUseCase) -> None:
-        fixed_now = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=JST
-        )
-        with patch(
-            target="confengine_to_youtube.usecases.generate_mapping.datetime"
-        ) as mock_datetime:
-            mock_datetime.now.return_value = fixed_now
-            output = StringIO()
-            result = usecase.execute(conf_id="test-conf", output=output)
-            yaml_content = output.getvalue()
+        """YAMLコンテンツが正しく生成される"""
+        output = StringIO()
+        result = usecase.execute(conf_id="test-conf", output=output)
+        yaml_content = output.getvalue()
 
         assert isinstance(result, GenerateMappingResult)
         expected = (
@@ -112,30 +108,29 @@ class TestGenerateMappingUseCase:
         assert result.session_count == 2
 
     def test_execute_calls_confengine_api(
-        self, usecase: GenerateMappingUseCase, mock_confengine_api: MagicMock
+        self,
+        usecase: GenerateMappingUseCase,
+        mock_confengine_api: ConfEngineApiProtocol,
     ) -> None:
         output = StringIO()
         usecase.execute(conf_id="test-conf", output=output)
 
-        mock_confengine_api.fetch_sessions.assert_called_once_with(conf_id="test-conf")
+        mock_confengine_api.fetch_sessions.assert_called_once_with(conf_id="test-conf")  # type: ignore[attr-defined]
 
-    def test_execute_with_empty_sessions(self, mock_confengine_api: MagicMock) -> None:
-        mock_confengine_api.fetch_sessions.return_value = ((), JST)
+    def test_execute_with_empty_sessions(
+        self, fixed_clock: datetime, jst: ZoneInfo
+    ) -> None:
+        """セッションが空の場合も正しく生成される"""
+        mock_confengine_api = create_mock_confengine_api(sessions=(), timezone=jst)
         usecase = GenerateMappingUseCase(
             confengine_api=mock_confengine_api,
             mapping_writer=MappingFileWriter(),
+            clock=lambda: fixed_clock,
         )
 
-        fixed_now = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=JST
-        )
-        with patch(
-            target="confengine_to_youtube.usecases.generate_mapping.datetime"
-        ) as mock_datetime:
-            mock_datetime.now.return_value = fixed_now
-            output = StringIO()
-            result = usecase.execute(conf_id="test-conf", output=output)
-            yaml_content = output.getvalue()
+        output = StringIO()
+        result = usecase.execute(conf_id="test-conf", output=output)
+        yaml_content = output.getvalue()
 
         assert result.session_count == 0
         expected = (

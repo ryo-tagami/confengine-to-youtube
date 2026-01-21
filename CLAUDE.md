@@ -45,3 +45,53 @@ confengine_to_youtube/
 - `from __future__ import annotations` を全ファイルで使用（`__init__.py` と `tests/` を除く）
 - 型ヒント専用のimportは `TYPE_CHECKING` ブロック内に配置
 - 関数・メソッド呼び出しでは、キーワード引数で渡せる引数は常にキーワード引数を使用する（位置専用引数を除く）
+
+## テストコード
+
+### 基本方針
+
+- 似た構造のテストは `@pytest.mark.parametrize` で集約する
+- テスト用のエンティティ作成が複数箇所で必要な場合は `tests/conftest.py` にヘルパー関数を用意する
+- 繰り返しインスタンス化するオブジェクト（Builder等）はフィクスチャ化する
+- Mockを使う場合は `assert_called_once()` 等で呼び出しを検証する
+- テストでプライベート属性（`_xxx`）への直接アクセスや `patch` は避け、コンストラクタ引数で依存性を注入する
+
+### 依存性注入
+
+- `datetime.now()` などの非決定的な値は `patch` ではなく依存性注入する
+  - 例: `clock: Callable[[], datetime]` をコンストラクタで受け取り、本番では `lambda: datetime.now().astimezone()` を渡す
+- 外部APIクライアントなどもコンストラクタで注入し、テストではモックを渡す
+
+### フィクスチャとヘルパー
+
+- タイムゾーン等の共通定数はフィクスチャ化する（例: `jst` フィクスチャ）
+- ファイル書き込みなどの共通パターンはヘルパー関数化する（例: `write_yaml_file`）
+- 複数のテストファイルで共通するフィクスチャはサブディレクトリの `conftest.py` に配置
+  - 例: `tests/usecases/conftest.py` に usecase テスト共通のフィクスチャを配置
+
+### モックの作成
+
+- `MagicMock()` ではなく `create_autospec(SpecClass, spec_set=True)` を使用する
+  - 存在しないメソッドの呼び出しや間違った引数を検出できる
+  - `spec_set=True` で存在しない属性への代入も禁止
+  - 例外: `googleapiclient` のようにメソッドが実行時に動的生成されるライブラリは `create_autospec` が使えないため `MagicMock` を許容する
+- 型アノテーションは Protocol 型を使用する（例: `ConfEngineApiProtocol`）
+- モック特有のメソッド（`assert_called_once`, `side_effect` 等）を使う箇所には `# type: ignore[attr-defined]` を追加する
+
+```python
+# 例
+def create_mock_confengine_api(
+    sessions: tuple[Session, ...], timezone: ZoneInfo
+) -> ConfEngineApiProtocol:
+    mock = create_autospec(ConfEngineApiProtocol, spec_set=True)
+    mock.fetch_sessions.return_value = (sessions, timezone)
+    return mock  # type: ignore[no-any-return]
+
+# モック特有のメソッドを使う場合
+mock_api.fetch_sessions.assert_called_once()  # type: ignore[attr-defined]
+```
+
+### プライベートメソッドのテスト
+
+- 原則として公開インターフェース経由でテストする
+- やむを得ずプライベートメソッドを直接テストする場合は、ファイル先頭のdocstringに理由を明記する

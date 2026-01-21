@@ -1,12 +1,22 @@
-"""YouTubeAuthClient のテスト"""
+"""YouTubeAuthClient のテスト
+
+NOTE: このテストではプライベートメソッド (_load_token, _save_token) を
+直接テストしている。
+
+理由:
+- これらのメソッドは「トークンの永続化」という独立した責務を持つ
+- パーミッション設定やディレクトリ作成などのエッジケースを個別にテスト可能
+- get_credentials 経由でテストすると OAuth フローのモックが必要で複雑化する
+"""
 
 from __future__ import annotations
 
 import stat
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import create_autospec
 
 import pytest
+from google.oauth2.credentials import Credentials
 
 from confengine_to_youtube.infrastructure.youtube_auth import YouTubeAuthClient
 
@@ -33,26 +43,16 @@ class TestYouTubeAuthClient:
         self, client: YouTubeAuthClient
     ) -> None:
         """トークンファイルが存在する場合はCredentialsを読み込む"""
-        token_content = '{"token": "test"}'  # noqa: S105
+        token_content = '{"token": "t", "refresh_token": "r", "client_id": "i", "client_secret": "s"}'  # noqa: S105, E501
         client.token_path.write_text(data=token_content, encoding="utf-8")
 
-        with patch(
-            target="confengine_to_youtube.infrastructure.youtube_auth.Credentials"
-        ) as mock_credentials:
-            mock_creds = MagicMock()
-            mock_credentials.from_authorized_user_file.return_value = mock_creds
+        result = client._load_token()
 
-            result = client._load_token()
-
-            mock_credentials.from_authorized_user_file.assert_called_once_with(
-                filename=str(client.token_path),
-                scopes=YouTubeAuthClient.SCOPES,
-            )
-            assert result == mock_creds
+        assert isinstance(result, Credentials)
 
     def test_save_token_writes_json_to_file(self, client: YouTubeAuthClient) -> None:
         """トークンをJSONファイルに書き込む"""
-        mock_credentials = MagicMock()
+        mock_credentials = create_autospec(Credentials, spec_set=True)
         mock_credentials.to_json.return_value = '{"token": "saved_token"}'
 
         client._save_token(credentials=mock_credentials)
@@ -68,7 +68,7 @@ class TestYouTubeAuthClient:
             credentials_path=tmp_path / "credentials.json",
             token_path=nested_path,
         )
-        mock_credentials = MagicMock()
+        mock_credentials = create_autospec(Credentials, spec_set=True)
         mock_credentials.to_json.return_value = "{}"
 
         client._save_token(credentials=mock_credentials)
@@ -79,7 +79,7 @@ class TestYouTubeAuthClient:
         self, client: YouTubeAuthClient
     ) -> None:
         """トークンファイルのパーミッションを0600に設定する"""
-        mock_credentials = MagicMock()
+        mock_credentials = create_autospec(Credentials, spec_set=True)
         mock_credentials.to_json.return_value = "{}"
 
         client._save_token(credentials=mock_credentials)
