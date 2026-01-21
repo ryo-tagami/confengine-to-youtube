@@ -1,11 +1,12 @@
 """ConfEngine API Gateway のテスト"""
 
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import create_autospec
 from zoneinfo import ZoneInfo
 
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
+from confengine_to_youtube.adapters.protocols import HttpClientProtocol
 from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
 from confengine_to_youtube.domain.session import Speaker
 
@@ -15,7 +16,7 @@ class TestConfEngineApiGateway:
 
     def test_fetch_sessions(self) -> None:
         """APIからセッションを取得できる"""
-        mock_http_client = MagicMock()
+        mock_http_client = create_autospec(HttpClientProtocol, spec_set=True)
         mock_http_client.get_json.return_value = {
             "conf_timezone": "Asia/Tokyo",
             "conf_schedule": [
@@ -79,7 +80,7 @@ class TestConfEngineApiGateway:
 
     def test_sessions_sorted_by_timeslot_and_room(self) -> None:
         """セッションがtimeslotとroomでソートされる"""
-        mock_http_client = MagicMock()
+        mock_http_client = create_autospec(HttpClientProtocol, spec_set=True)
         mock_http_client.get_json.return_value = {
             "conf_timezone": "Asia/Tokyo",
             "conf_schedule": [

@@ -35,9 +35,10 @@ class TestYouTubeApiGateway:
     @pytest.fixture
     def gateway(self, mock_youtube: MagicMock) -> YouTubeApiGateway:
         """テスト用のgateway"""
-        gateway = YouTubeApiGateway(auth_provider=MockAuthProvider())
-        gateway._youtube = mock_youtube
-        return gateway
+        return YouTubeApiGateway(
+            auth_provider=MockAuthProvider(),
+            youtube=mock_youtube,
+        )
 
     def test_get_video_info_success(
         self, gateway: YouTubeApiGateway, mock_youtube: MagicMock

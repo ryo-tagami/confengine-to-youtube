@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from contextlib import AbstractContextManager, nullcontext
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -39,6 +40,7 @@ def run(args: argparse.Namespace) -> None:
     usecase = GenerateMappingUseCase(
         confengine_api=confengine_api,
         mapping_writer=mapping_writer,
+        clock=lambda: datetime.now().astimezone(),
     )
 
     try:

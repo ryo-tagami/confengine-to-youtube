@@ -78,7 +78,7 @@ def run(args: argparse.Namespace) -> None:
         credentials_path=credentials_path,
         token_path=token_path,
     )
-    youtube_api = YouTubeApiGateway(auth_provider=auth_client)
+    youtube_api = YouTubeApiGateway(auth_provider=auth_client, youtube=None)
 
     description_builder = YouTubeDescriptionBuilder()
     title_builder = YouTubeTitleBuilder()

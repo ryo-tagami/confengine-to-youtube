@@ -73,25 +73,26 @@ def _to_api_body(request: VideoUpdateRequest) -> Video:
 class YouTubeApiGateway:
     """YouTube Data API v3との通信"""
 
-    def __init__(self, auth_provider: YouTubeAuthProvider) -> None:
-        self._auth_provider = auth_provider
-        self._youtube: YouTubeResource | None = None
-
-    def _get_youtube(self) -> YouTubeResource:
-        """YouTube APIクライアントを取得(遅延初期化)"""
-        if self._youtube is None:
-            credentials = self._auth_provider.get_credentials()
-            self._youtube = build(
+    def __init__(
+        self,
+        auth_provider: YouTubeAuthProvider,
+        youtube: YouTubeResource | None,
+    ) -> None:
+        if youtube is None:
+            credentials = auth_provider.get_credentials()
+            self._youtube: YouTubeResource = build(
                 serviceName="youtube", version="v3", credentials=credentials
             )
-        return self._youtube
+        else:
+            self._youtube = youtube
 
     def get_video_info(self, video_id: str) -> VideoInfo:
-        youtube = self._get_youtube()
         # NOTE: HttpError のみキャッチし、ネットワークエラー等はそのまま上位に伝播させる
         # (ユーザーが原因を理解できるため、変換不要)
         try:
-            response = youtube.videos().list(part="snippet", id=video_id).execute()
+            response = (
+                self._youtube.videos().list(part="snippet", id=video_id).execute()
+            )
         except HttpError as e:
             self._handle_http_error(error=e, video_id=video_id)
 
@@ -105,10 +106,9 @@ class YouTubeApiGateway:
 
     def update_video(self, request: VideoUpdateRequest) -> None:
         """動画のsnippetを更新"""
-        youtube = self._get_youtube()
         # NOTE: ネットワークエラー等の扱いは get_video_info 参照
         try:
-            youtube.videos().update(
+            self._youtube.videos().update(
                 part="snippet",
                 body=_to_api_body(request=request),
             ).execute()
