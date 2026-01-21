@@ -38,15 +38,15 @@ class TestConfEngineApiGateway:
                                                     "name": "Speaker A",
                                                     "first_name": "Speaker",
                                                     "last_name": "A",
-                                                }
+                                                },
                                             ],
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
             ],
         }
 
@@ -64,7 +64,13 @@ class TestConfEngineApiGateway:
 
         assert session.title == "Test Session"
         assert session.slot.timeslot == datetime(
-            year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=7,
+            hour=10,
+            minute=0,
+            second=0,
+            tzinfo=jst,
         )
         assert session.slot.room == "Hall A"
         assert session.track == "Track 1"
@@ -74,7 +80,7 @@ class TestConfEngineApiGateway:
 
         # 正しいURLでAPIが呼ばれたことを検証
         mock_http_client.get_json.assert_called_once_with(
-            url="https://confengine.com/api/v3/conferences/test-conf/schedule"
+            url="https://confengine.com/api/v3/conferences/test-conf/schedule",
         )
 
     def test_sessions_sorted_by_timeslot_and_room(self) -> None:
@@ -116,12 +122,12 @@ class TestConfEngineApiGateway:
                                             "abstract": "",
                                             "speakers": [],
                                         },
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
             ],
         }
 

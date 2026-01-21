@@ -44,7 +44,13 @@ def sample_session() -> Session:
     return Session(
         slot=ScheduleSlot(
             timeslot=datetime(
-                year=2026, month=1, day=7, hour=10, minute=0, second=0, tzinfo=UTC
+                year=2026,
+                month=1,
+                day=7,
+                hour=10,
+                minute=0,
+                second=0,
+                tzinfo=UTC,
             ),
             room="Hall A",
         ),
@@ -65,7 +71,13 @@ def empty_session() -> Session:
     return Session(
         slot=ScheduleSlot(
             timeslot=datetime(
-                year=2026, month=1, day=7, hour=9, minute=0, second=0, tzinfo=UTC
+                year=2026,
+                month=1,
+                day=7,
+                hour=9,
+                minute=0,
+                second=0,
+                tzinfo=UTC,
             ),
             room="Hall A",
         ),

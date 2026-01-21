@@ -18,7 +18,10 @@ class TestSpeaker:
         ],
     )
     def test_full_name(
-        self, first_name: str, last_name: str, expected: str | None
+        self,
+        first_name: str,
+        last_name: str,
+        expected: str | None,
     ) -> None:
         """full_name プロパティのテスト"""
         speaker = Speaker(first_name=first_name, last_name=last_name)
@@ -35,7 +38,10 @@ class TestSpeaker:
         ],
     )
     def test_initial_name(
-        self, first_name: str, last_name: str, expected: str | None
+        self,
+        first_name: str,
+        last_name: str,
+        expected: str | None,
     ) -> None:
         """initial_name プロパティのテスト"""
         speaker = Speaker(first_name=first_name, last_name=last_name)

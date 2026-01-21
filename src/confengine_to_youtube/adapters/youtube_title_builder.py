@@ -28,7 +28,7 @@ class YouTubeTitleBuilder:
 
         if not session.speakers:
             return YouTubeTitle(
-                value=self._truncate(text=session.title, max_length=max_length)
+                value=self._truncate(text=session.title, max_length=max_length),
             )
 
         # スピーカー名のフォーマット戦略: フルネーム → イニシャル → ラストネーム
@@ -44,7 +44,7 @@ class YouTubeTitleBuilder:
             if not (speaker_part := format_func(speakers=session.speakers)):
                 # 全スピーカーの名前が空の場合はタイトルのみ
                 return YouTubeTitle(
-                    value=self._truncate(text=session.title, max_length=max_length)
+                    value=self._truncate(text=session.title, max_length=max_length),
                 )
 
             full_title = self.combine(title=session.title, speaker_part=speaker_part)
@@ -54,7 +54,7 @@ class YouTubeTitleBuilder:
 
         # どのフォーマットでも収まらない場合はタイトルを切り詰める
         return YouTubeTitle(
-            value=self._truncate_title(title=session.title, speaker_part=speaker_part)
+            value=self._truncate_title(title=session.title, speaker_part=speaker_part),
         )
 
     @staticmethod

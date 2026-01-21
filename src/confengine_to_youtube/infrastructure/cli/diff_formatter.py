@@ -92,7 +92,10 @@ class DiffFormatter:
         diff_text = "".join(diff)
 
         syntax = Syntax(
-            code=diff_text, lexer="diff", theme="ansi_dark", line_numbers=False
+            code=diff_text,
+            lexer="diff",
+            theme="ansi_dark",
+            line_numbers=False,
         )
 
         self._console.print(syntax)

@@ -16,7 +16,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -25,10 +30,16 @@ class TestMappingFileWriter:
                 speakers=(Speaker(first_name="", last_name="田中太郎"),),
                 abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
-            )
+            ),
         ]
         generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
         writer = MappingFileWriter()
@@ -71,7 +82,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=11, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=11,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -83,10 +99,16 @@ class TestMappingFileWriter:
                 ),
                 abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
-            )
+            ),
         ]
         generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
         writer = MappingFileWriter()
@@ -129,7 +151,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=8, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=8,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -142,7 +169,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -154,7 +186,13 @@ class TestMappingFileWriter:
             ),
         ]
         generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
         writer = MappingFileWriter()
@@ -202,7 +240,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall B",
                 ),
@@ -215,7 +258,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -227,7 +275,13 @@ class TestMappingFileWriter:
             ),
         ]
         generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
         writer = MappingFileWriter()
@@ -272,7 +326,13 @@ class TestMappingFileWriter:
     def test_write_empty_sessions(self, jst: ZoneInfo) -> None:
         sessions: tuple[Session, ...] = ()
         generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
         writer = MappingFileWriter()
@@ -311,7 +371,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -320,10 +385,16 @@ class TestMappingFileWriter:
                 speakers=(),
                 abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
-            )
+            ),
         ]
         generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
         writer = MappingFileWriter()
@@ -372,7 +443,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -381,10 +457,16 @@ class TestMappingFileWriter:
                 speakers=(Speaker(first_name="", last_name="田中太郎"),),
                 abstract=AbstractMarkdown(content="概要"),
                 url="https://example.com/session1",
-            )
+            ),
         ]
         generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
         writer = MappingFileWriter()
@@ -434,7 +516,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -447,7 +534,12 @@ class TestMappingFileWriter:
             Session(
                 slot=ScheduleSlot(
                     timeslot=datetime(
-                        year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst
+                        year=2026,
+                        month=1,
+                        day=7,
+                        hour=10,
+                        minute=0,
+                        tzinfo=jst,
                     ),
                     room="Hall A",
                 ),
@@ -459,13 +551,20 @@ class TestMappingFileWriter:
             ),
         ]
         generated_at = datetime(
-            year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
         )
 
         writer = MappingFileWriter()
         output = StringIO()
         with pytest.raises(
-            expected_exception=ValueError, match="Duplicate session detected"
+            expected_exception=ValueError,
+            match="Duplicate session detected",
         ):
             writer.write(
                 sessions=sessions,

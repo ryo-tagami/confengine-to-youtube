@@ -19,7 +19,9 @@ class TestYouTubeTitleBuilder:
     """YouTubeTitleBuilder のテスト"""
 
     def test_build_basic(
-        self, sample_session: Session, title_builder: YouTubeTitleBuilder
+        self,
+        sample_session: Session,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """基本的なタイトル生成"""
         title = title_builder.build(session=sample_session)
@@ -41,7 +43,9 @@ class TestYouTubeTitleBuilder:
         assert str(title) == "Test Session - John Doe"
 
     def test_build_no_speakers(
-        self, empty_session: Session, title_builder: YouTubeTitleBuilder
+        self,
+        empty_session: Session,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """スピーカーがいない場合"""
         title = title_builder.build(session=empty_session)
@@ -49,7 +53,8 @@ class TestYouTubeTitleBuilder:
         assert str(title) == "Empty Session"
 
     def test_build_speakers_with_empty_names(
-        self, title_builder: YouTubeTitleBuilder
+        self,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """全スピーカーが空の名前の場合はタイトルのみ"""
         session = create_session(
@@ -101,7 +106,10 @@ class TestYouTubeTitleBuilder:
         ],
     )
     def test_build_title_length_boundaries(
-        self, title_builder: YouTubeTitleBuilder, title_length: int, expected_str: str
+        self,
+        title_builder: YouTubeTitleBuilder,
+        title_length: int,
+        expected_str: str,
     ) -> None:
         """タイトル長の境界値テスト
 
@@ -125,7 +133,8 @@ class TestYouTubeTitleBuilder:
         assert str(title) == expected_str
 
     def test_build_very_long_speaker_is_truncated(
-        self, title_builder: YouTubeTitleBuilder
+        self,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """ラストネームだけで100文字を超える場合"""
         # ラストネーム101文字 → 100文字に切り詰め
@@ -144,7 +153,8 @@ class TestYouTubeTitleBuilder:
         assert str(title) == "W" * 97 + "..."
 
     def test_build_speaker_without_first_name(
-        self, title_builder: YouTubeTitleBuilder
+        self,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """ファーストネームがないスピーカー"""
         session = create_session(
@@ -160,7 +170,8 @@ class TestYouTubeTitleBuilder:
         assert str(title) == "Test Session - Doe"
 
     def test_build_speaker_without_last_name(
-        self, title_builder: YouTubeTitleBuilder
+        self,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """ラストネームがないスピーカー"""
         session = create_session(
@@ -176,7 +187,8 @@ class TestYouTubeTitleBuilder:
         assert str(title) == "Test Session - John"
 
     def test_title_only_truncated_when_long(
-        self, title_builder: YouTubeTitleBuilder
+        self,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """スピーカーなしで長いタイトルは切り詰められる"""
         long_title = "X" * 150
@@ -194,7 +206,8 @@ class TestYouTubeTitleBuilder:
         assert str(title) == "X" * 97 + "..."
 
     def test_build_multi_word_first_name(
-        self, title_builder: YouTubeTitleBuilder
+        self,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """複合ファーストネームの場合、各単語がイニシャル化される"""
         session = create_session(
@@ -211,7 +224,8 @@ class TestYouTubeTitleBuilder:
         assert str(title) == "Test Session - Tze Chin Tang"
 
     def test_build_multi_word_first_name_uses_initials(
-        self, title_builder: YouTubeTitleBuilder
+        self,
+        title_builder: YouTubeTitleBuilder,
     ) -> None:
         """複合ファーストネームでイニシャル化が必要な場合"""
         # 85文字のタイトル + " - " (3) + "Tze Chin Tang" (13) = 101文字 → イニシャル化

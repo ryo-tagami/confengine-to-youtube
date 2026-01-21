@@ -52,12 +52,14 @@ class UpdateYouTubeDescriptionsUseCase:
     ) -> YouTubeUpdateResult:
         mapping = self._mapping_reader.read(file_path=mapping_file)
         sessions, timezone = self._confengine_api.fetch_sessions(
-            conf_id=mapping.conf_id
+            conf_id=mapping.conf_id,
         )
         mapping_config = mapping.to_domain(timezone=timezone)
 
         return self._execute(
-            sessions=sessions, mapping_config=mapping_config, dry_run=dry_run
+            sessions=sessions,
+            mapping_config=mapping_config,
+            dry_run=dry_run,
         )
 
     def _execute(
@@ -106,7 +108,7 @@ class UpdateYouTubeDescriptionsUseCase:
                         current_description=video_info.description,
                         new_title=str(new_title),
                         new_description=str(description),
-                    )
+                    ),
                 )
 
                 if not dry_run:
@@ -135,11 +137,12 @@ class UpdateYouTubeDescriptionsUseCase:
                         new_title=None,
                         new_description=None,
                         error=error_msg,
-                    )
+                    ),
                 )
 
         unused_count = self._warn_unused_mappings(
-            mapping_config=mapping_config, used_slots=used_slots
+            mapping_config=mapping_config,
+            used_slots=used_slots,
         )
 
         return YouTubeUpdateResult(
