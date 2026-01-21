@@ -6,13 +6,14 @@ from unittest.mock import MagicMock
 import pytest
 from googleapiclient.errors import HttpError
 from httplib2 import Response
+from returns.pipeline import is_successful
+from returns.unsafe import unsafe_perform_io
 
-from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
-from confengine_to_youtube.usecases.protocols import (
+from confengine_to_youtube.adapters.youtube_api import (
     VideoNotFoundError,
-    VideoUpdateRequest,
-    YouTubeApiError,
+    YouTubeApiGateway,
 )
+from confengine_to_youtube.usecases.protocols import VideoUpdateRequest
 
 
 class MockAuthProvider:
@@ -60,21 +61,27 @@ class TestYouTubeApiGateway:
 
         result = gateway.get_video_info(video_id="abc123")
 
-        assert result.video_id == "abc123"
-        assert result.title == "Test Video"
-        assert result.description == "Test Description"
-        assert result.category_id == 28
+        assert is_successful(result)
+        video_info = unsafe_perform_io(result.unwrap())
+        assert video_info.video_id == "abc123"
+        assert video_info.title == "Test Video"
+        assert video_info.description == "Test Description"
+        assert video_info.category_id == 28
 
     def test_get_video_info_not_found(
         self,
         gateway: YouTubeApiGateway,
         mock_youtube: MagicMock,
     ) -> None:
-        """動画が見つからない場合は例外"""
+        """動画が見つからない場合はIOFailureを返す"""
         mock_youtube.videos().list().execute.return_value = {"items": []}
 
-        with pytest.raises(expected_exception=VideoNotFoundError):
-            gateway.get_video_info(video_id="nonexistent")
+        result = gateway.get_video_info(video_id="nonexistent")
+
+        assert not is_successful(result)
+        error = unsafe_perform_io(result.failure())
+        assert isinstance(error, VideoNotFoundError)
+        assert error.video_id == "nonexistent"
 
     def test_update_video(
         self,
@@ -89,8 +96,9 @@ class TestYouTubeApiGateway:
             category_id=28,
         )
 
-        gateway.update_video(request=request)
+        result = gateway.update_video(request=request)
 
+        assert is_successful(result)
         mock_youtube.videos().update.assert_called_once_with(
             part="snippet",
             body={
@@ -103,55 +111,37 @@ class TestYouTubeApiGateway:
             },
         )
 
-    @pytest.mark.parametrize(
-        ("status", "expected_exception", "expected_message"),
-        [
-            (404, VideoNotFoundError, "Video not found"),
-            (401, YouTubeApiError, "authentication failed"),
-            (403, YouTubeApiError, "access forbidden"),
-            (429, YouTubeApiError, "rate limit"),
-            (500, YouTubeApiError, "HTTP 500"),
-        ],
-    )
+    @pytest.mark.parametrize("status", [404, 401, 403, 429, 500])
     def test_get_video_info_http_error(
         self,
         gateway: YouTubeApiGateway,
         mock_youtube: MagicMock,
         status: int,
-        expected_exception: type[Exception],
-        expected_message: str,
     ) -> None:
-        """HTTPエラーが適切なドメイン例外に変換される"""
+        """HTTPエラーがIOFailureで返される"""
         http_error = HttpError(
             resp=Response(info={"status": str(status)}),
             content=b"error",
         )
         mock_youtube.videos().list().execute.side_effect = http_error
 
-        with pytest.raises(
-            expected_exception=expected_exception,
-            match=expected_message,
-        ):
-            gateway.get_video_info(video_id="abc123")
+        result = gateway.get_video_info(video_id="abc123")
+
+        assert not is_successful(result)
+        error = unsafe_perform_io(result.failure())
+        assert isinstance(error, HttpError)
 
     @pytest.mark.parametrize(
-        ("status", "expected_exception"),
-        [
-            (404, VideoNotFoundError),
-            (401, YouTubeApiError),
-            (403, YouTubeApiError),
-            (429, YouTubeApiError),
-            (500, YouTubeApiError),
-        ],
+        "status",
+        [404, 401, 403, 429, 500],
     )
     def test_update_video_http_error(
         self,
         gateway: YouTubeApiGateway,
         mock_youtube: MagicMock,
         status: int,
-        expected_exception: type[Exception],
     ) -> None:
-        """update_videoでHTTPエラーが適切に処理される"""
+        """update_videoでHTTPエラーがIOFailureで返される"""
         http_error = HttpError(
             resp=Response(info={"status": str(status)}),
             content=b"error",
@@ -165,8 +155,11 @@ class TestYouTubeApiGateway:
             category_id=28,
         )
 
-        with pytest.raises(expected_exception=expected_exception):
-            gateway.update_video(request=request)
+        result = gateway.update_video(request=request)
+
+        assert not is_successful(result)
+        error = unsafe_perform_io(result.failure())
+        assert isinstance(error, Exception)
 
         # セットアップ時にも update() が呼ばれるため assert_called_with を使用
         mock_youtube.videos().update.assert_called_with(

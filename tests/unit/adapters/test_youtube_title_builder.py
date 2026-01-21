@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 
 import pytest
+from returns.result import Success
 
 from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_to_youtube.domain.session import Session
@@ -24,9 +25,10 @@ class TestYouTubeTitleBuilder:
         title_builder: YouTubeTitleBuilder,
     ) -> None:
         """基本的なタイトル生成"""
-        title = title_builder.build(session=sample_session)
+        result = title_builder.build(session=sample_session)
 
-        assert str(title) == "Sample Session - Speaker A, Speaker B"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Sample Session - Speaker A, Speaker B"
 
     def test_build_single_speaker(self, title_builder: YouTubeTitleBuilder) -> None:
         """単一スピーカーの場合"""
@@ -38,9 +40,10 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
-        assert str(title) == "Test Session - John Doe"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session - John Doe"
 
     def test_build_no_speakers(
         self,
@@ -48,9 +51,10 @@ class TestYouTubeTitleBuilder:
         title_builder: YouTubeTitleBuilder,
     ) -> None:
         """スピーカーがいない場合"""
-        title = title_builder.build(session=empty_session)
+        result = title_builder.build(session=empty_session)
 
-        assert str(title) == "Empty Session"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Empty Session"
 
     def test_build_speakers_with_empty_names(
         self,
@@ -65,9 +69,10 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
-        assert str(title) == "Test Session"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session"
 
     def test_build_multiple_speakers(self, title_builder: YouTubeTitleBuilder) -> None:
         """複数スピーカーの場合"""
@@ -79,9 +84,11 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
-        assert str(title) == "Panel Discussion - John Doe, Jane Smith, Bob Wilson"
+        assert isinstance(result, Success)
+        expected = "Panel Discussion - John Doe, Jane Smith, Bob Wilson"
+        assert str(result.unwrap()) == expected
 
     @pytest.mark.parametrize(
         ("title_length", "expected_str"),
@@ -127,8 +134,10 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
+        assert isinstance(result, Success)
+        title = result.unwrap()
         assert len(str(title)) <= YouTubeTitle.MAX_LENGTH
         assert str(title) == expected_str
 
@@ -146,8 +155,10 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
+        assert isinstance(result, Success)
+        title = result.unwrap()
         assert len(str(title)) == YouTubeTitle.MAX_LENGTH
         # ラストネーム自体が切り詰められる (97文字 + "...")
         assert str(title) == "W" * 97 + "..."
@@ -165,9 +176,10 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
-        assert str(title) == "Test Session - Doe"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session - Doe"
 
     def test_build_speaker_without_last_name(
         self,
@@ -182,9 +194,10 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
-        assert str(title) == "Test Session - John"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session - John"
 
     def test_title_only_truncated_when_long(
         self,
@@ -200,8 +213,10 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
+        assert isinstance(result, Success)
+        title = result.unwrap()
         assert len(str(title)) == YouTubeTitle.MAX_LENGTH
         assert str(title) == "X" * 97 + "..."
 
@@ -218,10 +233,11 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
         # フルネームで収まる場合はフルネーム
-        assert str(title) == "Test Session - Tze Chin Tang"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session - Tze Chin Tang"
 
     def test_build_multi_word_first_name_uses_initials(
         self,
@@ -238,8 +254,10 @@ class TestYouTubeTitleBuilder:
             room=ROOM,
             url=URL,
         )
-        title = title_builder.build(session=session)
+        result = title_builder.build(session=session)
 
         # イニシャル表記: 85 + " - " (3) + "T. C. Tang" (10) = 98文字
+        assert isinstance(result, Success)
+        title = result.unwrap()
         assert len(str(title)) <= YouTubeTitle.MAX_LENGTH
         assert str(title) == f"{title_text} - T. C. Tang"

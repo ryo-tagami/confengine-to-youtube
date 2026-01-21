@@ -15,10 +15,10 @@ class MarkdownConverter:
     def convert(self, html: str) -> AbstractMarkdown:
         """HTML を Markdown に変換する"""
         if not html:
-            return AbstractMarkdown(content="")
+            return AbstractMarkdown.create(content="").unwrap()
 
         text = markdownify(html=html, heading_style="ATX", strip=["script", "style"])
         text = text.strip()
         text = re.sub(pattern=r"\n{3,}", repl="\n\n", string=text)
 
-        return AbstractMarkdown(content=text)
+        return AbstractMarkdown.create(content=text).unwrap()

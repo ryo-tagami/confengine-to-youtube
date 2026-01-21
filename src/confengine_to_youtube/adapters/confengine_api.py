@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
+
+from returns.io import IOResult, impure_safe
 
 from confengine_to_youtube.adapters.confengine_schema import ScheduleResponse
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
@@ -24,12 +26,31 @@ class ConfEngineApiGateway:
         self._http_client = http_client
         self._markdown_converter = markdown_converter
 
-    def fetch_sessions(self, conf_id: str) -> tuple[tuple[Session, ...], ZoneInfo]:
+    def fetch_sessions(
+        self,
+        conf_id: str,
+    ) -> IOResult[tuple[tuple[Session, ...], ZoneInfo], Exception]:
+        """セッション一覧を取得する"""
         url = f"{self.BASE_URL}/conferences/{conf_id}/schedule"
 
-        schedule_data = self._http_client.get_json(url=url)
-        response = ScheduleResponse.model_validate(obj=schedule_data)
+        return self._http_client.get_json(url=url).bind(
+            lambda data: self._parse_response(schedule_data=data),
+        )
 
+    def _parse_response(
+        self,
+        schedule_data: dict[str, Any],
+    ) -> IOResult[tuple[tuple[Session, ...], ZoneInfo], Exception]:
+        """レスポンスをパースする"""
+        return impure_safe(ScheduleResponse.model_validate)(schedule_data).map(
+            lambda response: self._build_result(response=response),
+        )
+
+    def _build_result(
+        self,
+        response: ScheduleResponse,
+    ) -> tuple[tuple[Session, ...], ZoneInfo]:
+        """パースしたレスポンスから結果を構築する"""
         timezone = ZoneInfo(key=response.conf_timezone)
         sessions = self._extract_sessions(response=response, timezone=timezone)
 
@@ -59,23 +80,23 @@ class ConfEngineApiGateway:
         timezone: ZoneInfo,
     ) -> Session:
         """APIレスポンスのセッションをドメインオブジェクトに変換"""
-        slot = ScheduleSlot(
+        slot = ScheduleSlot.create(
             timeslot=api_session.timeslot.replace(tzinfo=timezone),
             room=api_session.room,
-        )
+        ).unwrap()
         abstract = self._markdown_converter.convert(html=api_session.abstract)
 
-        return Session(
+        return Session.create(
             slot=slot,
             title=api_session.title,
             track=api_session.track,
             speakers=tuple(
-                Speaker(
+                Speaker.create(
                     first_name=speaker.first_name,
                     last_name=speaker.last_name,
-                )
+                ).unwrap()
                 for speaker in api_session.speakers
             ),
             abstract=abstract,
             url=api_session.url,
-        )
+        ).unwrap()

@@ -96,27 +96,27 @@ class MappingFileSchema(BaseModel):
         for parsed_date, rooms in self.sessions.root.items():
             for room, times in rooms.root.items():
                 for parsed_time, session in times.root.items():
-                    slot = ScheduleSlot(
+                    slot = ScheduleSlot.create(
                         timeslot=datetime.combine(
                             date=parsed_date,
                             time=parsed_time,
                             tzinfo=timezone,
                         ),
                         room=room,
-                    )
+                    ).unwrap()
                     mappings.append(
-                        VideoMapping(
+                        VideoMapping.create(
                             slot=slot,
                             video_id=session.video_id,
-                        ),
+                        ).unwrap(),
                     )
 
-        return MappingConfig(
+        return MappingConfig.create(
             conf_id=self.conf_id,
             mappings=frozenset(mappings),
             hashtags=tuple(self.hashtags),
             footer=self.footer,
-        )
+        ).unwrap()
 
 
 # Writer用スキーマ

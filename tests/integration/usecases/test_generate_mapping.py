@@ -3,19 +3,22 @@ from io import StringIO
 from zoneinfo import ZoneInfo
 
 import pytest
+from returns.pipeline import is_successful
+from returns.unsafe import unsafe_perform_io
 
 from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
 from confengine_to_youtube.domain.session import Session
+from confengine_to_youtube.usecases.deps import GenerateMappingDeps
 from confengine_to_youtube.usecases.generate_mapping import (
     GenerateMappingResult,
-    GenerateMappingUseCase,
+    generate_mapping,
 )
 from confengine_to_youtube.usecases.protocols import ConfEngineApiProtocol
 from tests.conftest import create_session
 from tests.integration.usecases.conftest import create_mock_confengine_api
 
 
-class TestGenerateMappingUseCase:
+class TestGenerateMapping:
     @pytest.fixture
     def fixed_clock(self, jst: ZoneInfo) -> datetime:
         """テスト用の固定時刻"""
@@ -73,24 +76,28 @@ class TestGenerateMappingUseCase:
         return create_mock_confengine_api(sessions=sessions, timezone=jst)
 
     @pytest.fixture
-    def usecase(
+    def deps(
         self,
         mock_confengine_api: ConfEngineApiProtocol,
         fixed_clock: datetime,
-    ) -> GenerateMappingUseCase:
-        return GenerateMappingUseCase(
+    ) -> GenerateMappingDeps:
+        return GenerateMappingDeps(
             confengine_api=mock_confengine_api,
             mapping_writer=MappingFileWriter(),
             clock=lambda: fixed_clock,
         )
 
-    def test_execute_writes_yaml_content(self, usecase: GenerateMappingUseCase) -> None:
+    def test_execute_writes_yaml_content(self, deps: GenerateMappingDeps) -> None:
         """YAMLコンテンツが正しく生成される"""
         output = StringIO()
-        result = usecase.execute(conf_id="test-conf", output=output)
+        result = generate_mapping(conf_id="test-conf", output=output)(deps)
+
+        assert is_successful(result)
+        mapping_result = unsafe_perform_io(result.unwrap())
+
         yaml_content = output.getvalue()
 
-        assert isinstance(result, GenerateMappingResult)
+        assert isinstance(mapping_result, GenerateMappingResult)
         expected = (
             "# ConfEngine Mapping Template\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"
@@ -119,22 +126,21 @@ class TestGenerateMappingUseCase:
         )
         assert yaml_content == expected
 
-    def test_execute_returns_session_count(
-        self,
-        usecase: GenerateMappingUseCase,
-    ) -> None:
+    def test_execute_returns_session_count(self, deps: GenerateMappingDeps) -> None:
         output = StringIO()
-        result = usecase.execute(conf_id="test-conf", output=output)
+        result = generate_mapping(conf_id="test-conf", output=output)(deps)
 
-        assert result.session_count == 2
+        assert is_successful(result)
+        mapping_result = unsafe_perform_io(result.unwrap())
+        assert mapping_result.session_count == 2
 
     def test_execute_calls_confengine_api(
         self,
-        usecase: GenerateMappingUseCase,
+        deps: GenerateMappingDeps,
         mock_confengine_api: ConfEngineApiProtocol,
     ) -> None:
         output = StringIO()
-        usecase.execute(conf_id="test-conf", output=output)
+        generate_mapping(conf_id="test-conf", output=output)(deps)
 
         mock_confengine_api.fetch_sessions.assert_called_once_with(conf_id="test-conf")  # type: ignore[attr-defined]
 
@@ -145,17 +151,20 @@ class TestGenerateMappingUseCase:
     ) -> None:
         """セッションが空の場合も正しく生成される"""
         mock_confengine_api = create_mock_confengine_api(sessions=(), timezone=jst)
-        usecase = GenerateMappingUseCase(
+        deps = GenerateMappingDeps(
             confengine_api=mock_confengine_api,
             mapping_writer=MappingFileWriter(),
             clock=lambda: fixed_clock,
         )
 
         output = StringIO()
-        result = usecase.execute(conf_id="test-conf", output=output)
+        result = generate_mapping(conf_id="test-conf", output=output)(deps)
+
+        assert is_successful(result)
+        mapping_result = unsafe_perform_io(result.unwrap())
         yaml_content = output.getvalue()
 
-        assert result.session_count == 0
+        assert mapping_result.session_count == 0
         expected = (
             "# ConfEngine Mapping Template\n"
             "# Generated: 2026-01-19T10:30:00+09:00\n"

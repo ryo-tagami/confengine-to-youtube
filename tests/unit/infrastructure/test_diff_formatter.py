@@ -165,6 +165,6 @@ class TestDiffFormatter:
 
         # トランケートされて200文字 + "..."
         assert result.count("X") == 200
-        assert any("..." in line for line in result.splitlines())
+        assert any(line.endswith("...") for line in result.splitlines())
         # unchangedも表示される
         assert "    (unchanged)" in result.splitlines()

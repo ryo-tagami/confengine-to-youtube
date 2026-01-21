@@ -92,6 +92,7 @@ uv run confengine-to-youtube youtube-update -m mapping.yaml
 
 ```bash
 uv run task check   # lint + test を実行
+uv run task format  # add-trailing-comma + ruff format
 uv run task lint    # ruff check, ruff format --check, mypy
 uv run task test    # pytest
 ```

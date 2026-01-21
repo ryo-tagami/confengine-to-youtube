@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 uv run task check          # lint + test を実行
+uv run task format         # add-trailing-comma + ruff format
 uv run task lint           # ruff check, ruff format --check, mypy
 uv run task test           # pytest (カバレッジ付き)
 uv run pytest tests/path/to/test.py::test_name  # 単一テスト実行
-uv run ruff format .       # フォーマット
 ```
 
 ## アーキテクチャ
@@ -28,14 +28,16 @@ confengine_to_youtube/
 
 ### ユースケース
 
-- `UpdateYouTubeDescriptionsUseCase`: セッション情報でYouTube動画のタイトルとdescriptionを更新
-- `GenerateMappingUseCase`: マッピングYAML雛形を生成
+関数型スタイルで実装。`RequiresContextIOResultE` で依存性を注入:
+
+- `update_youtube_descriptions`: セッション情報でYouTube動画のタイトルとdescriptionを更新
+- `generate_mapping`: マッピングYAML雛形を生成
 
 ### データフロー
 
-1. CLI (`infrastructure/cli/`) が引数をパースし依存性を組み立て
-2. UseCase がビジネスロジックを実行
-3. Adapter (`adapters/`) が外部APIとの通信を担当
+1. CLI (`infrastructure/cli/`) が引数をパースし依存性（`Deps`）を組み立て
+2. ユースケース関数を `Deps` で呼び出し、`IOResult` を取得
+3. Adapter (`adapters/`) が外部APIとの通信を担当（`IOResult` を返す）
 
 ## コーディング規約
 
@@ -46,6 +48,71 @@ confengine_to_youtube/
 - 型ヒント専用のimportは `TYPE_CHECKING` ブロック内に配置
 - 関数・メソッド呼び出しでは、キーワード引数で渡せる引数は常にキーワード引数を使用する（位置専用引数を除く）
 
+## エラー処理（dry-python/returns）
+
+例外を使わず `Result`/`IOResult` 型でエラーを表現する:
+
+### 使い分け
+
+| 型 | 用途 |
+|---|---|
+| `Result[T, E]` | 純粋な計算（I/Oなし）。バリデーション、ビルダー等 |
+| `IOResult[T, E]` | I/Oを伴う処理。API呼び出し、ファイル読み書き等 |
+| `RequiresContextIOResultE[T, Deps]` | 依存性注入が必要なユースケース |
+
+### エラー型の定義
+
+`RequiresContextIOResultE` で使うエラー型は `Exception` を継承する:
+
+```python
+@dataclass(frozen=True)
+class MyError(Exception):
+    message: str
+```
+
+### 値の取り出し（Railway-Oriented Programming）
+
+`.bind()` / `.map()` / `.alt()` を使った関数合成を推奨:
+
+```python
+# 推奨: Railway-Oriented Programming スタイル
+def _execute(deps: MyDeps) -> IOResult[Result, MyError]:
+    return (
+        deps.api_a.fetch()
+        .bind(lambda a: deps.api_b.fetch(a_id=a.id).map(lambda b: (a, b)))
+        .map(lambda data: process(data[0], data[1]))
+    )
+```
+
+`isinstance` チェックは避け、CLI層での値の取り出しには `unsafe_perform_io` を使う:
+
+```python
+# 非推奨: isinstance チェックと手動アンラップ
+if isinstance(result, IOSuccess):
+    value = result.unwrap()  # IO[T] が返る
+
+# 推奨: CLI層で unsafe_perform_io を使う
+from returns.unsafe import unsafe_perform_io
+
+match result:
+    case IOSuccess():
+        value = unsafe_perform_io(result.unwrap())
+    case IOFailure():
+        error = unsafe_perform_io(result.failure())
+```
+
+### ユースケースの実装パターン
+
+```python
+def my_usecase(arg: str) -> RequiresContextIOResultE[Result, MyDeps]:
+    return RequiresContextIOResultE[Result, MyDeps](
+        lambda deps: _execute(deps=deps, arg=arg),
+    )
+
+def _execute(deps: MyDeps, arg: str) -> IOResult[Result, MyError]:
+    return deps.some_api.fetch(arg).map(lambda data: process(data))
+```
+
 ## テストコード
 
 ### 基本方針
@@ -55,6 +122,31 @@ confengine_to_youtube/
 - 繰り返しインスタンス化するオブジェクト（Builder等）はフィクスチャ化する
 - Mockを使う場合は `assert_called_once()` 等で呼び出しを検証する
 - テストでプライベート属性（`_xxx`）への直接アクセスや `patch` は避け、コンストラクタ引数で依存性を注入する
+
+### アサーションのパターン
+
+- **部分一致アサーションは禁止**: `assert "str" in "string"` のような部分一致は誤検出の原因になる
+- 代わりに以下のパターンを使用する:
+
+| 目的 | 推奨パターン | 避けるべきパターン |
+|---|---|---|
+| 完全一致 | `assert x == "expected"` | `assert "expected" in x` |
+| 前方一致 | `assert x.startswith("prefix")` | `assert "prefix" in x` |
+| 後方一致 | `assert x.endswith("suffix")` | `assert "suffix" in x` |
+| 型チェック | `assert isinstance(error, MyError)` | `assert "MyError" in type(error).__name__` |
+| プロパティ検証 | `assert error.video_id == "abc"` | `assert "abc" in str(error)` |
+| 行の存在確認 | `assert "line" in output.splitlines()` | `assert "line" in output` |
+
+```python
+# 非推奨: 部分一致
+assert "エラー" in result.failure().message
+assert "ValidationError" in type(error).__name__
+
+# 推奨: 完全一致または明示的なパターン
+assert result.failure().message == "タイトルは必須エラーです"
+assert isinstance(error, ValidationError)
+assert result.failure().message.startswith("フレーム部分")
+```
 
 ### 依存性注入
 
@@ -79,12 +171,12 @@ confengine_to_youtube/
 - モック特有のメソッド（`assert_called_once`, `side_effect` 等）を使う箇所には `# type: ignore[attr-defined]` を追加する
 
 ```python
-# 例
+# 例（IOResult を返すモック）
 def create_mock_confengine_api(
     sessions: tuple[Session, ...], timezone: ZoneInfo
 ) -> ConfEngineApiProtocol:
     mock = create_autospec(ConfEngineApiProtocol, spec_set=True)
-    mock.fetch_sessions.return_value = (sessions, timezone)
+    mock.fetch_sessions.return_value = IOSuccess((sessions, timezone))
     return mock  # type: ignore[no-any-return]
 
 # モック特有のメソッドを使う場合

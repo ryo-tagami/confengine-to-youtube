@@ -13,8 +13,8 @@ from confengine_to_youtube.domain.session import Session, Speaker
 class TestMappingFileWriter:
     def test_write_single_session(self, jst: ZoneInfo) -> None:
         sessions = [
-            Session(
-                slot=ScheduleSlot(
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -24,13 +24,15 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title="Clean Architecture入門",
                 track="技術",
-                speakers=(Speaker(first_name="", last_name="田中太郎"),),
-                abstract=AbstractMarkdown(content="概要"),
+                speakers=(
+                    Speaker.create(first_name="", last_name="田中太郎").unwrap(),
+                ),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session1",
-            ),
+            ).unwrap(),
         ]
         generated_at = datetime(
             year=2026,
@@ -79,8 +81,8 @@ class TestMappingFileWriter:
 
     def test_write_multiple_speakers(self, jst: ZoneInfo) -> None:
         sessions = [
-            Session(
-                slot=ScheduleSlot(
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -90,16 +92,16 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title="ペアプロ実践",
                 track="技術",
                 speakers=(
-                    Speaker(first_name="", last_name="田中太郎"),
-                    Speaker(first_name="", last_name="山田花子"),
+                    Speaker.create(first_name="", last_name="田中太郎").unwrap(),
+                    Speaker.create(first_name="", last_name="山田花子").unwrap(),
                 ),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session1",
-            ),
+            ).unwrap(),
         ]
         generated_at = datetime(
             year=2026,
@@ -148,8 +150,8 @@ class TestMappingFileWriter:
 
     def test_write_multiple_days(self, jst: ZoneInfo) -> None:
         sessions = [
-            Session(
-                slot=ScheduleSlot(
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -159,15 +161,15 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title="Day2 Session",
                 track="技術",
-                speakers=(Speaker(first_name="", last_name="佐藤"),),
-                abstract=AbstractMarkdown(content="概要"),
+                speakers=(Speaker.create(first_name="", last_name="佐藤").unwrap(),),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session2",
-            ),
-            Session(
-                slot=ScheduleSlot(
+            ).unwrap(),
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -177,13 +179,13 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title="Day1 Session",
                 track="技術",
-                speakers=(Speaker(first_name="", last_name="鈴木"),),
-                abstract=AbstractMarkdown(content="概要"),
+                speakers=(Speaker.create(first_name="", last_name="鈴木").unwrap(),),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session1",
-            ),
+            ).unwrap(),
         ]
         generated_at = datetime(
             year=2026,
@@ -237,8 +239,8 @@ class TestMappingFileWriter:
 
     def test_write_multiple_rooms(self, jst: ZoneInfo) -> None:
         sessions = [
-            Session(
-                slot=ScheduleSlot(
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -248,15 +250,15 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall B",
-                ),
+                ).unwrap(),
                 title="Session in Hall B",
                 track="技術",
-                speakers=(Speaker(first_name="", last_name="佐藤"),),
-                abstract=AbstractMarkdown(content="概要"),
+                speakers=(Speaker.create(first_name="", last_name="佐藤").unwrap(),),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session2",
-            ),
-            Session(
-                slot=ScheduleSlot(
+            ).unwrap(),
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -266,13 +268,13 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title="Session in Hall A",
                 track="技術",
-                speakers=(Speaker(first_name="", last_name="鈴木"),),
-                abstract=AbstractMarkdown(content="概要"),
+                speakers=(Speaker.create(first_name="", last_name="鈴木").unwrap(),),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session1",
-            ),
+            ).unwrap(),
         ]
         generated_at = datetime(
             year=2026,
@@ -368,8 +370,8 @@ class TestMappingFileWriter:
     def test_write_session_without_speakers(self, jst: ZoneInfo) -> None:
         """スピーカーなしのセッションではタイトルのみがコメントに出力される"""
         sessions = [
-            Session(
-                slot=ScheduleSlot(
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -379,13 +381,13 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title="パネルディスカッション",
                 track="技術",
                 speakers=(),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session1",
-            ),
+            ).unwrap(),
         ]
         generated_at = datetime(
             year=2026,
@@ -440,8 +442,8 @@ class TestMappingFileWriter:
             "アジャイル開発における継続的インテグレーションの実践と課題について"
         )
         sessions = [
-            Session(
-                slot=ScheduleSlot(
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -451,13 +453,15 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title=long_title,
                 track="技術",
-                speakers=(Speaker(first_name="", last_name="田中太郎"),),
-                abstract=AbstractMarkdown(content="概要"),
+                speakers=(
+                    Speaker.create(first_name="", last_name="田中太郎").unwrap(),
+                ),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session1",
-            ),
+            ).unwrap(),
         ]
         generated_at = datetime(
             year=2026,
@@ -513,8 +517,8 @@ class TestMappingFileWriter:
     def test_duplicate_session_raises_error(self, jst: ZoneInfo) -> None:
         """同じ日時・部屋に複数セッションがある場合はエラー"""
         sessions = [
-            Session(
-                slot=ScheduleSlot(
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -524,15 +528,17 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title="Session 1",
                 track="技術",
-                speakers=(Speaker(first_name="Speaker", last_name="A"),),
-                abstract=AbstractMarkdown(content="概要"),
+                speakers=(
+                    Speaker.create(first_name="Speaker", last_name="A").unwrap(),
+                ),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session1",
-            ),
-            Session(
-                slot=ScheduleSlot(
+            ).unwrap(),
+            Session.create(
+                slot=ScheduleSlot.create(
                     timeslot=datetime(
                         year=2026,
                         month=1,
@@ -542,13 +548,15 @@ class TestMappingFileWriter:
                         tzinfo=jst,
                     ),
                     room="Hall A",
-                ),
+                ).unwrap(),
                 title="Session 2",
                 track="技術",
-                speakers=(Speaker(first_name="Speaker", last_name="B"),),
-                abstract=AbstractMarkdown(content="概要"),
+                speakers=(
+                    Speaker.create(first_name="Speaker", last_name="B").unwrap(),
+                ),
+                abstract=AbstractMarkdown.create(content="概要").unwrap(),
                 url="https://example.com/session2",
-            ),
+            ).unwrap(),
         ]
         generated_at = datetime(
             year=2026,

@@ -3,9 +3,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
+
+from returns.result import Result, Success
+
+from confengine_to_youtube.domain.sealed import (
+    _SEALED,
+    _SealedToken,
+    sealed_field,
+    validate_sealed,
+)
 
 if TYPE_CHECKING:
+    from typing import Never
+
     from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 
@@ -16,6 +27,18 @@ class Speaker:
 
     first_name: str
     last_name: str
+    _sealed: _SealedToken | None = sealed_field()  # noqa: RUF009
+
+    def __post_init__(self) -> None:
+        validate_sealed(instance=self, token=self._sealed)
+
+    @classmethod
+    def create(
+        cls,
+        first_name: str,
+        last_name: str,
+    ) -> Result[Self, Never]:
+        return Success(cls(first_name=first_name, last_name=last_name, _sealed=_SEALED))
 
     @property
     def full_name(self) -> str | None:
@@ -53,6 +76,32 @@ class Session:
     speakers: tuple[Speaker, ...]
     abstract: AbstractMarkdown
     url: str
+    _sealed: _SealedToken | None = sealed_field()  # noqa: RUF009
+
+    def __post_init__(self) -> None:
+        validate_sealed(instance=self, token=self._sealed)
+
+    @classmethod
+    def create(  # noqa: PLR0913
+        cls,
+        slot: ScheduleSlot,
+        title: str,
+        track: str,
+        speakers: tuple[Speaker, ...],
+        abstract: AbstractMarkdown,
+        url: str,
+    ) -> Result[Self, Never]:
+        return Success(
+            cls(
+                slot=slot,
+                title=title,
+                track=track,
+                speakers=speakers,
+                abstract=abstract,
+                url=url,
+                _sealed=_SEALED,
+            ),
+        )
 
     @property
     def has_content(self) -> bool:

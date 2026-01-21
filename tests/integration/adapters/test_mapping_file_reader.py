@@ -3,10 +3,13 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import pytest
+from pydantic import ValidationError
+from returns.pipeline import is_successful
+from returns.unsafe import unsafe_perform_io
+from ruamel.yaml.error import YAMLError
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-from confengine_to_youtube.usecases.protocols import MappingFileError
 from tests.conftest import write_yaml_file
 
 
@@ -49,15 +52,17 @@ sessions:
         )
 
         reader = MappingFileReader()
-        mapping = reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
 
+        assert is_successful(result)
+        mapping = unsafe_perform_io(result.unwrap())
         assert mapping.conf_id == "test-conf"
 
         config = mapping.to_domain(timezone=jst)
 
         assert len(config.mappings) == 3
 
-        slot = ScheduleSlot(
+        slot = ScheduleSlot.create(
             timeslot=datetime(
                 year=2026,
                 month=1,
@@ -67,20 +72,22 @@ sessions:
                 tzinfo=jst,
             ),
             room=room,
-        )
+        ).unwrap()
         video_mapping = config.find_mapping(slot=slot)
         assert video_mapping is not None
         assert video_mapping.video_id == expected_video_id
 
     def test_read_file_not_found(self) -> None:
-        """存在しないファイルはMappingFileErrorを発生"""
+        """存在しないファイルはIOFailureを返す"""
         reader = MappingFileReader()
+        result = reader.read(file_path=Path("/nonexistent/file.yaml"))
 
-        with pytest.raises(expected_exception=MappingFileError, match="not found"):
-            reader.read(file_path=Path("/nonexistent/file.yaml"))
+        assert not is_successful(result)
+        error = unsafe_perform_io(result.failure())
+        assert isinstance(error, FileNotFoundError)
 
     def test_read_invalid_yaml_syntax(self, tmp_path: Path) -> None:
-        """不正なYAML構文はMappingFileErrorを発生"""
+        """不正なYAML構文はIOFailureを返す"""
         invalid_yaml = """
 conf_id: test-conf
 sessions:
@@ -96,14 +103,15 @@ sessions:
         )
 
         reader = MappingFileReader()
-        with pytest.raises(
-            expected_exception=MappingFileError,
-            match="Invalid YAML syntax",
-        ):
-            reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert not is_successful(result)
+        error = unsafe_perform_io(result.failure())
+        # ruamel.yamlのYAMLErrorが発生する
+        assert isinstance(error, YAMLError)
 
     def test_read_invalid_schema(self, tmp_path: Path) -> None:
-        """スキーマ不一致はMappingFileErrorを発生"""
+        """スキーマ不一致はIOFailureを返す"""
         invalid_schema = """
 conf_id: test-conf
 sessions:
@@ -119,14 +127,15 @@ sessions:
         )
 
         reader = MappingFileReader()
-        with pytest.raises(
-            expected_exception=MappingFileError,
-            match="Invalid mapping file format",
-        ):
-            reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert not is_successful(result)
+        error = unsafe_perform_io(result.failure())
+        # pydanticのValidationErrorが発生する
+        assert isinstance(error, ValidationError)
 
     def test_read_missing_conf_id(self, tmp_path: Path) -> None:
-        """conf_idがないYAMLファイルはMappingFileErrorを発生"""
+        """conf_idがないYAMLファイルはIOFailureを返す"""
         missing_conf_id = """
 sessions:
   "2026-01-07":
@@ -141,11 +150,12 @@ sessions:
         )
 
         reader = MappingFileReader()
-        with pytest.raises(
-            expected_exception=MappingFileError,
-            match="Invalid mapping file format",
-        ):
-            reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert not is_successful(result)
+        error = unsafe_perform_io(result.failure())
+        # pydanticのValidationErrorが発生する
+        assert isinstance(error, ValidationError)
 
     def test_read_unquoted_date_keys(self, tmp_path: Path, jst: ZoneInfo) -> None:
         """クォートなしの日付キーでも正しく読み込める
@@ -169,14 +179,17 @@ sessions:
         )
 
         reader = MappingFileReader()
-        mapping = reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert is_successful(result)
+        mapping = unsafe_perform_io(result.unwrap())
         config = mapping.to_domain(timezone=jst)
 
         assert len(config.mappings) == 1
-        slot = ScheduleSlot(
+        slot = ScheduleSlot.create(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
             room="Hall A",
-        )
+        ).unwrap()
         video_mapping = config.find_mapping(slot=slot)
         assert video_mapping is not None
         assert video_mapping.video_id == "abc123"
@@ -203,14 +216,17 @@ sessions:
         )
 
         reader = MappingFileReader()
-        mapping = reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert is_successful(result)
+        mapping = unsafe_perform_io(result.unwrap())
         config = mapping.to_domain(timezone=jst)
 
         assert len(config.mappings) == 1
-        slot = ScheduleSlot(
+        slot = ScheduleSlot.create(
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
             room="Hall A",
-        )
+        ).unwrap()
         video_mapping = config.find_mapping(slot=slot)
         assert video_mapping is not None
         assert video_mapping.video_id == "abc123"
@@ -236,7 +252,10 @@ sessions:
         )
 
         reader = MappingFileReader()
-        mapping = reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert is_successful(result)
+        mapping = unsafe_perform_io(result.unwrap())
         config = mapping.to_domain(timezone=jst)
 
         assert config.hashtags == ("#RSGT2026", "#Agile", "#Scrum")
@@ -263,7 +282,10 @@ sessions:
         )
 
         reader = MappingFileReader()
-        mapping = reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert is_successful(result)
+        mapping = unsafe_perform_io(result.unwrap())
         config = mapping.to_domain(timezone=jst)
 
         assert config.hashtags == ()
@@ -289,7 +311,10 @@ sessions:
         )
 
         reader = MappingFileReader()
-        mapping = reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert is_successful(result)
+        mapping = unsafe_perform_io(result.unwrap())
         config = mapping.to_domain(timezone=jst)
 
         assert (
@@ -318,7 +343,10 @@ sessions:
         )
 
         reader = MappingFileReader()
-        mapping = reader.read(file_path=yaml_file)
+        result = reader.read(file_path=yaml_file)
+
+        assert is_successful(result)
+        mapping = unsafe_perform_io(result.unwrap())
         config = mapping.to_domain(timezone=jst)
 
         assert config.footer == ""

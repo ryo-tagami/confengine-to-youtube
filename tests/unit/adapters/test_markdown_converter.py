@@ -12,14 +12,14 @@ class TestMarkdownConverter:
         converter = MarkdownConverter()
         result = converter.convert(html="<p>Hello <strong>World</strong></p>")
 
-        assert result == AbstractMarkdown(content="Hello **World**")
+        assert result == AbstractMarkdown.create(content="Hello **World**").unwrap()
 
     def test_convert_empty_string(self) -> None:
         """空文字列は空の AbstractMarkdown を返す"""
         converter = MarkdownConverter()
         result = converter.convert(html="")
 
-        assert result == AbstractMarkdown(content="")
+        assert result == AbstractMarkdown.create(content="").unwrap()
 
     def test_convert_removes_excess_newlines(self) -> None:
         """連続する改行を2つに正規化する"""
@@ -27,4 +27,4 @@ class TestMarkdownConverter:
         result = converter.convert(html="<p>First</p><p></p><p></p><p>Second</p>")
 
         # 3つ以上の改行が2つに正規化される
-        assert result == AbstractMarkdown(content="First\n\nSecond")
+        assert result == AbstractMarkdown.create(content="First\n\nSecond").unwrap()

@@ -2,19 +2,13 @@
 
 from __future__ import annotations
 
-from http import HTTPStatus
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING
 
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from pydantic import BaseModel, ConfigDict
+from returns.io import IOResult, impure_safe
 
-from confengine_to_youtube.usecases.protocols import (
-    VideoInfo,
-    VideoNotFoundError,
-    VideoUpdateRequest,
-    YouTubeApiError,
-)
+from confengine_to_youtube.usecases.protocols import VideoInfo, VideoUpdateRequest
 
 if TYPE_CHECKING:
     from googleapiclient._apis.youtube.v3 import YouTubeResource
@@ -67,7 +61,35 @@ def _to_api_body(request: VideoUpdateRequest) -> Video:
         "description": request.description,
         "categoryId": str(request.category_id),
     }
+
     return {"id": request.video_id, "snippet": snippet}
+
+
+class VideoNotFoundError(Exception):
+    """動画が見つからない場合のエラー"""
+
+    def __init__(self, video_id: str) -> None:
+        super().__init__(f"Video not found: {video_id}")
+        self.video_id = video_id
+
+
+@impure_safe
+def _get_video_info(youtube: YouTubeResource, video_id: str) -> VideoInfo:
+    response = youtube.videos().list(part="snippet", id=video_id).execute()
+    parsed = YouTubeVideosListResponse.model_validate(obj=response)
+
+    if not parsed.items:
+        raise VideoNotFoundError(video_id)
+
+    return _video_info_from_api_response(item=parsed.items[0])
+
+
+@impure_safe
+def _update_video(youtube: YouTubeResource, request: VideoUpdateRequest) -> None:
+    youtube.videos().update(
+        part="snippet",
+        body=_to_api_body(request=request),
+    ).execute()
 
 
 class YouTubeApiGateway:
@@ -88,54 +110,13 @@ class YouTubeApiGateway:
         else:
             self._youtube = youtube
 
-    def get_video_info(self, video_id: str) -> VideoInfo:
-        # NOTE: HttpError のみキャッチし、ネットワークエラー等はそのまま上位に伝播させる
-        # (ユーザーが原因を理解できるため、変換不要)
-        try:
-            response = (
-                self._youtube.videos().list(part="snippet", id=video_id).execute()
-            )
-        except HttpError as e:
-            self._handle_http_error(error=e, video_id=video_id)
+    def get_video_info(self, video_id: str) -> IOResult[VideoInfo, Exception]:
+        """動画情報を取得する"""
+        return _get_video_info(youtube=self._youtube, video_id=video_id)
 
-        parsed = YouTubeVideosListResponse.model_validate(obj=response)
-
-        if not parsed.items:
-            msg = f"Video not found: {video_id}"
-            raise VideoNotFoundError(msg)
-
-        return _video_info_from_api_response(item=parsed.items[0])
-
-    def update_video(self, request: VideoUpdateRequest) -> None:
+    def update_video(
+        self,
+        request: VideoUpdateRequest,
+    ) -> IOResult[None, Exception]:
         """動画のsnippetを更新"""
-        # NOTE: ネットワークエラー等の扱いは get_video_info 参照
-        try:
-            self._youtube.videos().update(
-                part="snippet",
-                body=_to_api_body(request=request),
-            ).execute()
-        except HttpError as e:
-            self._handle_http_error(error=e, video_id=request.video_id)
-
-    def _handle_http_error(self, error: HttpError, video_id: str) -> NoReturn:
-        """HttpErrorをドメイン例外に変換して送出"""
-        status = error.resp.status
-
-        if status == HTTPStatus.NOT_FOUND:
-            msg = f"Video not found: {video_id}"
-            raise VideoNotFoundError(msg) from error
-
-        if status == HTTPStatus.UNAUTHORIZED:
-            msg = "YouTube API authentication failed. Please re-authenticate."
-            raise YouTubeApiError(msg) from error
-
-        if status == HTTPStatus.FORBIDDEN:
-            msg = "YouTube API access forbidden. Check quota or permissions."
-            raise YouTubeApiError(msg) from error
-
-        if status == HTTPStatus.TOO_MANY_REQUESTS:
-            msg = "YouTube API rate limit exceeded. Please try again later."
-            raise YouTubeApiError(msg) from error
-
-        msg = f"YouTube API error (HTTP {status}): {error}"
-        raise YouTubeApiError(msg) from error
+        return _update_video(youtube=self._youtube, request=request)

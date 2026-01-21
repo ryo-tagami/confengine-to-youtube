@@ -11,6 +11,7 @@ dependencies = [
     "google-auth-oauthlib>=1.0",
     "markdownify>=0.11",
     "pydantic>=2.0",
+    "returns>=0.23",
     "rich>=13.0",
     "ruamel.yaml>=0.18",
     "snakemd>=2.0",
@@ -19,6 +20,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "add-trailing-comma",
     "google-api-python-client-stubs",
     "google-auth-stubs",
     "import-linter",
@@ -50,6 +52,7 @@ ignore = [
     "D102",   # missing-docstring-in-public-method
     "D103",   # missing-docstring-in-public-function
     "D104",   # missing-docstring-in-public-package
+    "D105",   # missing-docstring-in-magic-method
     "D107",   # missing-docstring-in-__init__
     # 相互に競合するルール（D211を採用）
     "D203",   # incorrect-blank-line-before-class (D211と競合)
@@ -73,6 +76,7 @@ ignore = [
 python_version = "3.14"
 strict = true
 packages = ["confengine_to_youtube", "tests"]
+plugins = ["returns.contrib.mypy.returns_plugin"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -104,12 +108,16 @@ exclude_lines = [
 
 [tool.taskipy.tasks]
 check = "task lint && task test"
+format = "find src tests -name '*.py' -type f -exec add-trailing-comma {} + && ruff format"
 lint = "ruff check && ruff format --check && mypy && lint-imports"
 test = "pytest"
 
 [tool.importlinter]
 root_package = "confengine_to_youtube"
 include_external_packages = true
+contract_types = [
+    "forbidden_external_submodule: confengine_to_youtube.import_contracts.ForbiddenExternalSubmoduleContract",
+]
 
 [[tool.importlinter.contracts]]
 name = "Clean Architecture layers"
@@ -119,4 +127,16 @@ layers = [
     "confengine_to_youtube.adapters",
     "confengine_to_youtube.usecases",
     "confengine_to_youtube.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "unsafe_perform_io is only allowed in infrastructure"
+type = "forbidden_external_submodule"
+source_modules = [
+    "confengine_to_youtube.domain",
+    "confengine_to_youtube.usecases",
+    "confengine_to_youtube.adapters",
+]
+forbidden_external_modules = [
+    "returns.unsafe",
 ]

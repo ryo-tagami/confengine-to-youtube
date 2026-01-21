@@ -21,6 +21,11 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Check trailing commas
+        run: |
+          find src tests -name '*.py' -type f -exec uv run add-trailing-comma {} + \
+            || (echo "::error::Files need trailing commas. Run 'uv run task format'" && exit 1)
+
       - name: Run lint
         run: uv run task lint
 
