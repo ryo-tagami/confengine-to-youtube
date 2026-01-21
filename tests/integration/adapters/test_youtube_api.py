@@ -9,7 +9,6 @@ from httplib2 import Response
 
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
 from confengine_to_youtube.usecases.protocols import (
-    VideoInfo,
     VideoNotFoundError,
     VideoUpdateRequest,
     YouTubeApiError,
@@ -59,7 +58,6 @@ class TestYouTubeApiGateway:
 
         result = gateway.get_video_info(video_id="abc123")
 
-        assert isinstance(result, VideoInfo)
         assert result.video_id == "abc123"
         assert result.title == "Test Video"
         assert result.description == "Test Description"

@@ -130,8 +130,7 @@ class TestDiffFormatter:
         formatter.print_summary(success_count=5, error_count=2)
         result = output.getvalue()
 
-        assert "5 videos" in result
-        assert "2 errors" in result
+        assert "Summary: Would update 5 videos, 2 errors" in result.splitlines()
 
     def test_print_summary_no_errors(self) -> None:
         """エラーがない場合はエラー数を表示しない"""
@@ -142,8 +141,7 @@ class TestDiffFormatter:
         formatter.print_summary(success_count=3, error_count=0)
         result = output.getvalue()
 
-        assert "3 videos" in result
-        assert "error" not in result.lower()
+        assert "Summary: Would update 3 videos" in result.splitlines()
 
     def test_print_preview_long_description_truncated(self) -> None:
         """200文字を超えるdescriptionは変更なしの場合トランケートされる"""
