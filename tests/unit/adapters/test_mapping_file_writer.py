@@ -11,8 +11,7 @@ from confengine_to_youtube.domain.session import Session, Speaker
 
 
 class TestMappingFileWriter:
-    def test_write_single_session(self) -> None:
-        jst = ZoneInfo(key="Asia/Tokyo")
+    def test_write_single_session(self, jst: ZoneInfo) -> None:
         sessions = [
             Session(
                 slot=ScheduleSlot(
@@ -67,8 +66,7 @@ class TestMappingFileWriter:
         )
         assert result == expected
 
-    def test_write_multiple_speakers(self) -> None:
-        jst = ZoneInfo(key="Asia/Tokyo")
+    def test_write_multiple_speakers(self, jst: ZoneInfo) -> None:
         sessions = [
             Session(
                 slot=ScheduleSlot(
@@ -126,8 +124,7 @@ class TestMappingFileWriter:
         )
         assert result == expected
 
-    def test_write_multiple_days(self) -> None:
-        jst = ZoneInfo(key="Asia/Tokyo")
+    def test_write_multiple_days(self, jst: ZoneInfo) -> None:
         sessions = [
             Session(
                 slot=ScheduleSlot(
@@ -200,8 +197,7 @@ class TestMappingFileWriter:
         )
         assert result == expected
 
-    def test_write_multiple_rooms(self) -> None:
-        jst = ZoneInfo(key="Asia/Tokyo")
+    def test_write_multiple_rooms(self, jst: ZoneInfo) -> None:
         sessions = [
             Session(
                 slot=ScheduleSlot(
@@ -273,8 +269,7 @@ class TestMappingFileWriter:
         )
         assert result == expected
 
-    def test_write_empty_sessions(self) -> None:
-        jst = ZoneInfo(key="Asia/Tokyo")
+    def test_write_empty_sessions(self, jst: ZoneInfo) -> None:
         sessions: tuple[Session, ...] = ()
         generated_at = datetime(
             year=2026, month=1, day=19, hour=10, minute=30, second=0, tzinfo=jst
@@ -310,9 +305,8 @@ class TestMappingFileWriter:
         )
         assert result == expected
 
-    def test_write_session_without_speakers(self) -> None:
+    def test_write_session_without_speakers(self, jst: ZoneInfo) -> None:
         """スピーカーなしのセッションではタイトルのみがコメントに出力される"""
-        jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
                 slot=ScheduleSlot(
@@ -367,9 +361,8 @@ class TestMappingFileWriter:
         )
         assert result == expected
 
-    def test_write_long_title_wraps_at_word_boundary(self) -> None:
+    def test_write_long_title_wraps_at_word_boundary(self, jst: ZoneInfo) -> None:
         """長いタイトルは分かち書き単位で折り返される"""
-        jst = ZoneInfo(key="Asia/Tokyo")
         # タイトル + " - " + スピーカー名 の合計が70文字幅を超えるケース
         # タイトル34文字 (68幅) + " - " (3幅) + スピーカー4文字 (8幅) = 79幅
         long_title = (
@@ -435,9 +428,8 @@ class TestMappingFileWriter:
         )
         assert result == expected
 
-    def test_duplicate_session_raises_error(self) -> None:
+    def test_duplicate_session_raises_error(self, jst: ZoneInfo) -> None:
         """同じ日時・部屋に複数セッションがある場合はエラー"""
-        jst = ZoneInfo(key="Asia/Tokyo")
         sessions = [
             Session(
                 slot=ScheduleSlot(
