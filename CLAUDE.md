@@ -95,3 +95,42 @@ mock_api.fetch_sessions.assert_called_once()  # type: ignore[attr-defined]
 
 - 原則として公開インターフェース経由でテストする
 - やむを得ずプライベートメソッドを直接テストする場合は、ファイル先頭のdocstringに理由を明記する
+
+### テストの分類（テストピラミッド）
+
+テストはサイズ別にディレクトリで分類する:
+
+```
+tests/
+├── unit/           # ユニットテスト
+│   ├── domain/
+│   ├── adapters/
+│   └── infrastructure/
+├── integration/    # 統合テスト
+│   ├── usecases/
+│   ├── adapters/
+│   └── infrastructure/
+└── conftest.py     # 共通フィクスチャ
+```
+
+#### Unit Testの条件（すべて満たす）
+
+1. テスト対象が単一クラス/関数
+2. **実際の外部リソースへのI/Oなし**
+   - ファイルシステム（tmp_path等）へのアクセスなし
+   - ネットワークアクセスなし
+   - StringIO等のメモリストリームはI/Oに含まない
+3. モックが不要、または単一のシンプルなモックのみ
+
+#### Integration Testの条件（いずれかを満たす）
+
+1. 複数のProtocolモックを組み合わせる
+2. **実際のファイルI/O**（tmp_path使用）を伴う
+3. HTTPクライアントのモックを使用し、外部API応答の変換ロジックをテスト
+4. 複数コンポーネントの連携を検証
+
+#### E2E Testの条件
+
+1. CLIコマンドをsubprocess経由で実行
+2. 実際の外部APIに接続
+3. システム全体の動作を検証

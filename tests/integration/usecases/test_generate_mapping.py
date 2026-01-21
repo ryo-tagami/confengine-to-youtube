@@ -12,7 +12,7 @@ from confengine_to_youtube.usecases.generate_mapping import (
 )
 from confengine_to_youtube.usecases.protocols import ConfEngineApiProtocol
 from tests.conftest import create_session
-from tests.usecases.conftest import create_mock_confengine_api
+from tests.integration.usecases.conftest import create_mock_confengine_api
 
 
 class TestGenerateMappingUseCase:

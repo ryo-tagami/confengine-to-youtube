@@ -22,7 +22,7 @@ from confengine_to_youtube.usecases.update_youtube_descriptions import (
     UpdateYouTubeDescriptionsUseCase,
 )
 from tests.conftest import create_session, write_yaml_file
-from tests.usecases.conftest import create_mock_confengine_api
+from tests.integration.usecases.conftest import create_mock_confengine_api
 
 
 class TestUpdateYouTubeDescriptionsUseCase:
