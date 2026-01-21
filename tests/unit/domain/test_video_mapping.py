@@ -37,9 +37,11 @@ class TestMappingConfig:
             timeslot=datetime(year=2026, month=1, day=7, hour=11, minute=0, tzinfo=UTC),
             room="Hall A",
         )
-        mappings = (
-            VideoMapping(slot=slot1, video_id="abc123"),
-            VideoMapping(slot=slot2, video_id="def456"),
+        mappings = frozenset(
+            {
+                VideoMapping(slot=slot1, video_id="abc123"),
+                VideoMapping(slot=slot2, video_id="def456"),
+            }
         )
         config = MappingConfig(
             conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
@@ -60,7 +62,7 @@ class TestMappingConfig:
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC),
             room="Hall A",
         )
-        mappings = (VideoMapping(slot=slot, video_id="abc123"),)
+        mappings = frozenset({VideoMapping(slot=slot, video_id="abc123")})
         config = MappingConfig(
             conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
         )
@@ -87,10 +89,12 @@ class TestMappingConfig:
             timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC),
             room="Hall B",
         )
-        mappings = (
-            VideoMapping(slot=slot1, video_id="abc123"),
-            VideoMapping(slot=slot2, video_id="def456"),
-            VideoMapping(slot=slot3, video_id="ghi789"),
+        mappings = frozenset(
+            {
+                VideoMapping(slot=slot1, video_id="abc123"),
+                VideoMapping(slot=slot2, video_id="def456"),
+                VideoMapping(slot=slot3, video_id="ghi789"),
+            }
         )
         config = MappingConfig(
             conf_id="test-conf", mappings=mappings, hashtags=(), footer=""
@@ -108,14 +112,13 @@ class TestMappingConfig:
         unused = config.find_unused(used_slots=used_slots)
 
         assert len(unused) == 2
-        assert unused[0].video_id == "def456"
-        assert unused[1].video_id == "ghi789"
+        assert {m.video_id for m in unused} == {"def456", "ghi789"}
 
     def test_create_with_hashtags(self) -> None:
         """hashtagsを指定してMappingConfigを作成できる"""
         config = MappingConfig(
             conf_id="test-conf",
-            mappings=(),
+            mappings=frozenset(),
             hashtags=("#RSGT2026", "#Agile", "#Scrum"),
             footer="",
         )
