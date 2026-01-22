@@ -8,8 +8,8 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 from wcwidth import wcwidth
 
-from confengine_to_youtube.adapters.constants import TITLE_SPEAKER_SEPARATOR
 from confengine_to_youtube.adapters.mapping_schema import MappingFileWithCommentSchema
+from confengine_to_youtube.domain.constants import TITLE_SPEAKER_SEPARATOR
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

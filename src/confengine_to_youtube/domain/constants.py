@@ -1,4 +1,4 @@
-"""Adapters層の定数"""
+"""ドメイン層の定数"""
 
 from __future__ import annotations
 

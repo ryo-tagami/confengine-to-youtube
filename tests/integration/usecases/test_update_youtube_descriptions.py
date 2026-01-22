@@ -7,10 +7,6 @@ import pytest
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
-from confengine_to_youtube.adapters.youtube_description_builder import (
-    YouTubeDescriptionBuilder,
-)
-from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_to_youtube.domain.session import Session
 from confengine_to_youtube.usecases.protocols import (
     ConfEngineApiProtocol,
@@ -114,8 +110,6 @@ sessions:
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(),
-            title_builder=YouTubeTitleBuilder(),
         )
 
     def test_execute_dry_run(
@@ -192,8 +186,6 @@ sessions:
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(),
-            title_builder=YouTubeTitleBuilder(),
         )
 
         result = usecase.execute(
@@ -240,8 +232,6 @@ sessions: {}
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(),
-            title_builder=YouTubeTitleBuilder(),
         )
 
         result = usecase.execute(
@@ -294,8 +284,6 @@ sessions:
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(),
-            title_builder=YouTubeTitleBuilder(),
         )
 
         result = usecase.execute(
@@ -409,8 +397,6 @@ sessions:
             confengine_api=mock_confengine_api,
             mapping_reader=mapping_reader,
             youtube_api=mock_youtube_api,
-            description_builder=YouTubeDescriptionBuilder(),
-            title_builder=YouTubeTitleBuilder(),
         )
 
         result = usecase.execute(

@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING, Self
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
-from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
+from confengine_to_youtube.domain.constants import TITLE_SPEAKER_SEPARATOR
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
+from confengine_to_youtube.domain.session import Speaker
 from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
 
 if TYPE_CHECKING:
@@ -178,13 +179,8 @@ class MappingFileWithCommentSchema(BaseModel):
             session_time = session.slot.timeslot.time()
             room = session.slot.room
 
-            if speakers_str := YouTubeTitleBuilder.format_speakers_full(
-                speakers=session.speakers,
-            ):
-                comment = YouTubeTitleBuilder.combine(
-                    title=session.title,
-                    speaker_part=speakers_str,
-                )
+            if speakers_str := Speaker.format_list_full(speakers=session.speakers):
+                comment = f"{session.title}{TITLE_SPEAKER_SEPARATOR}{speakers_str}"
             else:
                 comment = session.title
 

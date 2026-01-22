@@ -19,8 +19,6 @@ if TYPE_CHECKING:
     from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
     from confengine_to_youtube.domain.session import Session
     from confengine_to_youtube.domain.video_mapping import MappingConfig
-    from confengine_to_youtube.domain.youtube_description import YouTubeDescription
-    from confengine_to_youtube.domain.youtube_title import YouTubeTitle
 
 
 # =============================================================================
@@ -119,27 +117,6 @@ class YouTubeApiProtocol(Protocol):  # pragma: no cover
 
     def update_video(self, request: VideoUpdateRequest) -> None:
         """動画を更新する"""
-        ...
-
-
-class DescriptionBuilderProtocol(Protocol):  # pragma: no cover
-    """YouTube 説明文ビルダープロトコル"""
-
-    def build(
-        self,
-        session: Session,
-        hashtags: tuple[str, ...],
-        footer: str,
-    ) -> YouTubeDescription:
-        """説明文を生成する"""
-        ...
-
-
-class TitleBuilderProtocol(Protocol):  # pragma: no cover
-    """YouTube タイトルビルダープロトコル"""
-
-    def build(self, session: Session) -> YouTubeTitle:
-        """タイトルを生成する"""
         ...
 
 

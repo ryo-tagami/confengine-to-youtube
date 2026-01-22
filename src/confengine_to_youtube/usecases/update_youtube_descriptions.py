@@ -22,9 +22,7 @@ if TYPE_CHECKING:
     from confengine_to_youtube.domain.video_mapping import MappingConfig
     from confengine_to_youtube.usecases.protocols import (
         ConfEngineApiProtocol,
-        DescriptionBuilderProtocol,
         MappingFileReaderProtocol,
-        TitleBuilderProtocol,
         YouTubeApiProtocol,
     )
 
@@ -35,14 +33,10 @@ class UpdateYouTubeDescriptionsUseCase:
         confengine_api: ConfEngineApiProtocol,
         mapping_reader: MappingFileReaderProtocol,
         youtube_api: YouTubeApiProtocol,
-        description_builder: DescriptionBuilderProtocol,
-        title_builder: TitleBuilderProtocol,
     ) -> None:
         self._confengine_api = confengine_api
         self._mapping_reader = mapping_reader
         self._youtube_api = youtube_api
-        self._description_builder = description_builder
-        self._title_builder = title_builder
 
     def execute(
         self,
@@ -93,9 +87,8 @@ class UpdateYouTubeDescriptionsUseCase:
 
             try:
                 video_info = self._youtube_api.get_video_info(video_id=mapping.video_id)
-                new_title = self._title_builder.build(session=session)
-                description = self._description_builder.build(
-                    session=session,
+                new_title = session.youtube_title
+                description = session.to_youtube_description(
                     hashtags=mapping_config.hashtags,
                     footer=mapping_config.footer,
                 )
