@@ -185,7 +185,6 @@ class Session:
         frame_length = self._calculate_frame_length(
             hashtags=hashtags,
             footer=footer,
-            has_abstract=bool(abstract),
         )
         available = max_length - frame_length
 
@@ -208,11 +207,9 @@ class Session:
         self,
         hashtags: tuple[str, ...],
         footer: str,
-        *,
-        has_abstract: bool,
     ) -> int:
         """フレーム部分 (abstract以外) の文字数を計算"""
-        placeholder = "X" if has_abstract else ""
+        placeholder = "X" if self.has_content else ""
         doc_with_placeholder = self._build_description_document(
             abstract=placeholder,
             hashtags=hashtags,
