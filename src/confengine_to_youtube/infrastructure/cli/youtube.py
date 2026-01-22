@@ -74,7 +74,7 @@ def run(args: argparse.Namespace) -> None:
         credentials_path=credentials_path,
         token_path=token_path,
     )
-    youtube_api = YouTubeApiGateway(auth_provider=auth_client, youtube=None)
+    youtube_api = YouTubeApiGateway.from_auth_provider(auth_provider=auth_client)
 
     usecase = UpdateYouTubeDescriptionsUseCase(
         confengine_api=confengine_api,

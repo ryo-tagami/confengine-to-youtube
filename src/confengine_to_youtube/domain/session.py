@@ -18,8 +18,8 @@ from confengine_to_youtube.domain.youtube_description import YouTubeDescription
 from confengine_to_youtube.domain.youtube_title import YouTubeTitle
 
 if TYPE_CHECKING:
-    from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
+    from confengine_to_youtube.domain.session_abstract import SessionAbstract
 
 
 @dataclass(frozen=True)
@@ -56,21 +56,6 @@ class Speaker:
 
         return self.last_name
 
-    @staticmethod
-    def format_list_full(speakers: tuple[Speaker, ...]) -> str:
-        """スピーカー部分をフルネームで生成"""
-        return ", ".join(s.full_name for s in speakers if s.full_name)
-
-    @staticmethod
-    def format_list_initials(speakers: tuple[Speaker, ...]) -> str:
-        """スピーカー部分をイニシャル表記で生成"""
-        return ", ".join(s.initial_name for s in speakers if s.initial_name)
-
-    @staticmethod
-    def format_list_last_name(speakers: tuple[Speaker, ...]) -> str:
-        """スピーカー部分をラストネームのみで生成"""
-        return ", ".join(s.last_name for s in speakers if s.last_name)
-
 
 @dataclass(frozen=True)
 class Session:
@@ -78,7 +63,7 @@ class Session:
     title: str
     track: str
     speakers: tuple[Speaker, ...]
-    abstract: AbstractMarkdown
+    abstract: SessionAbstract
     url: str
 
     def __post_init__(self) -> None:
@@ -90,6 +75,21 @@ class Session:
     @property
     def has_content(self) -> bool:
         return bool(self.abstract.content)
+
+    @property
+    def speakers_full(self) -> str:
+        """スピーカー部分をフルネームで生成"""
+        return ", ".join(s.full_name for s in self.speakers if s.full_name)
+
+    @property
+    def speakers_initials(self) -> str:
+        """スピーカー部分をイニシャル表記で生成"""
+        return ", ".join(s.initial_name for s in self.speakers if s.initial_name)
+
+    @property
+    def speakers_last_name(self) -> str:
+        """スピーカー部分をラストネームのみで生成"""
+        return ", ".join(s.last_name for s in self.speakers if s.last_name)
 
     @property
     def youtube_title(self) -> Result[YouTubeTitle, TitleError]:
@@ -118,16 +118,14 @@ class Session:
                 value=self._truncate_text(text=self.title, max_length=max_length),
             )
 
-        format_strategies = [
-            Speaker.format_list_full,
-            Speaker.format_list_initials,
-            Speaker.format_list_last_name,
+        speaker_formats = [
+            self.speakers_full,
+            self.speakers_initials,
+            self.speakers_last_name,
         ]
 
-        speaker_part = ""
-
-        for format_func in format_strategies:
-            if not (speaker_part := format_func(self.speakers)):
+        for speaker_part in speaker_formats:
+            if not speaker_part:
                 return YouTubeTitle.create(
                     value=self._truncate_text(text=self.title, max_length=max_length),
                 )
@@ -235,8 +233,8 @@ class Session:
         """説明文のMarkdown文書を構築"""
         doc = Document()
 
-        if speakers_str := Speaker.format_list_full(speakers=self.speakers):
-            doc.add_paragraph(text=f"Speaker: {speakers_str}")
+        if self.speakers_full:
+            doc.add_paragraph(text=f"Speaker: {self.speakers_full}")
 
         if abstract:
             doc.add_raw(text=abstract)

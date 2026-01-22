@@ -1,23 +1,12 @@
 """YouTubeApiGateway のテスト"""
 
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
-from confengine_to_youtube.usecases.protocols import (
-    VideoNotFoundError,
-    VideoUpdateRequest,
-)
-
-
-class MockAuthProvider:
-    """テスト用の認証プロバイダー"""
-
-    def get_credentials(self) -> Any:  # noqa: ANN401
-        """モックcredentialsを返す"""
-        return MagicMock()
+from confengine_to_youtube.usecases.dto import VideoUpdateRequest
+from confengine_to_youtube.usecases.errors import VideoNotFoundError
 
 
 class TestYouTubeApiGateway:
@@ -31,10 +20,7 @@ class TestYouTubeApiGateway:
     @pytest.fixture
     def gateway(self, mock_youtube: MagicMock) -> YouTubeApiGateway:
         """テスト用のgateway"""
-        return YouTubeApiGateway(
-            auth_provider=MockAuthProvider(),
-            youtube=mock_youtube,
-        )
+        return YouTubeApiGateway(youtube=mock_youtube)
 
     def test_get_video_info_success(
         self,

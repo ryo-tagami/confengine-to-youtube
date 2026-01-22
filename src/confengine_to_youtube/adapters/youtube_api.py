@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from googleapiclient.discovery import build
 from pydantic import BaseModel, ConfigDict
 
-from confengine_to_youtube.usecases.protocols import (
-    VideoInfo,
-    VideoNotFoundError,
-    VideoUpdateRequest,
-)
+from confengine_to_youtube.usecases.dto import VideoInfo, VideoUpdateRequest
+from confengine_to_youtube.usecases.errors import VideoNotFoundError
 
 if TYPE_CHECKING:
     from googleapiclient._apis.youtube.v3 import YouTubeResource
@@ -70,20 +67,19 @@ def _to_api_body(request: VideoUpdateRequest) -> Video:
 class YouTubeApiGateway:
     """YouTube Data API v3との通信"""
 
-    def __init__(
-        self,
-        auth_provider: YouTubeAuthProvider,
-        youtube: YouTubeResource | None,
-    ) -> None:
-        if youtube is None:
-            credentials = auth_provider.get_credentials()
-            self._youtube: YouTubeResource = build(
-                serviceName="youtube",
-                version="v3",
-                credentials=credentials,
-            )
-        else:
-            self._youtube = youtube
+    def __init__(self, youtube: YouTubeResource) -> None:
+        self._youtube = youtube
+
+    @classmethod
+    def from_auth_provider(cls, auth_provider: YouTubeAuthProvider) -> Self:
+        """認証プロバイダーからインスタンスを生成"""
+        credentials = auth_provider.get_credentials()
+        youtube: YouTubeResource = build(
+            serviceName="youtube",
+            version="v3",
+            credentials=credentials,
+        )
+        return cls(youtube=youtube)
 
     def get_video_info(self, video_id: str) -> VideoInfo:
         response = self._youtube.videos().list(part="snippet", id=video_id).execute()

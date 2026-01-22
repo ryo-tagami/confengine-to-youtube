@@ -12,7 +12,6 @@ from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
 from confengine_to_youtube.domain.constants import TITLE_SPEAKER_SEPARATOR
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-from confengine_to_youtube.domain.session import Speaker
 from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
 
 if TYPE_CHECKING:
@@ -179,8 +178,10 @@ class MappingFileWithCommentSchema(BaseModel):
             session_time = session.slot.timeslot.time()
             room = session.slot.room
 
-            if speakers_str := Speaker.format_list_full(speakers=session.speakers):
-                comment = f"{session.title}{TITLE_SPEAKER_SEPARATOR}{speakers_str}"
+            if session.speakers_full:
+                comment = (
+                    f"{session.title}{TITLE_SPEAKER_SEPARATOR}{session.speakers_full}"
+                )
             else:
                 comment = session.title
 

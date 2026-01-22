@@ -6,7 +6,7 @@ import pytest
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-from confengine_to_youtube.usecases.protocols import MappingFileError
+from confengine_to_youtube.usecases.errors import MappingFileError
 from tests.conftest import write_yaml_file
 
 

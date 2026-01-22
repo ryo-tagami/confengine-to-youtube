@@ -9,9 +9,9 @@ from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
 from confengine_to_youtube.domain.errors import FrameOverflowError
 from confengine_to_youtube.domain.session import Session
+from confengine_to_youtube.usecases.dto import VideoInfo
 from confengine_to_youtube.usecases.protocols import (
     ConfEngineApiProtocol,
-    VideoInfo,
     YouTubeApiProtocol,
 )
 from confengine_to_youtube.usecases.update_youtube_descriptions import (

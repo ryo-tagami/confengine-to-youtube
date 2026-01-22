@@ -8,9 +8,9 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
-from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
+from confengine_to_youtube.domain.session_abstract import SessionAbstract
 
 
 def create_session(  # noqa: PLR0913
@@ -29,7 +29,7 @@ def create_session(  # noqa: PLR0913
         speakers=tuple(
             Speaker(first_name=first, last_name=last) for first, last in speakers
         ),
-        abstract=AbstractMarkdown(content=abstract),
+        abstract=SessionAbstract(content=abstract),
         url=url,
     )
 
@@ -56,7 +56,7 @@ def sample_session() -> Session:
             Speaker(first_name="Speaker", last_name="A"),
             Speaker(first_name="Speaker", last_name="B"),
         ),
-        abstract=AbstractMarkdown(content="This is a sample abstract."),
+        abstract=SessionAbstract(content="This is a sample abstract."),
         url="https://example.com/session/1",
     )
 
@@ -80,7 +80,7 @@ def empty_session() -> Session:
         title="Empty Session",
         track="Track 1",
         speakers=(),
-        abstract=AbstractMarkdown(content=""),
+        abstract=SessionAbstract(content=""),
         url="https://example.com/session/2",
     )
 
