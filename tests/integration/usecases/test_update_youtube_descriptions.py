@@ -11,7 +11,6 @@ from confengine_to_youtube.domain.session import Session
 from confengine_to_youtube.usecases.protocols import (
     ConfEngineApiProtocol,
     VideoInfo,
-    YouTubeApiError,
     YouTubeApiProtocol,
 )
 from confengine_to_youtube.usecases.update_youtube_descriptions import (
@@ -127,7 +126,6 @@ sessions:
         assert result.is_dry_run is True
         assert result.updated_count == 0
         assert len(result.previews) == 2
-        assert len(result.errors) == 0
 
         # ConfEngine APIが呼ばれたことを検証
         mock_confengine_api.fetch_sessions.assert_called_once()  # type: ignore[attr-defined]
@@ -156,7 +154,6 @@ sessions:
         assert result.updated_count == 2
         assert result.no_content_count == 0
         assert result.no_mapping_count == 0
-        assert len(result.errors) == 0
 
         # YouTube APIが呼ばれたことを確認
         assert mock_youtube_api.update_video.call_count == 2  # type: ignore[attr-defined]
@@ -293,66 +290,6 @@ sessions:
 
         assert result.updated_count == 1
         assert result.unused_mappings_count == 1
-
-    def test_execute_handles_youtube_api_error(
-        self,
-        usecase: UpdateYouTubeDescriptionsUseCase,
-        mapping_file: Path,
-        mock_youtube_api: YouTubeApiProtocol,
-    ) -> None:
-        """YouTubeApiErrorが発生してもエラーリストに追加して処理を継続する"""
-        # 1つ目の動画でAPIエラー、2つ目は成功
-        mock_youtube_api.get_video_info.side_effect = [  # type: ignore[attr-defined]
-            YouTubeApiError("Rate limit exceeded"),
-            VideoInfo(
-                video_id="video2",
-                title="Title 2",
-                description="Description 2",
-                category_id=28,
-            ),
-        ]
-
-        result = usecase.execute(
-            mapping_file=mapping_file,
-            dry_run=False,
-        )
-
-        assert result.updated_count == 1  # 2つ目だけ成功
-        assert len(result.errors) == 1
-        assert result.errors[0] == "Rate limit exceeded"
-
-    def test_execute_dry_run_handles_youtube_api_error(
-        self,
-        usecase: UpdateYouTubeDescriptionsUseCase,
-        mapping_file: Path,
-        mock_youtube_api: YouTubeApiProtocol,
-    ) -> None:
-        """dry-runモードでもYouTubeApiErrorを適切に処理する"""
-        mock_youtube_api.get_video_info.side_effect = [  # type: ignore[attr-defined]
-            YouTubeApiError("Authentication failed"),
-            VideoInfo(
-                video_id="video2",
-                title="Title 2",
-                description="Description 2",
-                category_id=28,
-            ),
-        ]
-
-        result = usecase.execute(
-            mapping_file=mapping_file,
-            dry_run=True,
-        )
-
-        assert len(result.previews) == 2  # エラー時もプレビュー生成
-        # 1件目はエラー
-        assert result.previews[0].error == "Authentication failed"
-        assert result.previews[0].current_title is None
-        assert result.previews[0].new_description is None
-        # 2件目は正常
-        assert result.previews[1].error is None
-        assert result.previews[1].current_title == "Title 2"
-        assert len(result.errors) == 1
-        assert result.errors[0] == "Authentication failed"
 
     def test_execute_with_hashtags_in_mapping(
         self,

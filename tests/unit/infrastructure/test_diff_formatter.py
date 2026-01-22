@@ -58,27 +58,6 @@ class TestDiffFormatter:
         # Same Lineは変更なしなので、コンテキスト行として表示
         assert " Same Line" in result.splitlines()
 
-    def test_print_preview_with_error(self) -> None:
-        """エラーがある場合にエラーメッセージを表示する"""
-        output = StringIO()
-        console = Console(file=output, force_terminal=False, width=120)
-        formatter = DiffFormatter(console=console)
-
-        preview = UpdatePreview(
-            session_key="2026-01-07T10:00:00+09:00_Hall A",
-            video_id="video1",
-            current_title=None,
-            current_description=None,
-            new_title=None,
-            new_description=None,
-            error="API Error",
-        )
-
-        formatter.print_preview(preview=preview, index=1)
-        result = output.getvalue()
-
-        assert "  Error: API Error" in result.splitlines()
-
     def test_print_preview_no_title_change(self) -> None:
         """タイトルに変更がない場合は (unchanged) を表示する"""
         output = StringIO()
@@ -127,21 +106,10 @@ class TestDiffFormatter:
         console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
-        formatter.print_summary(success_count=5, error_count=2)
+        formatter.print_summary(count=5)
         result = output.getvalue()
 
-        assert "Summary: Would update 5 videos, 2 errors" in result.splitlines()
-
-    def test_print_summary_no_errors(self) -> None:
-        """エラーがない場合はエラー数を表示しない"""
-        output = StringIO()
-        console = Console(file=output, force_terminal=False, width=120)
-        formatter = DiffFormatter(console=console)
-
-        formatter.print_summary(success_count=3, error_count=0)
-        result = output.getvalue()
-
-        assert "Summary: Would update 3 videos" in result.splitlines()
+        assert "Summary: Would update 5 videos" in result.splitlines()
 
     def test_print_preview_long_description_truncated(self) -> None:
         """200文字を超えるdescriptionは変更なしの場合トランケートされる"""

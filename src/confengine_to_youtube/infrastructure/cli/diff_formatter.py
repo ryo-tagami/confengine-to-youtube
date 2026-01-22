@@ -37,10 +37,6 @@ class DiffFormatter:
             highlight=False,
         )
 
-        if preview.error:
-            self._console.print(f"  [red]Error: {preview.error}[/red]")
-            return
-
         # Title diff
         self._console.print("\n  [bold]Title:[/bold]")
 
@@ -51,11 +47,11 @@ class DiffFormatter:
             )
         else:
             self._console.print(
-                f"    [red]-{preview.current_title or ''}[/red]",
+                f"    [red]-{preview.current_title}[/red]",
                 highlight=False,
             )
             self._console.print(
-                f"    [green]+{preview.new_title or ''}[/green]",
+                f"    [green]+{preview.new_title}[/green]",
                 highlight=False,
             )
 
@@ -63,8 +59,8 @@ class DiffFormatter:
         self._console.print("\n  [bold]Description:[/bold]")
 
         self._print_diff(
-            old=preview.current_description or "",
-            new=preview.new_description or "",
+            old=preview.current_description,
+            new=preview.new_description,
         )
 
     def _print_diff(self, old: str, new: str) -> None:
@@ -100,16 +96,11 @@ class DiffFormatter:
 
         self._console.print(syntax)
 
-    def print_summary(self, success_count: int, error_count: int) -> None:
+    def print_summary(self, count: int) -> None:
         """サマリーを表示"""
         text = Text()
         text.append("\nSummary: Would update ")
-        text.append(str(success_count), style="bold green")
+        text.append(str(count), style="bold green")
         text.append(" videos")
-
-        if error_count > 0:
-            text.append(", ")
-            text.append(str(error_count), style="bold red")
-            text.append(" errors")
 
         self._console.print(text)
