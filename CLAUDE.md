@@ -30,6 +30,8 @@ confengine_to_youtube/
 
 ドメイン層では `snakemd` ライブラリを使用してMarkdownドキュメントを構築している。これは意図的な設計判断である。YouTube descriptionの生成はこのアプリケーションのコアビジネスロジックであり、Markdownフォーマッティングはその本質的な機能の一部である。`snakemd` はHTTPクライアントやDBドライバのような「インフラストラクチャの詳細」ではなく、`Decimal` や `datetime` と同様に「ドメインの概念を表現するライブラリ」として位置づけている。
 
+同様に、`returns` ライブラリの Result 型をドメイン層のエラーハンドリングに使用している。これにより、予期されるエラーを型で表現し、呼び出し側に明示的なハンドリングを強制できる。
+
 ### ユースケース
 
 - `UpdateYouTubeDescriptionsUseCase`: セッション情報でYouTube動画のタイトルとdescriptionを更新

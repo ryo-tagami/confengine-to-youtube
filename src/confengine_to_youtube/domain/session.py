@@ -5,11 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from returns.result import Failure, Result, Success
+from returns.result import Failure, Result
 from snakemd import Document
 
 from confengine_to_youtube.domain.constants import ELLIPSIS, TITLE_SPEAKER_SEPARATOR
-from confengine_to_youtube.domain.errors import FrameOverflowError
+from confengine_to_youtube.domain.errors import (
+    DescriptionError,
+    FrameOverflowError,
+    TitleError,
+)
 from confengine_to_youtube.domain.youtube_description import YouTubeDescription
 from confengine_to_youtube.domain.youtube_title import YouTubeTitle
 
@@ -88,7 +92,7 @@ class Session:
         return bool(self.abstract.content)
 
     @property
-    def youtube_title(self) -> YouTubeTitle:
+    def youtube_title(self) -> Result[YouTubeTitle, TitleError]:
         """YouTube用タイトルを生成
 
         フォーマット: "セッションタイトル - スピーカー名"
@@ -98,16 +102,21 @@ class Session:
         3. ラストネームのみで試す (Doe)
         4. タイトルを切り詰め (ラストネーム維持)
 
-        注: 切り詰めロジックにより常に100文字以内に収まるため、
-        create() は常に成功する。
+        Returns:
+            Success(YouTubeTitle): 生成成功
+            Failure(TitleError): タイトル生成エラー
+
+        Note:
+            切り詰めロジックにより TitleTooLongError は実際には発生しない。
+            また Session の空タイトル禁止により TitleEmptyError も発生しない。
+
         """
         max_length = YouTubeTitle.MAX_LENGTH
 
         if not self.speakers:
-            # 切り詰め済みなので必ず成功する
             return YouTubeTitle.create(
                 value=self._truncate_text(text=self.title, max_length=max_length),
-            ).unwrap()
+            )
 
         format_strategies = [
             Speaker.format_list_full,
@@ -119,22 +128,19 @@ class Session:
 
         for format_func in format_strategies:
             if not (speaker_part := format_func(self.speakers)):
-                # 切り詰め済みなので必ず成功する
                 return YouTubeTitle.create(
                     value=self._truncate_text(text=self.title, max_length=max_length),
-                ).unwrap()
+                )
 
             full_title = self._combine_title_with_speaker(speaker_part=speaker_part)
 
             if len(full_title) <= max_length:
-                # 文字数制限内なので必ず成功する
-                return YouTubeTitle.create(value=full_title).unwrap()
+                return YouTubeTitle.create(value=full_title)
 
         # どのフォーマットでも収まらない場合はタイトルを切り詰める
-        # 切り詰め済みなので必ず成功する
         return YouTubeTitle.create(
             value=self._truncate_title_keeping_speaker(speaker_part=speaker_part),
-        ).unwrap()
+        )
 
     def _truncate_text(self, text: str, max_length: int) -> str:
         """テキストを指定長に切り詰める"""
@@ -167,7 +173,7 @@ class Session:
         self,
         hashtags: tuple[str, ...],
         footer: str,
-    ) -> Result[YouTubeDescription, FrameOverflowError]:
+    ) -> Result[YouTubeDescription, DescriptionError]:
         """YouTube用説明文を生成
 
         Args:
@@ -176,7 +182,10 @@ class Session:
 
         Returns:
             Success(YouTubeDescription): 生成成功
-            Failure(FrameOverflowError): フレーム部分だけで文字数制限超過
+            Failure(DescriptionError): 説明文生成エラー
+
+        Note:
+            切り詰めロジックにより DescriptionTooLongError は実際には発生しない。
 
         """
         abstract = str(self.abstract)
@@ -200,8 +209,7 @@ class Session:
             footer=footer,
         )
 
-        # 切り詰め済みなので必ず成功する
-        return Success(YouTubeDescription.create(value=description_text).unwrap())
+        return YouTubeDescription.create(value=description_text)
 
     def _calculate_frame_length(
         self,

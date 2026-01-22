@@ -89,9 +89,10 @@ class TestSessionYouTubeTitle:
 
     def test_basic(self, sample_session: Session) -> None:
         """基本的なタイトル生成"""
-        title = sample_session.youtube_title
+        result = sample_session.youtube_title
 
-        assert str(title) == "Sample Session - Speaker A, Speaker B"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Sample Session - Speaker A, Speaker B"
 
     def test_single_speaker(self) -> None:
         """単一スピーカーの場合"""
@@ -103,15 +104,17 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
-        assert str(title) == "Test Session - John Doe"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session - John Doe"
 
     def test_no_speakers(self, empty_session: Session) -> None:
         """スピーカーがいない場合"""
-        title = empty_session.youtube_title
+        result = empty_session.youtube_title
 
-        assert str(title) == "Empty Session"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Empty Session"
 
     def test_speakers_with_empty_names(self) -> None:
         """全スピーカーが空の名前の場合はタイトルのみ"""
@@ -123,9 +126,10 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
-        assert str(title) == "Test Session"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session"
 
     def test_multiple_speakers(self) -> None:
         """複数スピーカーの場合"""
@@ -137,8 +141,10 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
+        assert isinstance(result, Success)
+        title = result.unwrap()
         assert str(title) == "Panel Discussion - John Doe, Jane Smith, Bob Wilson"
 
     @pytest.mark.parametrize(
@@ -184,8 +190,10 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
+        assert isinstance(result, Success)
+        title = result.unwrap()
         assert len(str(title)) <= YouTubeTitle.MAX_LENGTH
         assert str(title) == expected_str
 
@@ -200,8 +208,10 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
+        assert isinstance(result, Success)
+        title = result.unwrap()
         assert len(str(title)) == YouTubeTitle.MAX_LENGTH
         # ラストネーム自体が切り詰められる (97文字 + "...")
         assert str(title) == "W" * 97 + "..."
@@ -216,9 +226,10 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
-        assert str(title) == "Test Session - Doe"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session - Doe"
 
     def test_speaker_without_last_name(self) -> None:
         """ラストネームがないスピーカー"""
@@ -230,9 +241,10 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
-        assert str(title) == "Test Session - John"
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "Test Session - John"
 
     def test_title_only_truncated_when_long(self) -> None:
         """スピーカーなしで長いタイトルは切り詰められる"""
@@ -245,8 +257,10 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
+        assert isinstance(result, Success)
+        title = result.unwrap()
         assert len(str(title)) == YouTubeTitle.MAX_LENGTH
         assert str(title) == "X" * 97 + "..."
 
@@ -260,10 +274,11 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
+        assert isinstance(result, Success)
         # フルネームで収まる場合はフルネーム
-        assert str(title) == "Test Session - Tze Chin Tang"
+        assert str(result.unwrap()) == "Test Session - Tze Chin Tang"
 
     def test_multi_word_first_name_uses_initials(self) -> None:
         """複合ファーストネームでイニシャル化が必要な場合"""
@@ -277,8 +292,10 @@ class TestSessionYouTubeTitle:
             room=ROOM,
             url=URL,
         )
-        title = session.youtube_title
+        result = session.youtube_title
 
+        assert isinstance(result, Success)
+        title = result.unwrap()
         # イニシャル表記: 85 + " - " (3) + "T. C. Tang" (10) = 98文字
         assert len(str(title)) <= YouTubeTitle.MAX_LENGTH
         assert str(title) == f"{title_text} - T. C. Tang"

@@ -69,3 +69,4 @@ class FrameOverflowError(DomainError):
 
 # Union型でドメインエラーを集約
 type TitleError = TitleEmptyError | TitleTooLongError
+type DescriptionError = FrameOverflowError | DescriptionTooLongError

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from returns.result import Failure, Success
+from returns.result import Failure, Result, Success
 
 from confengine_to_youtube.usecases.dto import (
     SessionProcessError,
@@ -20,9 +20,12 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
+    from confengine_to_youtube.domain.errors import DomainError
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
     from confengine_to_youtube.domain.session import Session
     from confengine_to_youtube.domain.video_mapping import MappingConfig
+    from confengine_to_youtube.domain.youtube_description import YouTubeDescription
+    from confengine_to_youtube.domain.youtube_title import YouTubeTitle
     from confengine_to_youtube.usecases.protocols import (
         ConfEngineApiProtocol,
         MappingFileReaderProtocol,
@@ -86,13 +89,21 @@ class UpdateYouTubeDescriptionsUseCase:
 
             used_slots.add(session.slot)
 
-            # to_youtube_description() が Result を返す
-            description_result = session.to_youtube_description(
-                hashtags=mapping_config.hashtags,
-                footer=mapping_config.footer,
+            # do-notation で2つの Result を組み合わせる
+            # 最初に Failure になった時点でそれ以降はスキップされる (ROP)
+            combined_result: Result[
+                tuple[YouTubeTitle, YouTubeDescription],
+                DomainError,
+            ] = Result.do(
+                (title, description)
+                for title in session.youtube_title
+                for description in session.to_youtube_description(
+                    hashtags=mapping_config.hashtags,
+                    footer=mapping_config.footer,
+                )
             )
 
-            match description_result:
+            match combined_result:
                 case Failure(error):
                     errors.append(
                         SessionProcessError(
@@ -102,17 +113,15 @@ class UpdateYouTubeDescriptionsUseCase:
                         ),
                     )
                     logger.warning(
-                        "Failed to generate description for %s: %s",
+                        "Failed to process session %s: %s",
                         session.title,
                         error.message,
                     )
-                    continue
 
-                case Success(description):
+                case Success((new_title, description)):
                     video_info = self._youtube_api.get_video_info(
                         video_id=mapping.video_id,
                     )
-                    new_title = session.youtube_title
 
                     previews.append(
                         UpdatePreview(
