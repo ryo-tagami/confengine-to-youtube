@@ -14,8 +14,8 @@ from confengine_to_youtube.domain.session import Speaker
 class TestConfEngineApiGateway:
     """ConfEngineApiGateway のテスト"""
 
-    def test_fetch_sessions(self, jst: ZoneInfo) -> None:
-        """APIからセッションを取得できる"""
+    def test_fetch_schedule(self, jst: ZoneInfo) -> None:
+        """APIからスケジュールを取得できる"""
         mock_http_client = create_autospec(HttpClientProtocol, spec_set=True)
         mock_http_client.get_json.return_value = {
             "conf_timezone": "Asia/Tokyo",
@@ -54,13 +54,14 @@ class TestConfEngineApiGateway:
             http_client=mock_http_client,
             markdown_converter=MarkdownConverter(),
         )
-        sessions, timezone = gateway.fetch_sessions(conf_id="test-conf")
+        schedule = gateway.fetch_schedule(conf_id="test-conf")
 
-        assert len(sessions) == 1
-        session = sessions[0]
+        assert schedule.conf_id == "test-conf"
+        assert schedule.timezone == jst
+        assert len(schedule.sessions) == 1
+        session = schedule.sessions[0]
 
         # 全フィールドのマッピングを検証
-        assert timezone == jst
 
         assert session.title == "Test Session"
         assert session.slot.timeslot == datetime(
@@ -135,9 +136,9 @@ class TestConfEngineApiGateway:
             http_client=mock_http_client,
             markdown_converter=MarkdownConverter(),
         )
-        sessions, _ = gateway.fetch_sessions(conf_id="test-conf")
+        schedule = gateway.fetch_schedule(conf_id="test-conf")
 
-        assert len(sessions) == 3
-        assert sessions[0].title == "Session C"  # 10:00, Hall A
-        assert sessions[1].title == "Session A"  # 10:00, Hall B
-        assert sessions[2].title == "Session B"  # 11:00, Hall A
+        assert len(schedule.sessions) == 3
+        assert schedule.sessions[0].title == "Session C"  # 10:00, Hall A
+        assert schedule.sessions[1].title == "Session A"  # 10:00, Hall B
+        assert schedule.sessions[2].title == "Session B"  # 11:00, Hall A

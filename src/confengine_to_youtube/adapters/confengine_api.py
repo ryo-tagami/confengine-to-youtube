@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from confengine_to_youtube.adapters.confengine_schema import ScheduleResponse
+from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
 
@@ -24,7 +25,7 @@ class ConfEngineApiGateway:
         self._http_client = http_client
         self._markdown_converter = markdown_converter
 
-    def fetch_sessions(self, conf_id: str) -> tuple[tuple[Session, ...], ZoneInfo]:
+    def fetch_schedule(self, conf_id: str) -> ConferenceSchedule:
         url = f"{self.BASE_URL}/conferences/{conf_id}/schedule"
 
         schedule_data = self._http_client.get_json(url=url)
@@ -33,7 +34,11 @@ class ConfEngineApiGateway:
         timezone = ZoneInfo(key=response.conf_timezone)
         sessions = self._extract_sessions(response=response, timezone=timezone)
 
-        return sessions, timezone
+        return ConferenceSchedule(
+            conf_id=conf_id,
+            timezone=timezone,
+            sessions=sessions,
+        )
 
     def _extract_sessions(
         self,

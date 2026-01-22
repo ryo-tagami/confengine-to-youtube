@@ -129,7 +129,7 @@ sessions:
         assert len(result.previews) == 2
 
         # ConfEngine APIが呼ばれたことを検証
-        mock_confengine_api.fetch_sessions.assert_called_once()  # type: ignore[attr-defined]
+        mock_confengine_api.fetch_schedule.assert_called_once()  # type: ignore[attr-defined]
 
         # プレビューの内容を確認
         preview1 = result.previews[0]
