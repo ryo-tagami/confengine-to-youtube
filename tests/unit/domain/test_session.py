@@ -3,7 +3,9 @@
 from datetime import UTC, datetime
 
 import pytest
+from returns.result import Failure, Success
 
+from confengine_to_youtube.domain.errors import FrameOverflowError
 from confengine_to_youtube.domain.session import Session, Speaker
 from confengine_to_youtube.domain.youtube_description import YouTubeDescription
 from confengine_to_youtube.domain.youtube_title import YouTubeTitle
@@ -60,6 +62,18 @@ class TestSpeaker:
 
 class TestSession:
     """Session のテスト"""
+
+    def test_empty_title_raises_value_error(self) -> None:
+        """タイトルが空の場合は ValueError を発生"""
+        with pytest.raises(ValueError, match="Session title must not be empty"):
+            create_session(
+                title="",
+                speakers=[],
+                abstract=ABSTRACT,
+                timeslot=TIMESLOT,
+                room=ROOM,
+                url=URL,
+            )
 
     def test_has_content_with_abstract(self, sample_session: Session) -> None:
         """abstractがある場合はhas_contentがTrue"""
@@ -275,8 +289,10 @@ class TestSessionYouTubeDescription:
 
     def test_basic(self, sample_session: Session) -> None:
         """基本的なMarkdown生成"""
-        description = sample_session.to_youtube_description(hashtags=(), footer="")
+        result = sample_session.to_youtube_description(hashtags=(), footer="")
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         expected = (
             "Speaker: Speaker A, Speaker B\n"
             "\n"
@@ -292,11 +308,13 @@ class TestSessionYouTubeDescription:
 
     def test_with_hashtags(self, sample_session: Session) -> None:
         """ハッシュタグ付きのMarkdown生成"""
-        description = sample_session.to_youtube_description(
+        result = sample_session.to_youtube_description(
             hashtags=("#Test", "#Hash"),
             footer="",
         )
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         expected = (
             "Speaker: Speaker A, Speaker B\n"
             "\n"
@@ -314,11 +332,13 @@ class TestSessionYouTubeDescription:
 
     def test_with_footer(self, sample_session: Session) -> None:
         """フッター付きのMarkdown生成"""
-        description = sample_session.to_youtube_description(
+        result = sample_session.to_youtube_description(
             hashtags=(),
             footer="Footer text here",
         )
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         expected = (
             "Speaker: Speaker A, Speaker B\n"
             "\n"
@@ -336,8 +356,10 @@ class TestSessionYouTubeDescription:
 
     def test_without_speakers(self, empty_session: Session) -> None:
         """スピーカーがいない場合"""
-        description = empty_session.to_youtube_description(hashtags=(), footer="")
+        result = empty_session.to_youtube_description(hashtags=(), footer="")
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         expected = "***\n\nhttps://example.com/session/2\n\n***"
         assert str(description) == expected
 
@@ -351,8 +373,10 @@ class TestSessionYouTubeDescription:
             room=ROOM,
             url=URL,
         )
-        description = session.to_youtube_description(hashtags=(), footer="")
+        result = session.to_youtube_description(hashtags=(), footer="")
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         expected = "Speaker: Speaker A\n\n***\n\nhttps://example.com\n\n***"
         assert str(description) == expected
 
@@ -366,13 +390,15 @@ class TestSessionYouTubeDescription:
             room=ROOM,
             url="",
         )
-        description = session.to_youtube_description(hashtags=(), footer="")
+        result = session.to_youtube_description(hashtags=(), footer="")
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         expected = "Speaker: Speaker A\n\nSome abstract\n\n***\n\n***"
         assert str(description) == expected
 
-    def test_frame_exceeds_max_length_raises_error(self) -> None:
-        """フレーム部分だけで文字数制限を超える場合はValueErrorを発生"""
+    def test_frame_exceeds_max_length_returns_failure(self) -> None:
+        """フレーム部分だけで文字数制限を超える場合は Failure(FrameOverflowError)"""
         session = create_session(
             title="Title",
             speakers=[("", "Speaker")],
@@ -382,10 +408,13 @@ class TestSessionYouTubeDescription:
             url=URL,
         )
 
-        expected_msg = "フレーム部分だけで文字数制限を超えています"
-        with pytest.raises(expected_exception=ValueError, match=expected_msg):
-            # 5000文字を超えるフッターを用意
-            session.to_youtube_description(hashtags=(), footer="X" * 6000)
+        # 5000文字を超えるフッターを用意
+        result = session.to_youtube_description(hashtags=(), footer="X" * 6000)
+
+        assert isinstance(result, Failure)
+        error = result.failure()
+        assert isinstance(error, FrameOverflowError)
+        assert error.frame_length > YouTubeDescription.MAX_LENGTH
 
     def test_long_abstract_is_truncated(self) -> None:
         """長いabstractはYouTube説明文の最大文字数に収まるよう切り詰められる"""
@@ -399,15 +428,19 @@ class TestSessionYouTubeDescription:
             room=ROOM,
             url=URL,
         )
-        description = session.to_youtube_description(hashtags=(), footer="Footer")
+        result = session.to_youtube_description(hashtags=(), footer="Footer")
 
-        result = str(description)
+        assert isinstance(result, Success)
+        description = result.unwrap()
+        description_str = str(description)
         # 最大文字数以下に収まる
-        assert len(result) <= YouTubeDescription.MAX_LENGTH
+        assert len(description_str) <= YouTubeDescription.MAX_LENGTH
         # 先頭部分を確認 (Speaker、Abstractの先頭)
-        assert result.startswith("Speaker: Speaker\n\nA")
+        assert description_str.startswith("Speaker: Speaker\n\nA")
         # 末尾部分を確認 (切り詰めマーカー、URL、Footer)
-        assert result.endswith("...\n\n***\n\nhttps://example.com\n\n***\n\nFooter")
+        assert description_str.endswith(
+            "...\n\n***\n\nhttps://example.com\n\n***\n\nFooter"
+        )
 
     def test_sanitize_removes_angle_brackets_from_urls(self) -> None:
         """Markdownオートリンク記法 <URL> を URL に変換する"""
@@ -419,8 +452,10 @@ class TestSessionYouTubeDescription:
             room=ROOM,
             url="",
         )
-        description = session.to_youtube_description(hashtags=(), footer="")
+        result = session.to_youtube_description(hashtags=(), footer="")
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         expected = "Speaker: Speaker\n\nLink: https://example.com/page\n\n***\n\n***"
         assert str(description) == expected
 
@@ -434,8 +469,10 @@ class TestSessionYouTubeDescription:
             room=ROOM,
             url="",
         )
-        description = session.to_youtube_description(hashtags=(), footer="")
+        result = session.to_youtube_description(hashtags=(), footer="")
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         expected = (
             "Speaker: Speaker\n\nSee https://a.com and http://b.com\n\n***\n\n***"
         )
@@ -455,8 +492,10 @@ class TestSessionYouTubeDescription:
             room=ROOM,
             url="",
         )
-        description = session.to_youtube_description(hashtags=(), footer="")
+        result = session.to_youtube_description(hashtags=(), footer="")
 
+        assert isinstance(result, Success)
+        description = result.unwrap()
         # > is replaced with U+203A, < is replaced with U+2039
         expected = (
             "Speaker: Speaker\n"

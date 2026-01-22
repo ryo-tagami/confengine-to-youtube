@@ -5,7 +5,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from confengine_to_youtube.usecases.dto import UpdatePreview, YouTubeUpdateResult
+from returns.result import Failure, Success
+
+from confengine_to_youtube.usecases.dto import (
+    SessionProcessError,
+    UpdatePreview,
+    YouTubeUpdateResult,
+)
 from confengine_to_youtube.usecases.protocols import VideoUpdateRequest
 
 logger = logging.getLogger(name=__name__)
@@ -61,6 +67,7 @@ class UpdateYouTubeDescriptionsUseCase:
         dry_run: bool,
     ) -> YouTubeUpdateResult:
         previews: list[UpdatePreview] = []
+        errors: list[SessionProcessError] = []
         updated_count = 0
         no_content_count = 0
         no_mapping_count = 0
@@ -79,34 +86,59 @@ class UpdateYouTubeDescriptionsUseCase:
 
             used_slots.add(session.slot)
 
-            video_info = self._youtube_api.get_video_info(video_id=mapping.video_id)
-            new_title = session.youtube_title
-            description = session.to_youtube_description(
+            # to_youtube_description() が Result を返す
+            description_result = session.to_youtube_description(
                 hashtags=mapping_config.hashtags,
                 footer=mapping_config.footer,
             )
 
-            previews.append(
-                UpdatePreview(
-                    session_key=str(session.slot),
-                    video_id=mapping.video_id,
-                    current_title=video_info.title,
-                    current_description=video_info.description,
-                    new_title=str(new_title),
-                    new_description=str(description),
-                ),
-            )
+            match description_result:
+                case Failure(error):
+                    errors.append(
+                        SessionProcessError(
+                            session_key=str(session.slot),
+                            video_id=mapping.video_id,
+                            error=error,
+                        ),
+                    )
+                    logger.warning(
+                        "Failed to generate description for %s: %s",
+                        session.title,
+                        error.message,
+                    )
+                    continue
 
-            if not dry_run:
-                request = VideoUpdateRequest(
-                    video_id=mapping.video_id,
-                    title=str(new_title),
-                    description=str(description),
-                    category_id=video_info.category_id,
-                )
-                self._youtube_api.update_video(request=request)
-                updated_count += 1
-                logger.info("Updated: %s (%s)", session.title, mapping.video_id)
+                case Success(description):
+                    video_info = self._youtube_api.get_video_info(
+                        video_id=mapping.video_id,
+                    )
+                    new_title = session.youtube_title
+
+                    previews.append(
+                        UpdatePreview(
+                            session_key=str(session.slot),
+                            video_id=mapping.video_id,
+                            current_title=video_info.title,
+                            current_description=video_info.description,
+                            new_title=str(new_title),
+                            new_description=str(description),
+                        ),
+                    )
+
+                    if not dry_run:
+                        request = VideoUpdateRequest(
+                            video_id=mapping.video_id,
+                            title=str(new_title),
+                            description=str(description),
+                            category_id=video_info.category_id,
+                        )
+                        self._youtube_api.update_video(request=request)
+                        updated_count += 1
+                        logger.info(
+                            "Updated: %s (%s)",
+                            session.title,
+                            mapping.video_id,
+                        )
 
         unused_count = self._warn_unused_mappings(
             mapping_config=mapping_config,
@@ -120,6 +152,7 @@ class UpdateYouTubeDescriptionsUseCase:
             no_content_count=no_content_count,
             no_mapping_count=no_mapping_count,
             unused_mappings_count=unused_count,
+            errors=tuple(errors),
         )
 
     def _warn_unused_mappings(

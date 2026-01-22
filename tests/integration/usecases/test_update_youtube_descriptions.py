@@ -7,6 +7,7 @@ import pytest
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
+from confengine_to_youtube.domain.errors import FrameOverflowError
 from confengine_to_youtube.domain.session import Session
 from confengine_to_youtube.usecases.protocols import (
     ConfEngineApiProtocol,
@@ -351,3 +352,57 @@ sessions:
             "***"
         )
         assert result.previews[0].new_description == expected_description
+
+    def test_execute_collects_frame_overflow_errors(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """フレームオーバーフローエラーはエラーとして収集される"""
+        session = create_session(
+            title="Session 1",
+            speakers=[("Speaker", "A")],
+            abstract="Abstract 1",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/1",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(session,),
+            timezone=jst,
+        )
+
+        # フッターが長すぎるマッピング
+        yaml_content = f"""
+conf_id: test-conf
+footer: "{"X" * 6000}"
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="bad_footer_mapping.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=True,
+        )
+
+        assert result.updated_count == 0
+        assert len(result.previews) == 0
+        assert len(result.errors) == 1
+        assert result.errors[0].video_id == "video1"
+        assert isinstance(result.errors[0].error, FrameOverflowError)
