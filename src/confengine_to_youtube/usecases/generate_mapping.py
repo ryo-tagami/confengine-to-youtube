@@ -37,13 +37,13 @@ class GenerateMappingUseCase:
         conf_id: str,
         output: TextIO,
     ) -> GenerateMappingResult:
-        sessions, _timezone = self._confengine_api.fetch_sessions(conf_id=conf_id)
+        schedule = self._confengine_api.fetch_schedule(conf_id=conf_id)
 
         self._mapping_writer.write(
-            sessions=sessions,
+            sessions=schedule.sessions,
             output=output,
-            conf_id=conf_id,
+            conf_id=schedule.conf_id,
             generated_at=self._clock(),
         )
 
-        return GenerateMappingResult(session_count=len(sessions))
+        return GenerateMappingResult(session_count=len(schedule.sessions))

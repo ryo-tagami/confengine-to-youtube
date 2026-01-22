@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from zoneinfo import ZoneInfo
 
     from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
+    from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
     from confengine_to_youtube.domain.session import Session
     from confengine_to_youtube.domain.video_mapping import MappingConfig
 
@@ -67,8 +68,8 @@ class VideoUpdateRequest:
 class ConfEngineApiProtocol(Protocol):  # pragma: no cover
     """ConfEngine API との通信プロトコル"""
 
-    def fetch_sessions(self, conf_id: str) -> tuple[tuple[Session, ...], ZoneInfo]:
-        """セッション一覧を取得する"""
+    def fetch_schedule(self, conf_id: str) -> ConferenceSchedule:
+        """カンファレンススケジュールを取得する"""
         ...
 
 

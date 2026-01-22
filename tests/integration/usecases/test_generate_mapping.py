@@ -136,7 +136,7 @@ class TestGenerateMappingUseCase:
         output = StringIO()
         usecase.execute(conf_id="test-conf", output=output)
 
-        mock_confengine_api.fetch_sessions.assert_called_once_with(conf_id="test-conf")  # type: ignore[attr-defined]
+        mock_confengine_api.fetch_schedule.assert_called_once_with(conf_id="test-conf")  # type: ignore[attr-defined]
 
     def test_execute_with_empty_sessions(
         self,
