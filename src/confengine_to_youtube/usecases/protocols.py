@@ -6,7 +6,6 @@ adapters 層でこれらを実装する。
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
@@ -16,53 +15,11 @@ if TYPE_CHECKING:
     from typing import TextIO
     from zoneinfo import ZoneInfo
 
-    from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
     from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
     from confengine_to_youtube.domain.session import Session
+    from confengine_to_youtube.domain.session_abstract import SessionAbstract
     from confengine_to_youtube.domain.video_mapping import MappingConfig
-
-
-# =============================================================================
-# 例外クラス
-# =============================================================================
-
-
-class VideoNotFoundError(Exception):
-    """動画が見つからないエラー"""
-
-
-class MappingFileError(Exception):
-    """マッピングファイル読み込みエラー"""
-
-
-# =============================================================================
-# データ型
-# =============================================================================
-
-
-@dataclass(frozen=True)
-class VideoInfo:
-    """ビデオ情報"""
-
-    video_id: str
-    title: str
-    description: str
-    category_id: int
-
-
-@dataclass(frozen=True)
-class VideoUpdateRequest:
-    """動画更新リクエスト"""
-
-    video_id: str
-    title: str
-    description: str
-    category_id: int
-
-
-# =============================================================================
-# Protocols
-# =============================================================================
+    from confengine_to_youtube.usecases.dto import VideoInfo, VideoUpdateRequest
 
 
 class ConfEngineApiProtocol(Protocol):  # pragma: no cover
@@ -120,6 +77,6 @@ class YouTubeApiProtocol(Protocol):  # pragma: no cover
 class MarkdownConverterProtocol(Protocol):  # pragma: no cover
     """HTML から Markdown への変換プロトコル"""
 
-    def convert(self, html: str) -> AbstractMarkdown:
+    def convert(self, html: str) -> SessionAbstract:
         """HTML を Markdown に変換する"""
         ...

@@ -10,6 +10,26 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
+class VideoInfo:
+    """ビデオ情報"""
+
+    video_id: str
+    title: str
+    description: str
+    category_id: int
+
+
+@dataclass(frozen=True)
+class VideoUpdateRequest:
+    """動画更新リクエスト"""
+
+    video_id: str
+    title: str
+    description: str
+    category_id: int
+
+
+@dataclass(frozen=True)
 class UpdatePreview:
     """更新プレビュー情報"""
 

@@ -7,7 +7,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 
 from confengine_to_youtube.adapters.mapping_schema import MappingFileSchema
-from confengine_to_youtube.usecases.protocols import MappingFileError
+from confengine_to_youtube.usecases.errors import MappingFileError
 
 if TYPE_CHECKING:
     from pathlib import Path

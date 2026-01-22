@@ -7,8 +7,8 @@ from zoneinfo import ZoneInfo
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
 from confengine_to_youtube.adapters.protocols import HttpClientProtocol
-from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
 from confengine_to_youtube.domain.session import Speaker
+from confengine_to_youtube.domain.session_abstract import SessionAbstract
 
 
 class TestConfEngineApiGateway:
@@ -76,7 +76,7 @@ class TestConfEngineApiGateway:
         assert session.slot.room == "Hall A"
         assert session.track == "Track 1"
         assert session.speakers == (Speaker(first_name="Speaker", last_name="A"),)
-        assert session.abstract == AbstractMarkdown(content="Test")
+        assert session.abstract == SessionAbstract(content="Test")
         assert session.url == "https://example.com"
 
         # 正しいURLでAPIが呼ばれたことを検証

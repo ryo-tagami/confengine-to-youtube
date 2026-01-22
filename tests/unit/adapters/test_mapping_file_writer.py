@@ -5,9 +5,9 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
-from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
+from confengine_to_youtube.domain.session_abstract import SessionAbstract
 
 
 class TestMappingFileWriter:
@@ -28,7 +28,7 @@ class TestMappingFileWriter:
                 title="Clean Architecture入門",
                 track="技術",
                 speakers=(Speaker(first_name="", last_name="田中太郎"),),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session1",
             ),
         ]
@@ -97,7 +97,7 @@ class TestMappingFileWriter:
                     Speaker(first_name="", last_name="田中太郎"),
                     Speaker(first_name="", last_name="山田花子"),
                 ),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session1",
             ),
         ]
@@ -163,7 +163,7 @@ class TestMappingFileWriter:
                 title="Day2 Session",
                 track="技術",
                 speakers=(Speaker(first_name="", last_name="佐藤"),),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session2",
             ),
             Session(
@@ -181,7 +181,7 @@ class TestMappingFileWriter:
                 title="Day1 Session",
                 track="技術",
                 speakers=(Speaker(first_name="", last_name="鈴木"),),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session1",
             ),
         ]
@@ -252,7 +252,7 @@ class TestMappingFileWriter:
                 title="Session in Hall B",
                 track="技術",
                 speakers=(Speaker(first_name="", last_name="佐藤"),),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session2",
             ),
             Session(
@@ -270,7 +270,7 @@ class TestMappingFileWriter:
                 title="Session in Hall A",
                 track="技術",
                 speakers=(Speaker(first_name="", last_name="鈴木"),),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session1",
             ),
         ]
@@ -383,7 +383,7 @@ class TestMappingFileWriter:
                 title="パネルディスカッション",
                 track="技術",
                 speakers=(),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session1",
             ),
         ]
@@ -455,7 +455,7 @@ class TestMappingFileWriter:
                 title=long_title,
                 track="技術",
                 speakers=(Speaker(first_name="", last_name="田中太郎"),),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session1",
             ),
         ]
@@ -528,7 +528,7 @@ class TestMappingFileWriter:
                 title="Session 1",
                 track="技術",
                 speakers=(Speaker(first_name="Speaker", last_name="A"),),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session1",
             ),
             Session(
@@ -546,7 +546,7 @@ class TestMappingFileWriter:
                 title="Session 2",
                 track="技術",
                 speakers=(Speaker(first_name="Speaker", last_name="B"),),
-                abstract=AbstractMarkdown(content="概要"),
+                abstract=SessionAbstract(content="概要"),
                 url="https://example.com/session2",
             ),
         ]

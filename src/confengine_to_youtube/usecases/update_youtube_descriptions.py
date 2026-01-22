@@ -10,9 +10,9 @@ from returns.result import Failure, Result, Success
 from confengine_to_youtube.usecases.dto import (
     SessionProcessError,
     UpdatePreview,
+    VideoUpdateRequest,
     YouTubeUpdateResult,
 )
-from confengine_to_youtube.usecases.protocols import VideoUpdateRequest
 
 logger = logging.getLogger(name=__name__)
 
