@@ -102,18 +102,10 @@ def _print_result(result: YouTubeUpdateResult) -> None:
 
         formatter.print_header(message="=== Dry Run Mode ===")
 
-        success_count = 0
-        error_count = 0
-
         for i, preview in enumerate(iterable=result.previews, start=1):
             formatter.print_preview(preview=preview, index=i)
 
-            if preview.error:
-                error_count += 1
-            else:
-                success_count += 1
-
-        formatter.print_summary(success_count=success_count, error_count=error_count)
+        formatter.print_summary(count=len(result.previews))
     else:
         print(f"Updated: {result.updated_count} videos", file=sys.stderr)  # noqa: T201
 
@@ -130,10 +122,5 @@ def _print_result(result: YouTubeUpdateResult) -> None:
     if result.unused_mappings_count > 0:
         print(  # noqa: T201
             f"Unused mappings: {result.unused_mappings_count}",
-            file=sys.stderr,
-        )
-    if result.errors:
-        print(  # noqa: T201
-            f"Errors: {len(result.errors)}",
             file=sys.stderr,
         )

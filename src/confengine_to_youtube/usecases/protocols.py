@@ -26,11 +26,7 @@ if TYPE_CHECKING:
 # =============================================================================
 
 
-class YouTubeApiError(Exception):
-    """YouTube API エラーの基底クラス"""
-
-
-class VideoNotFoundError(YouTubeApiError):
+class VideoNotFoundError(Exception):
     """動画が見つからないエラー"""
 
 

@@ -2,18 +2,15 @@
 
 from __future__ import annotations
 
-from http import HTTPStatus
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING
 
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from pydantic import BaseModel, ConfigDict
 
 from confengine_to_youtube.usecases.protocols import (
     VideoInfo,
     VideoNotFoundError,
     VideoUpdateRequest,
-    YouTubeApiError,
 )
 
 if TYPE_CHECKING:
@@ -89,14 +86,7 @@ class YouTubeApiGateway:
             self._youtube = youtube
 
     def get_video_info(self, video_id: str) -> VideoInfo:
-        # NOTE: HttpError のみキャッチし、ネットワークエラー等はそのまま上位に伝播させる
-        # (ユーザーが原因を理解できるため、変換不要)
-        try:
-            response = (
-                self._youtube.videos().list(part="snippet", id=video_id).execute()
-            )
-        except HttpError as e:
-            self._handle_http_error(error=e, video_id=video_id)
+        response = self._youtube.videos().list(part="snippet", id=video_id).execute()
 
         parsed = YouTubeVideosListResponse.model_validate(obj=response)
 
@@ -108,34 +98,7 @@ class YouTubeApiGateway:
 
     def update_video(self, request: VideoUpdateRequest) -> None:
         """動画のsnippetを更新"""
-        # NOTE: ネットワークエラー等の扱いは get_video_info 参照
-        try:
-            self._youtube.videos().update(
-                part="snippet",
-                body=_to_api_body(request=request),
-            ).execute()
-        except HttpError as e:
-            self._handle_http_error(error=e, video_id=request.video_id)
-
-    def _handle_http_error(self, error: HttpError, video_id: str) -> NoReturn:
-        """HttpErrorをドメイン例外に変換して送出"""
-        status = error.resp.status
-
-        if status == HTTPStatus.NOT_FOUND:
-            msg = f"Video not found: {video_id}"
-            raise VideoNotFoundError(msg) from error
-
-        if status == HTTPStatus.UNAUTHORIZED:
-            msg = "YouTube API authentication failed. Please re-authenticate."
-            raise YouTubeApiError(msg) from error
-
-        if status == HTTPStatus.FORBIDDEN:
-            msg = "YouTube API access forbidden. Check quota or permissions."
-            raise YouTubeApiError(msg) from error
-
-        if status == HTTPStatus.TOO_MANY_REQUESTS:
-            msg = "YouTube API rate limit exceeded. Please try again later."
-            raise YouTubeApiError(msg) from error
-
-        msg = f"YouTube API error (HTTP {status}): {error}"
-        raise YouTubeApiError(msg) from error
+        self._youtube.videos().update(
+            part="snippet",
+            body=_to_api_body(request=request),
+        ).execute()
