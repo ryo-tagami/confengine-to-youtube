@@ -124,3 +124,14 @@ def _print_result(result: YouTubeUpdateResult) -> None:
             f"Unused mappings: {result.unused_mappings_count}",
             file=sys.stderr,
         )
+
+    if result.errors:
+        print(  # noqa: T201
+            f"Errors: {len(result.errors)}",
+            file=sys.stderr,
+        )
+        for error in result.errors:
+            print(  # noqa: T201
+                f"  - {error.session_key} ({error.video_id}): {error.error.message}",
+                file=sys.stderr,
+            )

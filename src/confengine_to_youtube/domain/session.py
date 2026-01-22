@@ -5,9 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from returns.result import Failure, Result
 from snakemd import Document
 
 from confengine_to_youtube.domain.constants import ELLIPSIS, TITLE_SPEAKER_SEPARATOR
+from confengine_to_youtube.domain.errors import (
+    DescriptionError,
+    FrameOverflowError,
+    TitleError,
+)
 from confengine_to_youtube.domain.youtube_description import YouTubeDescription
 from confengine_to_youtube.domain.youtube_title import YouTubeTitle
 
@@ -75,12 +81,18 @@ class Session:
     abstract: AbstractMarkdown
     url: str
 
+    def __post_init__(self) -> None:
+        """タイトルが空でないことを検証"""
+        if not self.title:
+            msg = "Session title must not be empty"
+            raise ValueError(msg)
+
     @property
     def has_content(self) -> bool:
         return bool(self.abstract.content)
 
     @property
-    def youtube_title(self) -> YouTubeTitle:
+    def youtube_title(self) -> Result[YouTubeTitle, TitleError]:
         """YouTube用タイトルを生成
 
         フォーマット: "セッションタイトル - スピーカー名"
@@ -89,11 +101,20 @@ class Session:
         2. イニシャル表記で試す (J. Doe)
         3. ラストネームのみで試す (Doe)
         4. タイトルを切り詰め (ラストネーム維持)
+
+        Returns:
+            Success(YouTubeTitle): 生成成功
+            Failure(TitleError): タイトル生成エラー
+
+        Note:
+            切り詰めロジックにより TitleTooLongError は実際には発生しない。
+            また Session の空タイトル禁止により TitleEmptyError も発生しない。
+
         """
         max_length = YouTubeTitle.MAX_LENGTH
 
         if not self.speakers:
-            return YouTubeTitle(
+            return YouTubeTitle.create(
                 value=self._truncate_text(text=self.title, max_length=max_length),
             )
 
@@ -107,17 +128,17 @@ class Session:
 
         for format_func in format_strategies:
             if not (speaker_part := format_func(self.speakers)):
-                return YouTubeTitle(
+                return YouTubeTitle.create(
                     value=self._truncate_text(text=self.title, max_length=max_length),
                 )
 
             full_title = self._combine_title_with_speaker(speaker_part=speaker_part)
 
             if len(full_title) <= max_length:
-                return YouTubeTitle(value=full_title)
+                return YouTubeTitle.create(value=full_title)
 
         # どのフォーマットでも収まらない場合はタイトルを切り詰める
-        return YouTubeTitle(
+        return YouTubeTitle.create(
             value=self._truncate_title_keeping_speaker(speaker_part=speaker_part),
         )
 
@@ -152,7 +173,7 @@ class Session:
         self,
         hashtags: tuple[str, ...],
         footer: str,
-    ) -> YouTubeDescription:
+    ) -> Result[YouTubeDescription, DescriptionError]:
         """YouTube用説明文を生成
 
         Args:
@@ -160,7 +181,11 @@ class Session:
             footer: フッター文字列
 
         Returns:
-            YouTubeDescription
+            Success(YouTubeDescription): 生成成功
+            Failure(DescriptionError): 説明文生成エラー
+
+        Note:
+            切り詰めロジックにより DescriptionTooLongError は実際には発生しない。
 
         """
         abstract = str(self.abstract)
@@ -173,19 +198,18 @@ class Session:
         available = max_length - frame_length
 
         if available < len(ELLIPSIS):
-            msg = f"フレーム部分だけで文字数制限を超えています ({frame_length=})"
-            raise ValueError(msg)
+            return Failure(FrameOverflowError(frame_length=frame_length))
 
         if abstract and len(abstract) > available:
             abstract = abstract[: available - len(ELLIPSIS)] + ELLIPSIS
 
-        return YouTubeDescription(
-            value=self._build_description_document(
-                abstract=abstract,
-                hashtags=hashtags,
-                footer=footer,
-            ),
+        description_text = self._build_description_document(
+            abstract=abstract,
+            hashtags=hashtags,
+            footer=footer,
         )
+
+        return YouTubeDescription.create(value=description_text)
 
     def _calculate_frame_length(
         self,
@@ -193,7 +217,7 @@ class Session:
         footer: str,
     ) -> int:
         """フレーム部分 (abstract以外) の文字数を計算"""
-        placeholder = "X"
+        placeholder = "X" if self.has_content else ""
         doc_with_placeholder = self._build_description_document(
             abstract=placeholder,
             hashtags=hashtags,
