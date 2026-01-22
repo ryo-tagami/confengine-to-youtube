@@ -26,6 +26,10 @@ confengine_to_youtube/
 
 **依存の方向**: infrastructure → adapters → usecases → domain
 
+### ドメイン層の設計方針
+
+ドメイン層では `snakemd` ライブラリを使用してMarkdownドキュメントを構築している。これは意図的な設計判断である。YouTube descriptionの生成はこのアプリケーションのコアビジネスロジックであり、Markdownフォーマッティングはその本質的な機能の一部である。`snakemd` はHTTPクライアントやDBドライバのような「インフラストラクチャの詳細」ではなく、`Decimal` や `datetime` と同様に「ドメインの概念を表現するライブラリ」として位置づけている。
+
 ### ユースケース
 
 - `UpdateYouTubeDescriptionsUseCase`: セッション情報でYouTube動画のタイトルとdescriptionを更新
@@ -55,6 +59,31 @@ confengine_to_youtube/
 - 繰り返しインスタンス化するオブジェクト（Builder等）はフィクスチャ化する
 - Mockを使う場合は `assert_called_once()` 等で呼び出しを検証する
 - テストでプライベート属性（`_xxx`）への直接アクセスや `patch` は避け、コンストラクタ引数で依存性を注入する
+
+### アサーションのパターン
+
+- **部分一致アサーションは禁止**: `assert "str" in "string"` のような部分一致は誤検出の原因になる
+- 代わりに以下のパターンを使用する:
+
+| 目的 | 推奨パターン | 避けるべきパターン |
+|---|---|---|
+| 完全一致 | `assert x == "expected"` | `assert "expected" in x` |
+| 前方一致 | `assert x.startswith("prefix")` | `assert "prefix" in x` |
+| 後方一致 | `assert x.endswith("suffix")` | `assert "suffix" in x` |
+| 型チェック | `assert isinstance(error, MyError)` | `assert "MyError" in type(error).__name__` |
+| プロパティ検証 | `assert error.video_id == "abc"` | `assert "abc" in str(error)` |
+| 行の存在確認 | `assert "line" in output.splitlines()` | `assert "line" in output` |
+
+```python
+# 非推奨: 部分一致
+assert "エラー" in result.failure().message
+assert "ValidationError" in type(error).__name__
+
+# 推奨: 完全一致または明示的なパターン
+assert result.failure().message == "タイトルは必須エラーです"
+assert isinstance(error, ValidationError)
+assert result.failure().message.startswith("フレーム部分")
+```
 
 ### 依存性注入
 

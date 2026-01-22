@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import ClassVar
 
@@ -21,3 +22,18 @@ class YouTubeDescription:
 
     def __str__(self) -> str:  # noqa: D105
         return self.value
+
+    @staticmethod
+    def sanitize_for_youtube(text: str) -> str:
+        """YouTube description で無効な文字を置換
+
+        YouTubeは < > を許可しないため、これらを置換する。
+        - <URL> パターンはURLだけを残す
+        - 残りの < は U+2039 (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) に置換
+        - > は U+203A (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) に置換
+        """
+        # URLを囲む山括弧を除去
+        text = re.sub(pattern=r"<(https?://[^>]+)>", repl=r"\1", string=text)
+
+        # 残りの < > を置換
+        return text.replace("<", "\u2039").replace(">", "\u203a")

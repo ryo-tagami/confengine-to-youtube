@@ -8,10 +8,6 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
-from confengine_to_youtube.adapters.youtube_description_builder import (
-    YouTubeDescriptionBuilder,
-)
-from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_to_youtube.domain.abstract_markdown import AbstractMarkdown
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.session import Session, Speaker
@@ -87,18 +83,6 @@ def empty_session() -> Session:
         abstract=AbstractMarkdown(content=""),
         url="https://example.com/session/2",
     )
-
-
-@pytest.fixture
-def title_builder() -> YouTubeTitleBuilder:
-    """YouTubeTitleBuilder のインスタンス"""
-    return YouTubeTitleBuilder()
-
-
-@pytest.fixture
-def description_builder() -> YouTubeDescriptionBuilder:
-    """YouTubeDescriptionBuilder のインスタンス"""
-    return YouTubeDescriptionBuilder()
 
 
 @pytest.fixture

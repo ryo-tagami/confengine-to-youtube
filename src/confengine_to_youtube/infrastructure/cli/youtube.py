@@ -15,10 +15,6 @@ from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
-from confengine_to_youtube.adapters.youtube_description_builder import (
-    YouTubeDescriptionBuilder,
-)
-from confengine_to_youtube.adapters.youtube_title_builder import YouTubeTitleBuilder
 from confengine_to_youtube.infrastructure.cli.diff_formatter import DiffFormatter
 from confengine_to_youtube.infrastructure.http_client import HttpClient
 from confengine_to_youtube.infrastructure.youtube_auth import YouTubeAuthClient
@@ -80,15 +76,10 @@ def run(args: argparse.Namespace) -> None:
     )
     youtube_api = YouTubeApiGateway(auth_provider=auth_client, youtube=None)
 
-    description_builder = YouTubeDescriptionBuilder()
-    title_builder = YouTubeTitleBuilder()
-
     usecase = UpdateYouTubeDescriptionsUseCase(
         confengine_api=confengine_api,
         mapping_reader=mapping_reader,
         youtube_api=youtube_api,
-        description_builder=description_builder,
-        title_builder=title_builder,
     )
 
     try:
