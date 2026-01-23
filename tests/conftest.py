@@ -9,8 +9,9 @@ import pytest
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-from confengine_to_youtube.domain.session import Session, Speaker
+from confengine_to_youtube.domain.session import Session
 from confengine_to_youtube.domain.session_abstract import SessionAbstract
+from confengine_to_youtube.domain.speaker import Speaker
 
 
 def create_session(  # noqa: PLR0913

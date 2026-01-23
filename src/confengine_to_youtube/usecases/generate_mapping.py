@@ -40,9 +40,8 @@ class GenerateMappingUseCase:
         schedule = self._confengine_api.fetch_schedule(conf_id=conf_id)
 
         self._mapping_writer.write(
-            sessions=schedule.sessions,
+            schedule=schedule,
             output=output,
-            conf_id=schedule.conf_id,
             generated_at=self._clock(),
         )
 

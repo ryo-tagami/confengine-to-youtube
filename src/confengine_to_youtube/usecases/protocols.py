@@ -9,14 +9,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from datetime import datetime
     from pathlib import Path
     from typing import TextIO
     from zoneinfo import ZoneInfo
 
     from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
-    from confengine_to_youtube.domain.session import Session
     from confengine_to_youtube.domain.session_abstract import SessionAbstract
     from confengine_to_youtube.domain.video_mapping import MappingConfig
     from confengine_to_youtube.usecases.dto import VideoInfo, VideoUpdateRequest
@@ -53,9 +51,8 @@ class MappingWriterProtocol(Protocol):  # pragma: no cover
 
     def write(
         self,
-        sessions: Sequence[Session],
+        schedule: ConferenceSchedule,
         output: TextIO,
-        conf_id: str,
         generated_at: datetime,
     ) -> None:
         """マッピングファイルを書き込む"""

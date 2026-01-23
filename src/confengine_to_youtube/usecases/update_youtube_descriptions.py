@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING
 
 from returns.result import Failure, Result, Success
 
+from confengine_to_youtube.domain.youtube_content_generator import (
+    YouTubeContentGenerator,
+)
 from confengine_to_youtube.usecases.dto import (
     SessionProcessError,
     UpdatePreview,
@@ -94,8 +97,9 @@ class UpdateYouTubeDescriptionsUseCase:
                 DomainError,
             ] = Result.do(
                 (title, description)
-                for title in session.youtube_title
-                for description in session.to_youtube_description(
+                for title in YouTubeContentGenerator.generate_title(session=session)
+                for description in YouTubeContentGenerator.generate_description(
+                    session=session,
                     hashtags=mapping_config.hashtags,
                     footer=mapping_config.footer,
                 )

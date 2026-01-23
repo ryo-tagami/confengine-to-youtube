@@ -15,10 +15,9 @@ from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from zoneinfo import ZoneInfo
 
-    from confengine_to_youtube.domain.session import Session
+    from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
 
 # Reader用スキーマ
 
@@ -161,19 +160,18 @@ class MappingFileWithCommentSchema(BaseModel):
     sessions: DateSlotsWithCommentSchema
 
     @classmethod
-    def from_sessions(
+    def from_conference_schedule(
         cls,
-        sessions: Sequence[Session],
-        conf_id: str,
+        schedule: ConferenceSchedule,
     ) -> Self:
-        """Sessionリストからマッピングファイルのテンプレートを生成する。
+        """ConferenceScheduleからマッピングファイルのテンプレートを生成する。
 
         hashtagsとfooterは空で初期化される。
         生成されたYAMLファイルをユーザーが手動で編集することを想定している。
         """
         date_slots: dict[date, RoomSlotsWithCommentSchema] = {}
 
-        for session in sessions:
+        for session in schedule.sessions:
             session_date = session.slot.timeslot.date()
             session_time = session.slot.timeslot.time()
             room = session.slot.room
@@ -194,24 +192,13 @@ class MappingFileWithCommentSchema(BaseModel):
                 TimeSlotsWithCommentSchema(root={}),
             ).root
 
-            # 重複チェック
-            if session_time in time_slots:
-                existing = time_slots[session_time]
-                msg = (
-                    f"Duplicate session detected: "
-                    f"{session_date} {session_time.strftime(format='%H:%M')} {room}\n"
-                    f"  Existing: {existing.comment}\n"
-                    f"  New: {comment}"
-                )
-                raise ValueError(msg)
-
             time_slots[session_time] = SessionEntryWithComment(
                 video_id="",
                 comment=comment,
             )
 
         return cls(
-            conf_id=conf_id,
+            conf_id=schedule.conf_id,
             hashtags=[],
             footer="",
             sessions=DateSlotsWithCommentSchema(root=date_slots),
