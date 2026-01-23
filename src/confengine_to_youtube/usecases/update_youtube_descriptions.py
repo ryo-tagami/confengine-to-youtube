@@ -20,12 +20,11 @@ from confengine_to_youtube.usecases.dto import (
 logger = logging.getLogger(name=__name__)
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from pathlib import Path
 
+    from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
     from confengine_to_youtube.domain.errors import DomainError
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-    from confengine_to_youtube.domain.session import Session
     from confengine_to_youtube.domain.video_mapping import MappingConfig
     from confengine_to_youtube.domain.youtube_description import YouTubeDescription
     from confengine_to_youtube.domain.youtube_title import YouTubeTitle
@@ -58,14 +57,14 @@ class UpdateYouTubeDescriptionsUseCase:
         mapping_config = mapping.to_domain(timezone=schedule.timezone)
 
         return self._execute(
-            sessions=schedule.sessions,
+            schedule=schedule,
             mapping_config=mapping_config,
             dry_run=dry_run,
         )
 
     def _execute(
         self,
-        sessions: Sequence[Session],
+        schedule: ConferenceSchedule,
         mapping_config: MappingConfig,
         *,
         dry_run: bool,
@@ -73,15 +72,12 @@ class UpdateYouTubeDescriptionsUseCase:
         previews: list[UpdatePreview] = []
         errors: list[SessionProcessError] = []
         updated_count = 0
-        no_content_count = 0
         no_mapping_count = 0
         used_slots: set[ScheduleSlot] = set()
 
-        for session in sessions:
-            if not session.has_content:
-                no_content_count += 1
-                continue
+        sessions_with_content = schedule.sessions_with_content()
 
+        for session in sessions_with_content:
             mapping = mapping_config.find_mapping(slot=session.slot)
 
             if mapping is None:
@@ -155,6 +151,8 @@ class UpdateYouTubeDescriptionsUseCase:
             mapping_config=mapping_config,
             used_slots=used_slots,
         )
+
+        no_content_count = len(schedule.sessions) - len(sessions_with_content)
 
         return YouTubeUpdateResult(
             is_dry_run=dry_run,
