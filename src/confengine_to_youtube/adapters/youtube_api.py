@@ -24,7 +24,7 @@ class YouTubeSnippet(BaseModel):
 
     title: str
     description: str
-    categoryId: str  # noqa: N815 # APIは文字列で返す
+    categoryId: int  # noqa: N815
 
 
 class YouTubeVideoItem(BaseModel):
@@ -50,7 +50,7 @@ def _video_info_from_api_response(item: YouTubeVideoItem) -> VideoInfo:
         video_id=item.id,
         title=item.snippet.title,
         description=item.snippet.description,
-        category_id=int(item.snippet.categoryId),
+        category_id=item.snippet.categoryId,
     )
 
 
