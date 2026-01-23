@@ -34,3 +34,7 @@ class ConferenceSchedule:
                 raise ValueError(msg)
 
             seen.add(session.slot)
+
+    def sessions_with_content(self) -> tuple[Session, ...]:
+        """コンテンツのあるセッションのみ取得"""
+        return tuple(s for s in self.sessions if s.has_content)
