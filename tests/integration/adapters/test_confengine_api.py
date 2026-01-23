@@ -7,8 +7,8 @@ from zoneinfo import ZoneInfo
 from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
 from confengine_to_youtube.adapters.protocols import HttpClientProtocol
-from confengine_to_youtube.domain.session import Speaker
 from confengine_to_youtube.domain.session_abstract import SessionAbstract
+from confengine_to_youtube.domain.speaker import Speaker
 
 
 class TestConfEngineApiGateway:

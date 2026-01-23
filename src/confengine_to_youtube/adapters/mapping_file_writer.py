@@ -12,11 +12,10 @@ from confengine_to_youtube.adapters.mapping_schema import MappingFileWithComment
 from confengine_to_youtube.domain.constants import TITLE_SPEAKER_SEPARATOR
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from datetime import datetime
     from typing import TextIO
 
-    from confengine_to_youtube.domain.session import Session
+    from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
 
 # コメント行の最大幅 (80文字 - インデント8文字 - "# " 2文字 = 70文字)
 _COMMENT_WIDTH = 70
@@ -34,14 +33,12 @@ def _get_budoux_parser() -> budoux.Parser:
 class MappingFileWriter:
     def write(
         self,
-        sessions: Sequence[Session],
+        schedule: ConferenceSchedule,
         output: TextIO,
-        conf_id: str,
         generated_at: datetime,
     ) -> None:
-        schema = MappingFileWithCommentSchema.from_sessions(
-            sessions=sessions,
-            conf_id=conf_id,
+        schema = MappingFileWithCommentSchema.from_conference_schedule(
+            schedule=schedule,
         )
 
         self._schema_to_yaml(

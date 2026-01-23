@@ -6,7 +6,8 @@ from zoneinfo import ZoneInfo
 from confengine_to_youtube.adapters.confengine_schema import ScheduleResponse
 from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-from confengine_to_youtube.domain.session import Session, Speaker
+from confengine_to_youtube.domain.session import Session
+from confengine_to_youtube.domain.speaker import Speaker
 
 if TYPE_CHECKING:
     from confengine_to_youtube.adapters.confengine_schema import ApiSession

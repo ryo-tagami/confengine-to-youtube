@@ -2,36 +2,40 @@ from datetime import datetime
 from io import StringIO
 from zoneinfo import ZoneInfo
 
-import pytest
-
 from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
+from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-from confengine_to_youtube.domain.session import Session, Speaker
+from confengine_to_youtube.domain.session import Session
 from confengine_to_youtube.domain.session_abstract import SessionAbstract
+from confengine_to_youtube.domain.speaker import Speaker
 
 
 class TestMappingFileWriter:
     def test_write_single_session(self, jst: ZoneInfo) -> None:
-        sessions = [
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="Clean Architecture入門",
+                    track="技術",
+                    speakers=(Speaker(first_name="", last_name="田中太郎"),),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session1",
                 ),
-                title="Clean Architecture入門",
-                track="技術",
-                speakers=(Speaker(first_name="", last_name="田中太郎"),),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session1",
             ),
-        ]
+        )
         generated_at = datetime(
             year=2026,
             month=1,
@@ -45,9 +49,8 @@ class TestMappingFileWriter:
         writer = MappingFileWriter()
         output = StringIO()
         writer.write(
-            sessions=sessions,
+            schedule=schedule,
             output=output,
-            conf_id="test-conf",
             generated_at=generated_at,
         )
         result = output.getvalue()
@@ -78,29 +81,33 @@ class TestMappingFileWriter:
         assert result == expected
 
     def test_write_multiple_speakers(self, jst: ZoneInfo) -> None:
-        sessions = [
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=11,
-                        minute=0,
-                        tzinfo=jst,
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=11,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="ペアプロ実践",
+                    track="技術",
+                    speakers=(
+                        Speaker(first_name="", last_name="田中太郎"),
+                        Speaker(first_name="", last_name="山田花子"),
+                    ),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session1",
                 ),
-                title="ペアプロ実践",
-                track="技術",
-                speakers=(
-                    Speaker(first_name="", last_name="田中太郎"),
-                    Speaker(first_name="", last_name="山田花子"),
-                ),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session1",
             ),
-        ]
+        )
         generated_at = datetime(
             year=2026,
             month=1,
@@ -114,9 +121,8 @@ class TestMappingFileWriter:
         writer = MappingFileWriter()
         output = StringIO()
         writer.write(
-            sessions=sessions,
+            schedule=schedule,
             output=output,
-            conf_id="test-conf",
             generated_at=generated_at,
         )
         result = output.getvalue()
@@ -147,44 +153,48 @@ class TestMappingFileWriter:
         assert result == expected
 
     def test_write_multiple_days(self, jst: ZoneInfo) -> None:
-        sessions = [
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=8,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=8,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="Day2 Session",
+                    track="技術",
+                    speakers=(Speaker(first_name="", last_name="佐藤"),),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session2",
                 ),
-                title="Day2 Session",
-                track="技術",
-                speakers=(Speaker(first_name="", last_name="佐藤"),),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session2",
-            ),
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="Day1 Session",
+                    track="技術",
+                    speakers=(Speaker(first_name="", last_name="鈴木"),),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session1",
                 ),
-                title="Day1 Session",
-                track="技術",
-                speakers=(Speaker(first_name="", last_name="鈴木"),),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session1",
             ),
-        ]
+        )
         generated_at = datetime(
             year=2026,
             month=1,
@@ -198,9 +208,8 @@ class TestMappingFileWriter:
         writer = MappingFileWriter()
         output = StringIO()
         writer.write(
-            sessions=sessions,
+            schedule=schedule,
             output=output,
-            conf_id="test-conf",
             generated_at=generated_at,
         )
         result = output.getvalue()
@@ -236,44 +245,48 @@ class TestMappingFileWriter:
         assert result == expected
 
     def test_write_multiple_rooms(self, jst: ZoneInfo) -> None:
-        sessions = [
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall B",
                     ),
-                    room="Hall B",
+                    title="Session in Hall B",
+                    track="技術",
+                    speakers=(Speaker(first_name="", last_name="佐藤"),),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session2",
                 ),
-                title="Session in Hall B",
-                track="技術",
-                speakers=(Speaker(first_name="", last_name="佐藤"),),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session2",
-            ),
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="Session in Hall A",
+                    track="技術",
+                    speakers=(Speaker(first_name="", last_name="鈴木"),),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session1",
                 ),
-                title="Session in Hall A",
-                track="技術",
-                speakers=(Speaker(first_name="", last_name="鈴木"),),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session1",
             ),
-        ]
+        )
         generated_at = datetime(
             year=2026,
             month=1,
@@ -287,9 +300,8 @@ class TestMappingFileWriter:
         writer = MappingFileWriter()
         output = StringIO()
         writer.write(
-            sessions=sessions,
+            schedule=schedule,
             output=output,
-            conf_id="test-conf",
             generated_at=generated_at,
         )
         result = output.getvalue()
@@ -324,7 +336,11 @@ class TestMappingFileWriter:
         assert result == expected
 
     def test_write_empty_sessions(self, jst: ZoneInfo) -> None:
-        sessions: tuple[Session, ...] = ()
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(),
+        )
         generated_at = datetime(
             year=2026,
             month=1,
@@ -338,9 +354,8 @@ class TestMappingFileWriter:
         writer = MappingFileWriter()
         output = StringIO()
         writer.write(
-            sessions=sessions,
+            schedule=schedule,
             output=output,
-            conf_id="test-conf",
             generated_at=generated_at,
         )
         result = output.getvalue()
@@ -367,26 +382,30 @@ class TestMappingFileWriter:
 
     def test_write_session_without_speakers(self, jst: ZoneInfo) -> None:
         """スピーカーなしのセッションではタイトルのみがコメントに出力される"""
-        sessions = [
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title="パネルディスカッション",
+                    track="技術",
+                    speakers=(),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session1",
                 ),
-                title="パネルディスカッション",
-                track="技術",
-                speakers=(),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session1",
             ),
-        ]
+        )
         generated_at = datetime(
             year=2026,
             month=1,
@@ -400,9 +419,8 @@ class TestMappingFileWriter:
         writer = MappingFileWriter()
         output = StringIO()
         writer.write(
-            sessions=sessions,
+            schedule=schedule,
             output=output,
-            conf_id="test-conf",
             generated_at=generated_at,
         )
         result = output.getvalue()
@@ -439,26 +457,30 @@ class TestMappingFileWriter:
         long_title = (
             "アジャイル開発における継続的インテグレーションの実践と課題について"
         )
-        sessions = [
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
                     ),
-                    room="Hall A",
+                    title=long_title,
+                    track="技術",
+                    speakers=(Speaker(first_name="", last_name="田中太郎"),),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session1",
                 ),
-                title=long_title,
-                track="技術",
-                speakers=(Speaker(first_name="", last_name="田中太郎"),),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session1",
             ),
-        ]
+        )
         generated_at = datetime(
             year=2026,
             month=1,
@@ -472,9 +494,8 @@ class TestMappingFileWriter:
         writer = MappingFileWriter()
         output = StringIO()
         writer.write(
-            sessions=sessions,
+            schedule=schedule,
             output=output,
-            conf_id="test-conf",
             generated_at=generated_at,
         )
         result = output.getvalue()
@@ -509,66 +530,3 @@ class TestMappingFileWriter:
             "        video_id: ''\n"
         )
         assert result == expected
-
-    def test_duplicate_session_raises_error(self, jst: ZoneInfo) -> None:
-        """同じ日時・部屋に複数セッションがある場合はエラー"""
-        sessions = [
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
-                    ),
-                    room="Hall A",
-                ),
-                title="Session 1",
-                track="技術",
-                speakers=(Speaker(first_name="Speaker", last_name="A"),),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session1",
-            ),
-            Session(
-                slot=ScheduleSlot(
-                    timeslot=datetime(
-                        year=2026,
-                        month=1,
-                        day=7,
-                        hour=10,
-                        minute=0,
-                        tzinfo=jst,
-                    ),
-                    room="Hall A",
-                ),
-                title="Session 2",
-                track="技術",
-                speakers=(Speaker(first_name="Speaker", last_name="B"),),
-                abstract=SessionAbstract(content="概要"),
-                url="https://example.com/session2",
-            ),
-        ]
-        generated_at = datetime(
-            year=2026,
-            month=1,
-            day=19,
-            hour=10,
-            minute=30,
-            second=0,
-            tzinfo=jst,
-        )
-
-        writer = MappingFileWriter()
-        output = StringIO()
-        with pytest.raises(
-            expected_exception=ValueError,
-            match="Duplicate session detected",
-        ):
-            writer.write(
-                sessions=sessions,
-                output=output,
-                conf_id="test-conf",
-                generated_at=generated_at,
-            )
