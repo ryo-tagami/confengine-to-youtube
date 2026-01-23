@@ -30,7 +30,7 @@ class VideoUpdateRequest:
 
 
 @dataclass(frozen=True)
-class UpdatePreview:
+class VideoUpdatePreview:
     """更新プレビュー情報"""
 
     session_key: str
@@ -51,11 +51,11 @@ class SessionProcessError:
 
 
 @dataclass(frozen=True)
-class YouTubeUpdateResult:
-    """YouTube更新結果"""
+class VideoUpdateResult:
+    """動画更新結果"""
 
     is_dry_run: bool
-    previews: tuple[UpdatePreview, ...]
+    previews: tuple[VideoUpdatePreview, ...]
     updated_count: int = 0
     no_content_count: int = 0
     no_mapping_count: int = 0

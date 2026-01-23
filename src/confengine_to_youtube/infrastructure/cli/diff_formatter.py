@@ -13,7 +13,7 @@ from confengine_to_youtube.infrastructure.cli.constants import PREVIEW_TRUNCATE_
 if TYPE_CHECKING:
     from rich.console import Console
 
-    from confengine_to_youtube.usecases.dto import UpdatePreview
+    from confengine_to_youtube.usecases.dto import VideoUpdatePreview
 
 
 class DiffFormatter:
@@ -26,7 +26,7 @@ class DiffFormatter:
         """ヘッダーメッセージを表示"""
         self._console.print(f"[bold]{message}[/bold]")
 
-    def print_preview(self, preview: UpdatePreview, index: int) -> None:
+    def print_preview(self, preview: VideoUpdatePreview, index: int) -> None:
         """プレビューを色付きdiff形式で表示"""
         self._console.print(
             f"\n[bold][{index}] {preview.session_key}[/bold]",

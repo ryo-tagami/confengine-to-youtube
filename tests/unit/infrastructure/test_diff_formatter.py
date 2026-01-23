@@ -7,7 +7,7 @@ from io import StringIO
 from rich.console import Console
 
 from confengine_to_youtube.infrastructure.cli.diff_formatter import DiffFormatter
-from confengine_to_youtube.usecases.dto import UpdatePreview
+from confengine_to_youtube.usecases.dto import VideoUpdatePreview
 
 
 class TestDiffFormatter:
@@ -19,7 +19,7 @@ class TestDiffFormatter:
         console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
-        preview = UpdatePreview(
+        preview = VideoUpdatePreview(
             session_key="2026-01-07T10:00:00+09:00_Hall A",
             video_id="video1",
             current_title="Old Title",
@@ -41,7 +41,7 @@ class TestDiffFormatter:
         console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
-        preview = UpdatePreview(
+        preview = VideoUpdatePreview(
             session_key="2026-01-07T10:00:00+09:00_Hall A",
             video_id="video1",
             current_title="Same Title",
@@ -64,7 +64,7 @@ class TestDiffFormatter:
         console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
-        preview = UpdatePreview(
+        preview = VideoUpdatePreview(
             session_key="2026-01-07T10:00:00+09:00_Hall A",
             video_id="video1",
             current_title="Same Title",
@@ -84,7 +84,7 @@ class TestDiffFormatter:
         console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
-        preview = UpdatePreview(
+        preview = VideoUpdatePreview(
             session_key="2026-01-07T10:00:00+09:00_Hall A",
             video_id="video1",
             current_title="Old Title",
@@ -119,7 +119,7 @@ class TestDiffFormatter:
 
         long_description = "X" * 250  # 200文字を超える
 
-        preview = UpdatePreview(
+        preview = VideoUpdatePreview(
             session_key="2026-01-07T10:00:00+09:00_Hall A",
             video_id="video1",
             current_title="Same Title",

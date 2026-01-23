@@ -7,16 +7,14 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import argparse
 
-    from confengine_to_youtube.usecases.dto import YouTubeUpdateResult
+    from confengine_to_youtube.usecases.dto import VideoUpdateResult
 
 from rich.console import Console
 
-from confengine_to_youtube.adapters.confengine_api import ConfEngineApiGateway
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
-from confengine_to_youtube.adapters.markdown_converter import MarkdownConverter
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
 from confengine_to_youtube.infrastructure.cli.diff_formatter import DiffFormatter
-from confengine_to_youtube.infrastructure.http_client import HttpClient
+from confengine_to_youtube.infrastructure.cli.factories import create_confengine_api
 from confengine_to_youtube.infrastructure.youtube_auth import YouTubeAuthClient
 from confengine_to_youtube.usecases.update_youtube_descriptions import (
     UpdateYouTubeDescriptionsUseCase,
@@ -48,12 +46,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def run(args: argparse.Namespace) -> None:
-    http_client = HttpClient()
-    confengine_api = ConfEngineApiGateway(
-        http_client=http_client,
-        markdown_converter=MarkdownConverter(),
-    )
-
+    confengine_api = create_confengine_api()
     mapping_reader = MappingFileReader()
 
     credentials_path = Path(args.credentials)
@@ -96,7 +89,7 @@ def run(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
-def _print_result(result: YouTubeUpdateResult) -> None:
+def _print_result(result: VideoUpdateResult) -> None:
     if result.is_dry_run:
         formatter = DiffFormatter(console=Console(stderr=True))
 

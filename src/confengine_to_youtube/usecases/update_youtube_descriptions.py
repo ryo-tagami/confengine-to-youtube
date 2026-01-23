@@ -12,9 +12,9 @@ from confengine_to_youtube.domain.youtube_content_generator import (
 )
 from confengine_to_youtube.usecases.dto import (
     SessionProcessError,
-    UpdatePreview,
+    VideoUpdatePreview,
     VideoUpdateRequest,
-    YouTubeUpdateResult,
+    VideoUpdateResult,
 )
 
 logger = logging.getLogger(name=__name__)
@@ -51,7 +51,7 @@ class UpdateYouTubeDescriptionsUseCase:
         mapping_file: Path,
         *,
         dry_run: bool = False,
-    ) -> YouTubeUpdateResult:
+    ) -> VideoUpdateResult:
         mapping = self._mapping_reader.read(file_path=mapping_file)
         schedule = self._confengine_api.fetch_schedule(conf_id=mapping.conf_id)
         mapping_config = mapping.to_domain(timezone=schedule.timezone)
@@ -68,8 +68,8 @@ class UpdateYouTubeDescriptionsUseCase:
         mapping_config: MappingConfig,
         *,
         dry_run: bool,
-    ) -> YouTubeUpdateResult:
-        previews: list[UpdatePreview] = []
+    ) -> VideoUpdateResult:
+        previews: list[VideoUpdatePreview] = []
         errors: list[SessionProcessError] = []
         updated_count = 0
         no_mapping_count = 0
@@ -122,7 +122,7 @@ class UpdateYouTubeDescriptionsUseCase:
                     )
 
                     previews.append(
-                        UpdatePreview(
+                        VideoUpdatePreview(
                             session_key=str(session.slot),
                             video_id=mapping.video_id,
                             current_title=video_info.title,
@@ -154,7 +154,7 @@ class UpdateYouTubeDescriptionsUseCase:
 
         no_content_count = len(schedule.sessions) - len(sessions_with_content)
 
-        return YouTubeUpdateResult(
+        return VideoUpdateResult(
             is_dry_run=dry_run,
             previews=tuple(previews),
             updated_count=updated_count,
