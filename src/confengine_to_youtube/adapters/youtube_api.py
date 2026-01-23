@@ -24,7 +24,7 @@ class YouTubeSnippet(BaseModel):
 
     title: str
     description: str
-    categoryId: int  # noqa: N815
+    categoryId: int  # noqa: N815  # YouTube API returns categoryId as a string; Pydantic coerces it to int
 
 
 class YouTubeVideoItem(BaseModel):
