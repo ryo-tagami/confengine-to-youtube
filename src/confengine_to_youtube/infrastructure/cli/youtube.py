@@ -1,13 +1,9 @@
 from __future__ import annotations
 
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import argparse
-
-    from confengine_to_youtube.usecases.dto import VideoUpdateResult
 
 from rich.console import Console
 
@@ -19,6 +15,31 @@ from confengine_to_youtube.infrastructure.youtube_auth import YouTubeAuthClient
 from confengine_to_youtube.usecases.update_youtube_descriptions import (
     UpdateYouTubeDescriptionsUseCase,
 )
+
+if TYPE_CHECKING:
+    import argparse
+
+    from confengine_to_youtube.usecases.dto import VideoUpdateResult
+
+
+@dataclass(frozen=True)
+class YouTubeUpdateConfig:
+    """youtube-update コマンドの設定"""
+
+    mapping_file: Path
+    credentials_path: Path
+    token_path: Path
+    dry_run: bool
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace) -> YouTubeUpdateConfig:
+        """argparse.Namespace から設定オブジェクトを生成"""
+        return cls(
+            mapping_file=Path(args.mapping),
+            credentials_path=Path(args.credentials),
+            token_path=Path(args.token),
+            dry_run=args.dry_run,
+        )
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:
@@ -46,15 +67,11 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def run(args: argparse.Namespace) -> None:
-    confengine_api = create_confengine_api()
-    mapping_reader = MappingFileReader()
+    config = YouTubeUpdateConfig.from_args(args=args)
 
-    credentials_path = Path(args.credentials)
-    token_path = Path(args.token)
-
-    if not credentials_path.exists():
+    if not config.credentials_path.exists():
         print(  # noqa: T201
-            f"Error: credentials file not found: {credentials_path}",
+            f"Error: credentials file not found: {config.credentials_path}",
             file=sys.stderr,
         )
         print(  # noqa: T201
@@ -63,9 +80,12 @@ def run(args: argparse.Namespace) -> None:
         )
         sys.exit(1)
 
+    confengine_api = create_confengine_api()
+    mapping_reader = MappingFileReader()
+
     auth_client = YouTubeAuthClient(
-        credentials_path=credentials_path,
-        token_path=token_path,
+        credentials_path=config.credentials_path,
+        token_path=config.token_path,
     )
     youtube_api = YouTubeApiGateway.from_auth_provider(auth_provider=auth_client)
 
@@ -77,8 +97,8 @@ def run(args: argparse.Namespace) -> None:
 
     try:
         result = usecase.execute(
-            mapping_file=Path(args.mapping),
-            dry_run=args.dry_run,
+            mapping_file=config.mapping_file,
+            dry_run=config.dry_run,
         )
 
         _print_result(result=result)

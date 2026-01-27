@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Self
 
 from googleapiclient.discovery import build
 from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
 
 from confengine_to_youtube.usecases.dto import VideoInfo, VideoUpdateRequest
 from confengine_to_youtube.usecases.errors import VideoNotFoundError
@@ -20,11 +21,16 @@ if TYPE_CHECKING:
 class YouTubeSnippet(BaseModel):
     """YouTube API snippet レスポンス"""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(
+        frozen=True,
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
 
     title: str
     description: str
-    categoryId: int  # noqa: N815  # YouTube API returns categoryId as a string; Pydantic coerces it to int
+    # YouTube API returns categoryId as a string; Pydantic coerces it to int
+    category_id: int
 
 
 class YouTubeVideoItem(BaseModel):
@@ -50,7 +56,7 @@ def _video_info_from_api_response(item: YouTubeVideoItem) -> VideoInfo:
         video_id=item.id,
         title=item.snippet.title,
         description=item.snippet.description,
-        category_id=item.snippet.categoryId,
+        category_id=item.snippet.category_id,
     )
 
 

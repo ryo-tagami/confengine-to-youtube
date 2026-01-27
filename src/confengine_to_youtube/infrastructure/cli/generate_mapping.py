@@ -2,17 +2,34 @@ from __future__ import annotations
 
 import sys
 from contextlib import AbstractContextManager, nullcontext
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
+from confengine_to_youtube.infrastructure.cli.factories import create_confengine_api
+from confengine_to_youtube.usecases.generate_mapping import GenerateMappingUseCase
 
 if TYPE_CHECKING:
     import argparse
     from typing import TextIO
 
-from confengine_to_youtube.adapters.mapping_file_writer import MappingFileWriter
-from confengine_to_youtube.infrastructure.cli.factories import create_confengine_api
-from confengine_to_youtube.usecases.generate_mapping import GenerateMappingUseCase
+
+@dataclass(frozen=True)
+class GenerateMappingConfig:
+    """generate-mapping コマンドの設定"""
+
+    conf_id: str
+    output_path: Path | None
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace) -> GenerateMappingConfig:
+        """argparse.Namespace から設定オブジェクトを生成"""
+        return cls(
+            conf_id=args.conf_id,
+            output_path=Path(args.output) if args.output else None,
+        )
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:
@@ -28,6 +45,8 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def run(args: argparse.Namespace) -> None:
+    config = GenerateMappingConfig.from_args(args=args)
+
     confengine_api = create_confengine_api()
     mapping_writer = MappingFileWriter()
 
@@ -40,17 +59,16 @@ def run(args: argparse.Namespace) -> None:
     try:
         output_context: AbstractContextManager[TextIO]
 
-        if args.output:
-            output_path = Path(args.output)
-            output_context = output_path.open(mode="w", encoding="utf-8")
-            output_name = str(output_path)
+        if config.output_path:
+            output_context = config.output_path.open(mode="w", encoding="utf-8")
+            output_name = str(config.output_path)
         else:
             output_context = nullcontext(sys.stdout)
             output_name = "stdout"
 
         with output_context as f:
             result = usecase.execute(
-                conf_id=args.conf_id,
+                conf_id=config.conf_id,
                 output=f,
             )
 
