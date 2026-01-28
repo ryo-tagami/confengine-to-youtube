@@ -1,6 +1,6 @@
 # confengine-to-youtube
 
-ConfEngineのセッション情報を使ってYouTube動画のタイトルとdescriptionを更新するCLIツール。
+ConfEngineのセッション情報を使ってYouTube動画のタイトル、description、プレイリストを更新するCLIツール。
 
 ## 必要要件
 
@@ -66,6 +66,7 @@ uv run confengine-to-youtube youtube-update -m <マッピングファイル> [�
 
 ```yaml
 conf_id: regional-scrum-gathering-tokyo-2026
+playlist_id: PLxxxxxxxxxxxxxxxx  # YouTube Studioで事前に作成したプレイリストID
 hashtags:
   - "#RSGT2026"
 footer: "カンファレンス公式サイト: https://example.com"
@@ -77,6 +78,13 @@ sessions:
     Hall B:
       "09:30": { video_id: "zzzzzzzzzzz" }
 ```
+
+### プレイリスト同期
+
+`playlist_id`を指定すると、プレイリスト内の動画がセッションのスケジュール順に並べ替えられます。
+
+- マッピングに含まれる動画: セッション順（日付→時間→ルーム）で先頭から配置
+- マッピングに含まれない動画: プレイリスト末尾に移動
 
 ### 実行例
 

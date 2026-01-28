@@ -50,6 +50,7 @@ class TestMappingConfig:
         )
         config = MappingConfig(
             conf_id="test-conf",
+            playlist_id="",
             mappings=mappings,
             hashtags=(),
             footer="",
@@ -73,6 +74,7 @@ class TestMappingConfig:
         mappings = frozenset({VideoMapping(slot=slot, video_id="abc123")})
         config = MappingConfig(
             conf_id="test-conf",
+            playlist_id="",
             mappings=mappings,
             hashtags=(),
             footer="",
@@ -109,6 +111,7 @@ class TestMappingConfig:
         )
         config = MappingConfig(
             conf_id="test-conf",
+            playlist_id="",
             mappings=mappings,
             hashtags=(),
             footer="",
@@ -137,6 +140,7 @@ class TestMappingConfig:
         """hashtagsを指定してMappingConfigを作成できる"""
         config = MappingConfig(
             conf_id="test-conf",
+            playlist_id="",
             mappings=frozenset(),
             hashtags=("#RSGT2026", "#Agile", "#Scrum"),
             footer="",

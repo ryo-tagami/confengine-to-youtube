@@ -13,6 +13,7 @@ from tests.conftest import write_yaml_file
 class TestMappingFileReader:
     _YAML_CONTENT = """
 conf_id: test-conf
+playlist_id: "PLtest123"
 sessions:
   "2026-01-07":
     "Hall A":
@@ -156,6 +157,7 @@ sessions:
         """
         yaml_content = """
 conf_id: test-conf
+playlist_id: "PLtest123"
 sessions:
   2026-01-07:
     Hall A:
@@ -190,6 +192,7 @@ sessions:
         """
         yaml_content = """
 conf_id: test-conf
+playlist_id: "PLtest123"
 sessions:
   2026-01-07T00:00:00:
     Hall A:
@@ -219,6 +222,7 @@ sessions:
         """hashtagsフィールドを含むYAMLファイルを読み込める"""
         yaml_content = """
 conf_id: test-conf
+playlist_id: "PLtest123"
 hashtags:
   - "#RSGT2026"
   - "#Agile"
@@ -250,6 +254,7 @@ sessions:
         """hashtagsフィールドがないYAMLファイルでもエラーにならない"""
         yaml_content = """
 conf_id: test-conf
+playlist_id: "PLtest123"
 sessions:
   2026-01-07:
     Hall A:
@@ -273,6 +278,7 @@ sessions:
         """footerフィールドを含むYAMLファイルを読み込める"""
         yaml_content = """
 conf_id: test-conf
+playlist_id: "PLtest123"
 footer: |
   Please subscribe to our channel!
   https://example.com
@@ -305,6 +311,7 @@ sessions:
         """footerフィールドがないYAMLファイルでもエラーにならない"""
         yaml_content = """
 conf_id: test-conf
+playlist_id: "PLtest123"
 sessions:
   2026-01-07:
     Hall A:
