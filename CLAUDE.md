@@ -47,6 +47,7 @@ confengine_to_youtube/
 ### ユースケース
 
 - `UpdateYouTubeDescriptionsUseCase`: セッション情報でYouTube動画のタイトルとdescriptionを更新
+- `SyncPlaylistUseCase`: マッピングされた動画をプレイリスト順に同期
 - `GenerateMappingUseCase`: マッピングYAML雛形を生成
 
 ### データフロー
@@ -63,6 +64,11 @@ confengine_to_youtube/
 - `from __future__ import annotations` を全ファイルで使用（`__init__.py` と `tests/` を除く）
 - 型ヒント専用のimportは `TYPE_CHECKING` ブロック内に配置
 - 関数・メソッド呼び出しでは、キーワード引数で渡せる引数は常にキーワード引数を使用する（位置専用引数を除く）
+
+## ドキュメント更新
+
+- 新機能追加時はREADME.mdも更新する
+- ユースケースやアーキテクチャに変更がある場合はCLAUDE.mdも更新する
 
 ## テストコード
 

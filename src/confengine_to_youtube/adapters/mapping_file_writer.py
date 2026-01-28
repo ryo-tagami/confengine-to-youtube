@@ -55,12 +55,24 @@ class MappingFileWriter:
     ) -> None:
         """PydanticスキーマをコメントつきYAMLとしてファイルに書き込む"""
         root = CommentedMap()
+
         root.yaml_set_start_comment(
             comment=f"ConfEngine Mapping Template\n"
             f"Generated: {generated_at.isoformat()}",
         )
 
         root["conf_id"] = schema.conf_id
+        root["playlist_id"] = schema.playlist_id
+
+        # fmt: off
+        root.yaml_set_comment_before_after_key(
+            key="playlist_id",
+            before=(
+                "プレイリストID (YouTube Studioで事前に作成)\n"
+                "例: PLxxxxxxxxxxxxxxxx"
+            ),
+        )
+        # fmt: on
 
         sessions_map = CommentedMap()
 
