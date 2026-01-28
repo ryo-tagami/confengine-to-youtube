@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from confengine_to_youtube.domain.errors import DomainError
+    from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
 
 
 @dataclass(frozen=True)
@@ -48,6 +50,48 @@ class SessionProcessError:
     session_key: str
     video_id: str
     error: DomainError
+
+
+@dataclass(frozen=True)
+class PlaylistItem:
+    """プレイリストアイテム"""
+
+    video_id: str
+    playlist_item_id: str
+    position: int
+
+
+class PlaylistOperationType(Enum):
+    """プレイリスト操作の種類"""
+
+    ADD = auto()
+    REORDER = auto()
+    UNCHANGED = auto()
+    MOVE_TO_END = auto()
+
+
+@dataclass(frozen=True)
+class PlaylistVideoOperation:
+    """プレイリスト操作の情報"""
+
+    video_id: str
+    title: str
+    operation: PlaylistOperationType
+    position: int
+    slot: ScheduleSlot | None = None
+
+
+@dataclass(frozen=True)
+class PlaylistSyncResult:
+    """プレイリスト同期結果"""
+
+    is_dry_run: bool
+    playlist_id: str
+    added_count: int
+    reordered_count: int
+    unchanged_count: int
+    moved_to_end_count: int
+    operations: tuple[PlaylistVideoOperation, ...]
 
 
 @dataclass(frozen=True)

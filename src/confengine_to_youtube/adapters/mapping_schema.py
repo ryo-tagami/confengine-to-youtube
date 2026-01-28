@@ -78,14 +78,20 @@ class DateSlotsSchema(RootModel[dict[date, RoomSlotsSchema]]):
         return result
 
 
-class MappingFileSchema(BaseModel):
-    """マッピングファイルのルートスキーマ (Reader用)"""
+class MappingFileBaseSchema(BaseModel):
+    """マッピングファイルの共通基底スキーマ"""
 
     model_config = ConfigDict(frozen=True)
 
     conf_id: str
     hashtags: list[str] = Field(default_factory=list)
     footer: str = ""
+
+
+class MappingFileSchema(MappingFileBaseSchema):
+    """マッピングファイルのルートスキーマ (Reader用)"""
+
+    playlist_id: str
     sessions: DateSlotsSchema
 
     def to_domain(self, timezone: ZoneInfo) -> MappingConfig:
@@ -112,6 +118,7 @@ class MappingFileSchema(BaseModel):
 
         return MappingConfig(
             conf_id=self.conf_id,
+            playlist_id=self.playlist_id,
             mappings=frozenset(mappings),
             hashtags=tuple(self.hashtags),
             footer=self.footer,
@@ -149,14 +156,10 @@ class DateSlotsWithCommentSchema(RootModel[dict[date, RoomSlotsWithCommentSchema
     model_config = ConfigDict(frozen=True)
 
 
-class MappingFileWithCommentSchema(BaseModel):
+class MappingFileWithCommentSchema(MappingFileBaseSchema):
     """マッピングファイルのルートスキーマ (Writer用)"""
 
-    model_config = ConfigDict(frozen=True)
-
-    conf_id: str
-    hashtags: list[str] = Field(default_factory=list)
-    footer: str = ""
+    playlist_id: str = ""
     sessions: DateSlotsWithCommentSchema
 
     @classmethod
