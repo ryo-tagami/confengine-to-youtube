@@ -64,6 +64,7 @@ class TestUpdateYouTubeDescriptionsUseCase:
         """テスト用マッピングファイル"""
         yaml_content = """
 conf_id: test-conf
+playlist_id: PLtest123
 sessions:
   "2026-01-07":
     "Hall A":
@@ -218,6 +219,7 @@ sessions:
         # 空のマッピングファイル
         yaml_content = """
 conf_id: test-conf
+playlist_id: PLtest123
 sessions: {}
 """
         mapping_file = write_yaml_file(
@@ -264,6 +266,7 @@ sessions: {}
         # マッピングには2セッション (1つは使われない)
         yaml_content = """
 conf_id: test-conf
+playlist_id: PLtest123
 sessions:
   "2026-01-07":
     "Hall A":
@@ -315,6 +318,7 @@ sessions:
 
         yaml_content = """
 conf_id: test-conf
+playlist_id: PLtest123
 hashtags:
   - "#RSGT2026"
   - "#Agile"
@@ -377,6 +381,7 @@ sessions:
         # フッターが長すぎるマッピング
         yaml_content = f"""
 conf_id: test-conf
+playlist_id: PLtest123
 footer: "{"X" * 6000}"
 sessions:
   "2026-01-07":

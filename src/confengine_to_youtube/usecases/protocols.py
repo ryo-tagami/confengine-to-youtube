@@ -17,7 +17,11 @@ if TYPE_CHECKING:
     from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
     from confengine_to_youtube.domain.session_abstract import SessionAbstract
     from confengine_to_youtube.domain.video_mapping import MappingConfig
-    from confengine_to_youtube.usecases.dto import VideoInfo, VideoUpdateRequest
+    from confengine_to_youtube.usecases.dto import (
+        PlaylistItem,
+        VideoInfo,
+        VideoUpdateRequest,
+    )
 
 
 class ConfEngineApiProtocol(Protocol):  # pragma: no cover
@@ -68,6 +72,29 @@ class YouTubeApiProtocol(Protocol):  # pragma: no cover
 
     def update_video(self, request: VideoUpdateRequest) -> None:
         """動画を更新する"""
+        ...
+
+    def list_playlist_items(self, playlist_id: str) -> dict[str, PlaylistItem]:
+        """プレイリスト内のアイテムを取得する
+
+        Returns:
+            video_id -> PlaylistItem のマッピング
+
+        """
+        ...
+
+    def add_to_playlist(self, playlist_id: str, video_id: str, position: int) -> None:
+        """動画をプレイリストに追加する"""
+        ...
+
+    def update_playlist_item_position(
+        self,
+        playlist_item_id: str,
+        playlist_id: str,
+        video_id: str,
+        position: int,
+    ) -> None:
+        """プレイリストアイテムの位置を更新する"""
         ...
 
 

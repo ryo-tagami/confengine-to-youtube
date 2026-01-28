@@ -5,10 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from googleapiclient.discovery import build
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
 
-from confengine_to_youtube.usecases.dto import VideoInfo, VideoUpdateRequest
+from confengine_to_youtube.adapters.youtube_schema import (
+    YouTubePlaylistItemsListResponse,
+    YouTubeVideoItem,
+    YouTubeVideosListResponse,
+)
+from confengine_to_youtube.usecases.dto import (
+    PlaylistItem,
+    VideoInfo,
+    VideoUpdateRequest,
+)
 from confengine_to_youtube.usecases.errors import VideoNotFoundError
 
 if TYPE_CHECKING:
@@ -16,38 +23,6 @@ if TYPE_CHECKING:
     from googleapiclient._apis.youtube.v3.schemas import Video, VideoSnippet
 
     from confengine_to_youtube.adapters.protocols import YouTubeAuthProvider
-
-
-class YouTubeSnippet(BaseModel):
-    """YouTube API snippet レスポンス"""
-
-    model_config = ConfigDict(
-        frozen=True,
-        alias_generator=to_camel,
-        populate_by_name=True,
-    )
-
-    title: str
-    description: str
-    # YouTube API returns categoryId as a string; Pydantic coerces it to int
-    category_id: int
-
-
-class YouTubeVideoItem(BaseModel):
-    """YouTube API video item レスポンス"""
-
-    model_config = ConfigDict(frozen=True)
-
-    id: str
-    snippet: YouTubeSnippet
-
-
-class YouTubeVideosListResponse(BaseModel):
-    """YouTube API videos.list レスポンス"""
-
-    model_config = ConfigDict(frozen=True)
-
-    items: list[YouTubeVideoItem]
 
 
 def _video_info_from_api_response(item: YouTubeVideoItem) -> VideoInfo:
@@ -103,4 +78,79 @@ class YouTubeApiGateway:
         self._youtube.videos().update(
             part="snippet",
             body=_to_api_body(request=request),
+        ).execute()
+
+    def list_playlist_items(self, playlist_id: str) -> dict[str, PlaylistItem]:
+        """プレイリスト内のアイテムを取得
+
+        Returns:
+            video_id -> PlaylistItem のマッピング
+
+        """
+        result: dict[str, PlaylistItem] = {}
+        page_token: str | None = None
+
+        while True:
+            response = (
+                self._youtube.playlistItems()
+                .list(
+                    part="snippet,contentDetails",
+                    playlistId=playlist_id,
+                    maxResults=50,
+                    pageToken=page_token,  # type: ignore[arg-type]
+                )
+                .execute()
+            )
+
+            parsed = YouTubePlaylistItemsListResponse.model_validate(obj=response)
+
+            for item in parsed.items:
+                result[item.content_details.video_id] = PlaylistItem(
+                    video_id=item.content_details.video_id,
+                    playlist_item_id=item.id,
+                    position=item.snippet.position,
+                )
+
+            if not (page_token := parsed.next_page_token):
+                break
+
+        return result
+
+    def add_to_playlist(self, playlist_id: str, video_id: str, position: int) -> None:
+        """動画をプレイリストに追加する"""
+        self._youtube.playlistItems().insert(
+            part="snippet",
+            body={
+                "snippet": {
+                    "playlistId": playlist_id,
+                    "position": position,
+                    "resourceId": {
+                        "kind": "youtube#video",
+                        "videoId": video_id,
+                    },
+                },
+            },
+        ).execute()
+
+    def update_playlist_item_position(
+        self,
+        playlist_item_id: str,
+        playlist_id: str,
+        video_id: str,
+        position: int,
+    ) -> None:
+        """プレイリストアイテムの位置を更新する"""
+        self._youtube.playlistItems().update(
+            part="snippet",
+            body={
+                "id": playlist_item_id,
+                "snippet": {
+                    "playlistId": playlist_id,
+                    "position": position,
+                    "resourceId": {
+                        "kind": "youtube#video",
+                        "videoId": video_id,
+                    },
+                },
+            },
         ).execute()
