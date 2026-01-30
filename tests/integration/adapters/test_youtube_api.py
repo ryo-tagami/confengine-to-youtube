@@ -28,7 +28,7 @@ class TestYouTubeApiGateway:
         mock_youtube: MagicMock,
     ) -> None:
         """動画情報を取得できる"""
-        mock_youtube.videos().list().execute.return_value = {
+        mock_youtube.videos.return_value.list.return_value.execute.return_value = {
             "items": [
                 {
                     "id": "abc123",
@@ -47,6 +47,11 @@ class TestYouTubeApiGateway:
         assert result.title == "Test Video"
         assert result.description == "Test Description"
         assert result.category_id == 28
+        mock_youtube.videos.return_value.list.assert_called_once_with(
+            part="snippet",
+            id="abc123",
+        )
+        mock_youtube.videos.return_value.list.return_value.execute.assert_called_once()
 
     def test_get_video_info_not_found(
         self,
@@ -54,9 +59,14 @@ class TestYouTubeApiGateway:
         mock_youtube: MagicMock,
     ) -> None:
         """動画が見つからない場合は例外"""
-        mock_youtube.videos().list().execute.return_value = {"items": []}
+        mock_youtube.videos.return_value.list.return_value.execute.return_value = {
+            "items": [],
+        }
 
-        with pytest.raises(expected_exception=VideoNotFoundError):
+        with pytest.raises(
+            expected_exception=VideoNotFoundError,
+            match=r"^Video not found: nonexistent$",
+        ):
             gateway.get_video_info(video_id="nonexistent")
 
     def test_update_video(
@@ -74,7 +84,7 @@ class TestYouTubeApiGateway:
 
         gateway.update_video(request=request)
 
-        mock_youtube.videos().update.assert_called_once_with(
+        mock_youtube.videos.return_value.update.assert_called_once_with(
             part="snippet",
             body={
                 "id": "abc123",
@@ -85,3 +95,4 @@ class TestYouTubeApiGateway:
                 },
             },
         )
+        mock_youtube.videos.return_value.update.return_value.execute.assert_called_once()

@@ -56,6 +56,7 @@ sessions:
 
         config = mapping.to_domain(timezone=jst)
 
+        assert config.conf_id == "test-conf"
         assert len(config.mappings) == 3
 
         slot = ScheduleSlot(

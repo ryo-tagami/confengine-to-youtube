@@ -99,9 +99,11 @@ uv run confengine-to-youtube youtube-update -m mapping.yaml
 ## 開発
 
 ```bash
-uv run task check   # lint + test を実行
-uv run task lint    # ruff check, ruff format --check, mypy
-uv run task test    # pytest
+uv run task check              # lint + test を実行
+uv run task lint               # ruff check, ruff format --check, mypy
+uv run task test               # pytest
+uv run task mutation           # ミューテーションテスト
+uv run task mutation-results   # ミューテーションテスト結果表示
 ```
 
 ## ライセンス
