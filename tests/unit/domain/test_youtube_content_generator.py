@@ -152,6 +152,48 @@ class TestGenerateTitle:
         # ラストネーム自体が切り詰められる (97文字 + "...")
         assert str(title) == "W" * 97 + "..."
 
+    @pytest.mark.parametrize(
+        ("last_name_length", "expected_str"),
+        [
+            # available == 0: reserved = 3(" - ") + 94 + 3("...") = 100
+            # → スピーカー名のみ返す (94文字)
+            (94, "W" * 94),
+            # available == 1: reserved = 3(" - ") + 93 + 3("...") = 99
+            # → タイトル1文字 + "..." + " - " + スピーカー名 (100文字)
+            (93, "X..." + " - " + "W" * 93),
+        ],
+        ids=[
+            "available_zero_returns_speaker_only",
+            "available_one_truncates_title",
+        ],
+    )
+    def test_truncation_available_boundary(
+        self,
+        last_name_length: int,
+        expected_str: str,
+    ) -> None:
+        """_truncate_title_keeping_speaker の available 境界値テスト
+
+        タイトルが長くスピーカーのラストネームも長い場合、
+        available (タイトルに使える文字数) の境界で動作が変わる:
+        - available == 0: スピーカー名のみ返す
+        - available == 1: タイトル1文字+省略記号+スピーカー名
+        """
+        session = create_session(
+            title="X" * 10,
+            speakers=[("V", "W" * last_name_length)],
+            abstract=ABSTRACT,
+            timeslot=TIMESLOT,
+            room=ROOM,
+            url=URL,
+        )
+        result = YouTubeContentGenerator.generate_title(session=session)
+
+        assert isinstance(result, Success)
+        title = result.unwrap()
+        assert len(str(title)) <= YouTubeTitle.MAX_LENGTH
+        assert str(title) == expected_str
+
     def test_speaker_without_first_name(self) -> None:
         """ファーストネームがないスピーカー"""
         session = create_session(
@@ -222,6 +264,21 @@ class TestGenerateTitle:
         title = result.unwrap()
         assert len(str(title)) == YouTubeTitle.MAX_LENGTH
         assert str(title) == "X" * 97 + "..."
+
+    def test_title_exactly_max_length_no_speakers(self) -> None:
+        """タイトルがちょうど最大長でスピーカーなしの場合、切り詰めなし"""
+        session = create_session(
+            title="X" * YouTubeTitle.MAX_LENGTH,
+            speakers=[],
+            abstract=ABSTRACT,
+            timeslot=TIMESLOT,
+            room=ROOM,
+            url=URL,
+        )
+        result = YouTubeContentGenerator.generate_title(session=session)
+
+        assert isinstance(result, Success)
+        assert str(result.unwrap()) == "X" * YouTubeTitle.MAX_LENGTH
 
     def test_multi_word_first_name(self) -> None:
         """複合ファーストネームの場合、各単語がイニシャル化される"""

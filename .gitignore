@@ -6,6 +6,7 @@ __pycache__/
 
 # Testing
 .coverage
+mutants/
 
 # Workspace (input/output files)
 workspace/*

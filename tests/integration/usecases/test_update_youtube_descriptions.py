@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import create_autospec
+from unittest.mock import call, create_autospec
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -9,7 +9,7 @@ from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.adapters.youtube_api import YouTubeApiGateway
 from confengine_to_youtube.domain.errors import FrameOverflowError
 from confengine_to_youtube.domain.session import Session
-from confengine_to_youtube.usecases.dto import VideoInfo
+from confengine_to_youtube.usecases.dto import VideoInfo, VideoUpdateRequest
 from confengine_to_youtube.usecases.protocols import (
     ConfEngineApiProtocol,
     YouTubeApiProtocol,
@@ -118,6 +118,7 @@ sessions:
         usecase: UpdateYouTubeDescriptionsUseCase,
         mapping_file: Path,
         mock_confengine_api: ConfEngineApiProtocol,
+        mock_youtube_api: YouTubeApiProtocol,
     ) -> None:
         """dry-runモードでプレビューを返す"""
         result = usecase.execute(
@@ -131,6 +132,9 @@ sessions:
 
         # ConfEngine APIが呼ばれたことを検証
         mock_confengine_api.fetch_schedule.assert_called_once()  # type: ignore[attr-defined]
+
+        # dry-runではupdate_videoが呼ばれないことを確認
+        mock_youtube_api.update_video.assert_not_called()  # type: ignore[attr-defined]
 
         # プレビューの内容を確認
         preview1 = result.previews[0]
@@ -157,8 +161,37 @@ sessions:
         assert result.no_content_count == 0
         assert result.no_mapping_count == 0
 
-        # YouTube APIが呼ばれたことを確認
-        assert mock_youtube_api.update_video.call_count == 2  # type: ignore[attr-defined]
+        # YouTube APIが正しい引数で呼ばれたことを確認
+        assert mock_youtube_api.update_video.call_args_list == [  # type: ignore[attr-defined]
+            call(
+                request=VideoUpdateRequest(
+                    video_id="video1",
+                    title="Session 1 - Speaker A",
+                    description=(
+                        "Speaker: Speaker A\n\n"
+                        "Abstract 1\n\n"
+                        "***\n\n"
+                        "https://example.com/1\n\n"
+                        "***"
+                    ),
+                    category_id=28,
+                ),
+            ),
+            call(
+                request=VideoUpdateRequest(
+                    video_id="video2",
+                    title="Session 2 - Speaker B",
+                    description=(
+                        "Speaker: Speaker B\n\n"
+                        "Abstract 2\n\n"
+                        "***\n\n"
+                        "https://example.com/2\n\n"
+                        "***"
+                    ),
+                    category_id=28,
+                ),
+            ),
+        ]
 
     def test_execute_skips_empty_sessions(
         self,

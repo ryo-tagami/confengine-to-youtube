@@ -10,6 +10,8 @@ uv run task lint           # ruff check, ruff format --check, mypy
 uv run task test           # pytest (カバレッジ付き)
 uv run pytest tests/path/to/test.py::test_name  # 単一テスト実行
 uv run ruff format .       # フォーマット
+uv run task mutation       # ミューテーションテスト実行
+uv run task mutation-results  # ミューテーションテスト結果表示
 ```
 
 ## アーキテクチャ
@@ -183,3 +185,19 @@ tests/
 1. CLIコマンドをsubprocess経由で実行
 2. 実際の外部APIに接続
 3. システム全体の動作を検証
+
+### ミューテーションテスト
+
+テストを新規実装・修正した後、`uv run task check` が通った段階でミューテーションテストを実行し、テストの有効性を検証する。
+
+```bash
+# テスト対象モジュールに限定して実行（高速）
+PYTEST_ADDOPTS='--no-cov' uv run python scripts/run_mutmut.py run --paths-to-mutate=src/confengine_to_youtube/path/to/module.py
+
+# 結果確認
+uv run mutmut results
+```
+
+- 生き残ったミュータントのうち、妥当に殺されるべきものがあればテストを改善する
+- 等価ミュータント（プログラムの動作が変わらないミューテーション）は無視してよい
+- 前回の結果が `mutants/` に残っている場合は削除してから実行する

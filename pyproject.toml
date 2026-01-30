@@ -23,6 +23,7 @@ dev = [
     "google-api-python-client-stubs",
     "google-auth-stubs",
     "import-linter",
+    "mutmut>=3.4",
     "mypy",
     "pytest",
     "pytest-cov",
@@ -69,6 +70,9 @@ ignore = [
     "TC001",   # TYPE_CHECKING はテストでは不要
     "TC003",   # TYPE_CHECKING はテストでは不要
 ]
+"scripts/*.py" = [
+    "INP001",  # スタンドアロンスクリプトのためパッケージ不要
+]
 
 [tool.mypy]
 python_version = "3.14"
@@ -88,6 +92,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--cov=confengine_to_youtube --cov-branch --cov-report=term-missing"
+testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
@@ -106,7 +111,12 @@ exclude_lines = [
 [tool.taskipy.tasks]
 check = "task lint && task test"
 lint = "ruff check && ruff format --check && mypy && lint-imports"
+mutation = "PYTEST_ADDOPTS='--no-cov' python scripts/run_mutmut.py run"
+mutation-results = "mutmut results"
 test = "pytest"
+
+[tool.mutmut]
+paths_to_mutate = ["src/confengine_to_youtube/"]
 
 [tool.importlinter]
 root_package = "confengine_to_youtube"
