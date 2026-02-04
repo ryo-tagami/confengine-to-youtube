@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, create_autospec
+from unittest.mock import MagicMock, call, create_autospec
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -156,8 +156,19 @@ sessions:
 
         assert result.added_count == 2
 
-        # add_to_playlist が呼ばれたことを確認
-        assert mock_youtube_api.add_to_playlist.call_count == 2  # type: ignore[attr-defined]
+        # add_to_playlist が正しい引数で呼ばれたことを確認
+        assert mock_youtube_api.add_to_playlist.call_args_list == [  # type: ignore[attr-defined]
+            call(
+                playlist_id="PLxxxxxxxxxxxxxxxx",
+                video_id="video1",
+                position=0,
+            ),
+            call(
+                playlist_id="PLxxxxxxxxxxxxxxxx",
+                video_id="video2",
+                position=1,
+            ),
+        ]
 
     def test_sync_playlist_reorders_videos(
         self,
@@ -187,8 +198,21 @@ sessions:
 
         assert result.reordered_count == 2
 
-        # update_playlist_item_position が呼ばれたことを確認
-        assert mock_youtube_api.update_playlist_item_position.call_count == 2  # type: ignore[attr-defined]
+        # update_playlist_item_position が正しい引数で呼ばれたことを確認
+        assert mock_youtube_api.update_playlist_item_position.call_args_list == [  # type: ignore[attr-defined]
+            call(
+                playlist_item_id="item1",
+                playlist_id="PLxxxxxxxxxxxxxxxx",
+                video_id="video1",
+                position=0,
+            ),
+            call(
+                playlist_item_id="item2",
+                playlist_id="PLxxxxxxxxxxxxxxxx",
+                video_id="video2",
+                position=1,
+            ),
+        ]
 
     def test_sync_playlist_unchanged_videos(
         self,
@@ -219,6 +243,10 @@ sessions:
         assert result.unchanged_count == 2
         assert result.added_count == 0
         assert result.reordered_count == 0
+
+        # API変更が呼ばれていないことを確認
+        mock_youtube_api.add_to_playlist.assert_not_called()  # type: ignore[attr-defined]
+        mock_youtube_api.update_playlist_item_position.assert_not_called()  # type: ignore[attr-defined]
 
     def test_sync_playlist_moves_unmapped_videos_to_end(
         self,
