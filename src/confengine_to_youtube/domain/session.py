@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
     from confengine_to_youtube.domain.session_abstract import SessionAbstract
+    from confengine_to_youtube.domain.session_override import SessionOverride
     from confengine_to_youtube.domain.speaker import Speaker
 
 
@@ -44,3 +45,19 @@ class Session:
     def speakers_last_name(self) -> str:
         """スピーカー部分をラストネームのみで生成"""
         return ", ".join(s.last_name for s in self.speakers if s.last_name)
+
+    def apply_override(self, override: SessionOverride) -> Session:
+        """オーバーライドを適用した新しいSessionを返す
+
+        Noneでないフィールドのみ上書きする。
+        """
+        speakers = override.speakers if override.speakers is not None else self.speakers
+        abstract = override.abstract if override.abstract is not None else self.abstract
+        return Session(
+            slot=self.slot,
+            title=self.title,
+            track=self.track,
+            speakers=speakers,
+            abstract=abstract,
+            url=self.url,
+        )

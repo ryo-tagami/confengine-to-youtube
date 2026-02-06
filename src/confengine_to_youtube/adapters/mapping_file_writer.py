@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import budoux
 from ruamel.yaml import YAML
-from ruamel.yaml.comments import CommentedMap
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from wcwidth import wcwidth
 
 from confengine_to_youtube.adapters.mapping_schema import MappingFileWithCommentSchema
@@ -90,6 +90,14 @@ class MappingFileWriter:
 
                     entry = CommentedMap()
                     entry["video_id"] = entry_schema.video_id
+
+                    if not entry_schema.has_content:
+                        speaker_entry = CommentedMap()
+                        speaker_entry["first_name"] = ""
+                        speaker_entry["last_name"] = ""
+                        speakers_list = CommentedSeq([speaker_entry])
+                        entry["speakers"] = speakers_list
+                        entry["abstract"] = ""
 
                     # スキーマからコメントを取得して追加
                     comment = self._wrap_comment(text=entry_schema.comment)

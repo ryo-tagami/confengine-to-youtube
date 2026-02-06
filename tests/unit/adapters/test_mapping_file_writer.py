@@ -551,3 +551,184 @@ class TestMappingFileWriter:
             "        video_id: ''\n"
         )
         assert result == expected
+
+    def test_write_session_without_content_generates_placeholder(
+        self,
+        jst: ZoneInfo,
+    ) -> None:
+        """abstractが空のセッションにはspeakers/abstractプレースホルダーが生成される"""
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
+                    ),
+                    title="No Abstract Session",
+                    track="技術",
+                    speakers=(),
+                    abstract=SessionAbstract(content=""),
+                    url="https://example.com/session1",
+                ),
+            ),
+        )
+        generated_at = datetime(
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
+        )
+
+        writer = MappingFileWriter()
+        output = StringIO()
+        writer.write(
+            schedule=schedule,
+            output=output,
+            generated_at=generated_at,
+        )
+        result = output.getvalue()
+
+        expected = (
+            "# ConfEngine Mapping Template\n"
+            "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "conf_id: test-conf\n"
+            "# プレイリストID (YouTube Studioで事前に作成)\n"
+            "# 例: PLxxxxxxxxxxxxxxxx\n"
+            "playlist_id: ''\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
+            "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
+            "sessions:\n"
+            "  2026-01-07:\n"
+            "    Hall A:\n"
+            "      10:00:\n"
+            "        # No Abstract Session\n"
+            "        video_id: ''\n"
+            "        speakers:\n"
+            "        - first_name: ''\n"
+            "          last_name: ''\n"
+            "        abstract: ''\n"
+        )
+        assert result == expected
+
+    def test_write_mixed_sessions_with_and_without_content(
+        self,
+        jst: ZoneInfo,
+    ) -> None:
+        """コンテンツありとなしが混在する場合、なしのみプレースホルダーが生成される"""
+        schedule = ConferenceSchedule(
+            conf_id="test-conf",
+            timezone=jst,
+            sessions=(
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=10,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
+                    ),
+                    title="With Content",
+                    track="技術",
+                    speakers=(Speaker(first_name="", last_name="田中"),),
+                    abstract=SessionAbstract(content="概要"),
+                    url="https://example.com/session1",
+                ),
+                Session(
+                    slot=ScheduleSlot(
+                        timeslot=datetime(
+                            year=2026,
+                            month=1,
+                            day=7,
+                            hour=11,
+                            minute=0,
+                            tzinfo=jst,
+                        ),
+                        room="Hall A",
+                    ),
+                    title="Without Content",
+                    track="技術",
+                    speakers=(),
+                    abstract=SessionAbstract(content=""),
+                    url="https://example.com/session2",
+                ),
+            ),
+        )
+        generated_at = datetime(
+            year=2026,
+            month=1,
+            day=19,
+            hour=10,
+            minute=30,
+            second=0,
+            tzinfo=jst,
+        )
+
+        writer = MappingFileWriter()
+        output = StringIO()
+        writer.write(
+            schedule=schedule,
+            output=output,
+            generated_at=generated_at,
+        )
+        result = output.getvalue()
+
+        expected = (
+            "# ConfEngine Mapping Template\n"
+            "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "conf_id: test-conf\n"
+            "# プレイリストID (YouTube Studioで事前に作成)\n"
+            "# 例: PLxxxxxxxxxxxxxxxx\n"
+            "playlist_id: ''\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
+            "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
+            "sessions:\n"
+            "  2026-01-07:\n"
+            "    Hall A:\n"
+            "      10:00:\n"
+            "        # With Content - 田中\n"
+            "        video_id: ''\n"
+            "      11:00:\n"
+            "        # Without Content\n"
+            "        video_id: ''\n"
+            "        speakers:\n"
+            "        - first_name: ''\n"
+            "          last_name: ''\n"
+            "        abstract: ''\n"
+        )
+        assert result == expected

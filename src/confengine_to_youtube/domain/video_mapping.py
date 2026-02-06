@@ -7,12 +7,14 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
+    from confengine_to_youtube.domain.session_override import SessionOverride
 
 
 @dataclass(frozen=True)
 class VideoMapping:
     slot: ScheduleSlot
     video_id: str
+    override: SessionOverride | None = None
 
 
 @dataclass(frozen=True)

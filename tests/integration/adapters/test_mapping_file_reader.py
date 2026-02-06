@@ -6,6 +6,9 @@ import pytest
 
 from confengine_to_youtube.adapters.mapping_file_reader import MappingFileReader
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
+from confengine_to_youtube.domain.session_abstract import SessionAbstract
+from confengine_to_youtube.domain.session_override import SessionOverride
+from confengine_to_youtube.domain.speaker import Speaker
 from confengine_to_youtube.usecases.errors import MappingFileError
 from tests.conftest import write_yaml_file
 
@@ -331,3 +334,150 @@ sessions:
 
         assert config.footer == ""
         assert len(config.mappings) == 1
+
+    def test_read_with_speakers_and_abstract_override(
+        self,
+        tmp_path: Path,
+        jst: ZoneInfo,
+    ) -> None:
+        """speakers/abstractオーバーライドを含むYAMLを読み込める"""
+        yaml_content = """
+conf_id: test-conf
+playlist_id: "PLtest123"
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+        speakers:
+          - first_name: "John"
+            last_name: "Doe"
+        abstract: "Override abstract"
+"""
+        yaml_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="with_override.yaml",
+        )
+
+        reader = MappingFileReader()
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
+
+        slot = ScheduleSlot(
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+        )
+        video_mapping = config.find_mapping(slot=slot)
+        assert video_mapping is not None
+        assert video_mapping.override == SessionOverride(
+            speakers=(Speaker(first_name="John", last_name="Doe"),),
+            abstract=SessionAbstract(content="Override abstract"),
+        )
+
+    def test_read_with_speakers_only_override(
+        self,
+        tmp_path: Path,
+        jst: ZoneInfo,
+    ) -> None:
+        """speakersのみのオーバーライドを読み込める"""
+        yaml_content = """
+conf_id: test-conf
+playlist_id: "PLtest123"
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+        speakers:
+          - first_name: "Jane"
+            last_name: "Smith"
+"""
+        yaml_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="speakers_only.yaml",
+        )
+
+        reader = MappingFileReader()
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
+
+        slot = ScheduleSlot(
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+        )
+        video_mapping = config.find_mapping(slot=slot)
+        assert video_mapping is not None
+        assert video_mapping.override == SessionOverride(
+            speakers=(Speaker(first_name="Jane", last_name="Smith"),),
+        )
+
+    def test_read_with_abstract_only_override(
+        self,
+        tmp_path: Path,
+        jst: ZoneInfo,
+    ) -> None:
+        """abstractのみのオーバーライドを読み込める"""
+        yaml_content = """
+conf_id: test-conf
+playlist_id: "PLtest123"
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+        abstract: "Only abstract override"
+"""
+        yaml_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="abstract_only.yaml",
+        )
+
+        reader = MappingFileReader()
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
+
+        slot = ScheduleSlot(
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+        )
+        video_mapping = config.find_mapping(slot=slot)
+        assert video_mapping is not None
+        assert video_mapping.override == SessionOverride(
+            abstract=SessionAbstract(content="Only abstract override"),
+        )
+
+    def test_read_without_override_returns_none(
+        self,
+        tmp_path: Path,
+        jst: ZoneInfo,
+    ) -> None:
+        """speakers/abstractがないエントリはoverride=Noneとなる"""
+        yaml_content = """
+conf_id: test-conf
+playlist_id: "PLtest123"
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+"""
+        yaml_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="no_override.yaml",
+        )
+
+        reader = MappingFileReader()
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
+
+        slot = ScheduleSlot(
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+        )
+        video_mapping = config.find_mapping(slot=slot)
+        assert video_mapping is not None
+        assert video_mapping.override is None
