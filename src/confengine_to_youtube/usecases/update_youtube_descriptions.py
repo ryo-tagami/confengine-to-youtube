@@ -73,18 +73,28 @@ class UpdateYouTubeDescriptionsUseCase:
         errors: list[SessionProcessError] = []
         updated_count = 0
         no_mapping_count = 0
+        no_content_count = 0
         used_slots: set[ScheduleSlot] = set()
 
-        sessions_with_content = schedule.sessions_with_content()
-
-        for session in sessions_with_content:
+        for session in schedule.sessions:
             mapping = mapping_config.find_mapping(slot=session.slot)
+
+            effective_session = session
+
+            if mapping is not None and mapping.override is not None:
+                effective_session = session.apply_override(
+                    override=mapping.override,
+                )
+
+            if not effective_session.has_content:
+                no_content_count += 1
+                continue
 
             if mapping is None:
                 no_mapping_count += 1
                 continue
 
-            used_slots.add(session.slot)
+            used_slots.add(effective_session.slot)
 
             # do-notation で2つの Result を組み合わせる
             # 最初に Failure になった時点でそれ以降はスキップされる (ROP)
@@ -93,9 +103,11 @@ class UpdateYouTubeDescriptionsUseCase:
                 DomainError,
             ] = Result.do(
                 (title, description)
-                for title in YouTubeContentGenerator.generate_title(session=session)
+                for title in YouTubeContentGenerator.generate_title(
+                    session=effective_session,
+                )
                 for description in YouTubeContentGenerator.generate_description(
-                    session=session,
+                    session=effective_session,
                     hashtags=mapping_config.hashtags,
                     footer=mapping_config.footer,
                 )
@@ -151,8 +163,6 @@ class UpdateYouTubeDescriptionsUseCase:
             mapping_config=mapping_config,
             used_slots=used_slots,
         )
-
-        no_content_count = len(schedule.sessions) - len(sessions_with_content)
 
         return VideoUpdateResult(
             is_dry_run=dry_run,

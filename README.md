@@ -79,6 +79,26 @@ sessions:
       "09:30": { video_id: "zzzzzzzzzzz" }
 ```
 
+#### speakers / abstract のオーバーライド
+
+ConfEngineのAbstractが空のセッションなど、セッション情報を手動で補完したい場合は `speakers` と `abstract` フィールドを追加できます。指定されたフィールドはConfEngineのデータを上書きします。
+
+```yaml
+sessions:
+  2026-01-08:
+    Hall A:
+      "09:30":
+        video_id: "xxxxxxxxxxx"
+        speakers:
+          - first_name: "太郎"
+            last_name: "田中"
+        abstract: "手動で追加したAbstract"
+```
+
+- `speakers` / `abstract` はオプショナル。既存のマッピングファイルはそのまま動作します
+- 指定された場合、ConfEngineにデータがあっても常に上書きされます
+- `generate-mapping` コマンドは、ConfEngineのAbstractが空のセッションに対して自動的にプレースホルダーを生成します
+
 ### プレイリスト同期
 
 `playlist_id`を指定すると、プレイリスト内の動画がセッションのスケジュール順に並べ替えられます。

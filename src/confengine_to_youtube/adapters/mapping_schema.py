@@ -12,6 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
 from confengine_to_youtube.domain.constants import TITLE_SPEAKER_SEPARATOR
 from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
+from confengine_to_youtube.domain.session_abstract import SessionAbstract
+from confengine_to_youtube.domain.session_override import SessionOverride
+from confengine_to_youtube.domain.speaker import Speaker
 from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
 
 if TYPE_CHECKING:
@@ -22,6 +25,15 @@ if TYPE_CHECKING:
 # Reader用スキーマ
 
 
+class SpeakerOverrideSchema(BaseModel):
+    """スピーカーオーバーライドのスキーマ (Reader用)"""
+
+    model_config = ConfigDict(frozen=True)
+
+    first_name: str = ""
+    last_name: str = ""
+
+
 class SessionEntrySchema(BaseModel):
     """セッションエントリのスキーマ (Reader用)"""
 
@@ -29,6 +41,8 @@ class SessionEntrySchema(BaseModel):
 
     # YouTube video IDの形式は公式に文書化されていないためバリデーションしない
     video_id: str
+    speakers: list[SpeakerOverrideSchema] | None = None
+    abstract: str | None = None
 
 
 class TimeSlotsSchema(RootModel[dict[time, SessionEntrySchema]]):
@@ -113,6 +127,7 @@ class MappingFileSchema(MappingFileBaseSchema):
                         VideoMapping(
                             slot=slot,
                             video_id=session.video_id,
+                            override=_build_session_override(entry=session),
                         ),
                     )
 
@@ -125,6 +140,29 @@ class MappingFileSchema(MappingFileBaseSchema):
         )
 
 
+def _build_session_override(entry: SessionEntrySchema) -> SessionOverride | None:
+    """SessionEntrySchemaからSessionOverrideを構築する
+
+    speakers/abstractがどちらもNoneの場合はNoneを返す。
+    """
+    if entry.speakers is None and entry.abstract is None:
+        return None
+
+    speakers = (
+        tuple(
+            Speaker(first_name=s.first_name, last_name=s.last_name)
+            for s in entry.speakers
+        )
+        if entry.speakers is not None
+        else None
+    )
+    abstract = (
+        SessionAbstract(content=entry.abstract) if entry.abstract is not None else None
+    )
+
+    return SessionOverride(speakers=speakers, abstract=abstract)
+
+
 # Writer用スキーマ
 
 
@@ -133,9 +171,11 @@ class SessionEntryWithComment(SessionEntrySchema):
 
     commentフィールドはYAML出力時にはコメントとして出力され、
     フィールドとしては出力されない。
+    has_contentがFalseの場合、speakers/abstractのプレースホルダーが生成される。
     """
 
     comment: str
+    has_content: bool = True
 
 
 class TimeSlotsWithCommentSchema(RootModel[dict[time, SessionEntryWithComment]]):
@@ -198,6 +238,7 @@ class MappingFileWithCommentSchema(MappingFileBaseSchema):
             time_slots[session_time] = SessionEntryWithComment(
                 video_id="",
                 comment=comment,
+                has_content=session.has_content,
             )
 
         return cls(

@@ -181,3 +181,91 @@ class TestGenerateMappingUseCase:
             "sessions: {}\n"
         )
         assert yaml_content == expected
+
+    def test_execute_with_empty_abstract_sessions_generates_placeholder(
+        self,
+        fixed_clock: datetime,
+        jst: ZoneInfo,
+    ) -> None:
+        """空Abstractセッションを含む場合、プレースホルダーが生成される"""
+        sessions = (
+            create_session(
+                title="With Content",
+                speakers=[("Speaker", "A")],
+                abstract="Abstract 1",
+                timeslot=datetime(
+                    year=2026,
+                    month=1,
+                    day=7,
+                    hour=10,
+                    minute=0,
+                    tzinfo=jst,
+                ),
+                room="Hall A",
+                url="https://example.com/1",
+            ),
+            create_session(
+                title="Without Content",
+                speakers=[],
+                abstract="",
+                timeslot=datetime(
+                    year=2026,
+                    month=1,
+                    day=7,
+                    hour=11,
+                    minute=0,
+                    tzinfo=jst,
+                ),
+                room="Hall A",
+                url="https://example.com/2",
+            ),
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=sessions,
+            timezone=jst,
+        )
+        usecase = GenerateMappingUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_writer=MappingFileWriter(),
+            clock=lambda: fixed_clock,
+        )
+
+        output = StringIO()
+        result = usecase.execute(conf_id="test-conf", output=output)
+        yaml_content = output.getvalue()
+
+        assert result.session_count == 2
+        expected = (
+            "# ConfEngine Mapping Template\n"
+            "# Generated: 2026-01-19T10:30:00+09:00\n"
+            "conf_id: test-conf\n"
+            "# プレイリストID (YouTube Studioで事前に作成)\n"
+            "# 例: PLxxxxxxxxxxxxxxxx\n"
+            "playlist_id: ''\n"
+            "# ハッシュタグ\n"
+            "# 例:\n"
+            "#   hashtags:\n"
+            "#     - '#RSGT2026'\n"
+            "#     - '#Agile'\n"
+            "hashtags: []\n"
+            "# フッター (複数行の場合はリテラルブロック `|` を使用)\n"
+            "# 例:\n"
+            "#   footer: |\n"
+            "#     1行目\n"
+            "#     2行目\n"
+            "footer: ''\n"
+            "sessions:\n"
+            "  2026-01-07:\n"
+            "    Hall A:\n"
+            "      10:00:\n"
+            "        # With Content - Speaker A\n"
+            "        video_id: ''\n"
+            "      11:00:\n"
+            "        # Without Content\n"
+            "        video_id: ''\n"
+            "        speakers:\n"
+            "        - first_name: ''\n"
+            "          last_name: ''\n"
+            "        abstract: ''\n"
+        )
+        assert yaml_content == expected

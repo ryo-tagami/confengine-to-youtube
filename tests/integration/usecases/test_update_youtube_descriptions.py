@@ -390,6 +390,182 @@ sessions:
         )
         assert result.previews[0].new_description == expected_description
 
+    def test_execute_empty_abstract_with_override_processes_session(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """空abstractセッション + YAMLオーバーライド → 処理される"""
+        empty_session = create_session(
+            title="Empty Session",
+            speakers=[],
+            abstract="",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/empty",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(empty_session,),
+            timezone=jst,
+        )
+
+        yaml_content = """
+conf_id: test-conf
+playlist_id: PLtest123
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+        speakers:
+          - first_name: "Override"
+            last_name: "Speaker"
+        abstract: "Override abstract"
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="override_mapping.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=True,
+        )
+
+        assert result.updated_count == 0  # dry-run
+        assert result.no_content_count == 0
+        assert len(result.previews) == 1
+        assert result.previews[0].new_title == "Empty Session - Override Speaker"
+        expected_description = (
+            "Speaker: Override Speaker\n\n"
+            "Override abstract\n\n"
+            "***\n\n"
+            "https://example.com/empty\n\n"
+            "***"
+        )
+        assert result.previews[0].new_description == expected_description
+
+    def test_execute_empty_abstract_without_override_skips(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """空abstractセッション + オーバーライドなし → スキップ(既存動作維持)"""
+        empty_session = create_session(
+            title="Empty Session",
+            speakers=[],
+            abstract="",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/empty",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(empty_session,),
+            timezone=jst,
+        )
+
+        yaml_content = """
+conf_id: test-conf
+playlist_id: PLtest123
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="no_override_mapping.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=False,
+        )
+
+        assert result.updated_count == 0
+        assert result.no_content_count == 1
+
+    def test_execute_override_replaces_confengine_data(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """ConfEngineにデータあり + YAMLオーバーライド → 上書きされる"""
+        session = create_session(
+            title="Session 1",
+            speakers=[("Original", "Speaker")],
+            abstract="Original abstract",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/1",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(session,),
+            timezone=jst,
+        )
+
+        yaml_content = """
+conf_id: test-conf
+playlist_id: PLtest123
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+        speakers:
+          - first_name: "Override"
+            last_name: "Person"
+        abstract: "Override abstract"
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="override_existing.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=True,
+        )
+
+        assert len(result.previews) == 1
+        assert result.previews[0].new_title == "Session 1 - Override Person"
+        expected_description = (
+            "Speaker: Override Person\n\n"
+            "Override abstract\n\n"
+            "***\n\n"
+            "https://example.com/1\n\n"
+            "***"
+        )
+        assert result.previews[0].new_description == expected_description
+
     def test_execute_collects_frame_overflow_errors(
         self,
         mock_youtube_api: YouTubeApiProtocol,
