@@ -28,6 +28,33 @@ class TestVideoMapping:
         assert mapping.slot.room == "Hall A"
         assert mapping.video_id == "abc123"
 
+    def test_default_update_flags_are_true(self) -> None:
+        """デフォルトではupdate_titleとupdate_descriptionはTrue"""
+        slot = ScheduleSlot(
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC),
+            room="Hall A",
+        )
+        mapping = VideoMapping(slot=slot, video_id="abc123")
+
+        assert mapping.update_title is True
+        assert mapping.update_description is True
+
+    def test_custom_update_flags(self) -> None:
+        """update_titleとupdate_descriptionをカスタム値で作成できる"""
+        slot = ScheduleSlot(
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=UTC),
+            room="Hall A",
+        )
+        mapping = VideoMapping(
+            slot=slot,
+            video_id="abc123",
+            update_title=False,
+            update_description=False,
+        )
+
+        assert mapping.update_title is False
+        assert mapping.update_description is False
+
 
 class TestMappingConfig:
     """MappingConfig のテスト"""

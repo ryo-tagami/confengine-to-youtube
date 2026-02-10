@@ -159,7 +159,7 @@ sessions:
 
         assert result.is_dry_run is False
         assert result.changed_count == 2
-        assert result.no_content_count == 0
+        assert result.preserved_count == 0
         assert result.no_mapping_count == 0
 
         # YouTube APIが正しい引数で呼ばれたことを確認
@@ -194,14 +194,14 @@ sessions:
             ),
         ]
 
-    def test_execute_skips_empty_sessions(
+    def test_execute_processes_empty_abstract_sessions(
         self,
         mock_youtube_api: YouTubeApiProtocol,
         mapping_file: Path,
         mapping_reader: MappingFileReader,
         jst: ZoneInfo,
     ) -> None:
-        """abstractが空のセッションはスキップする"""
+        """abstractが空のセッションもフラグがデフォルト(true)なら処理される"""
         empty_session = create_session(
             title="Empty Session",
             speakers=[],
@@ -226,8 +226,181 @@ sessions:
             dry_run=False,
         )
 
+        assert result.changed_count == 1
+        assert result.preserved_count == 0
+        mock_youtube_api.update_video.assert_called_once()  # type: ignore[attr-defined]
+
+    def test_execute_preserves_when_both_flags_false(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """両フラグがfalseならpreservedとしてカウントされ、YouTube APIが呼ばれない"""
+        session = create_session(
+            title="Session 1",
+            speakers=[("Speaker", "A")],
+            abstract="Abstract 1",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/1",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(session,),
+            timezone=jst,
+        )
+
+        yaml_content = """
+conf_id: test-conf
+playlist_id: PLtest123
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+        update_title: false
+        update_description: false
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="preserved_mapping.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=False,
+        )
+
+        assert result.preserved_count == 1
         assert result.changed_count == 0
-        assert result.no_content_count == 1
+        assert len(result.previews) == 0
+        mock_youtube_api.get_video_info.assert_not_called()  # type: ignore[attr-defined]
+        mock_youtube_api.update_video.assert_not_called()  # type: ignore[attr-defined]
+
+    def test_execute_preserves_title_only(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """update_title=falseの場合、タイトルはYouTube既存値を使用しdescriptionは生成値"""
+        session = create_session(
+            title="Session 1",
+            speakers=[("Speaker", "A")],
+            abstract="Abstract 1",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/1",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(session,),
+            timezone=jst,
+        )
+
+        yaml_content = """
+conf_id: test-conf
+playlist_id: PLtest123
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+        update_title: false
+        update_description: true
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="preserve_title_mapping.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=True,
+        )
+
+        assert result.preserved_count == 0
+        assert len(result.previews) == 1
+        preview = result.previews[0]
+        # タイトルはYouTube既存値を維持
+        assert preview.new_title == "Title for video1"
+        # descriptionは生成値
+        expected_description = (
+            "Speaker: Speaker A\n\nAbstract 1\n\n***\n\nhttps://example.com/1\n\n***"
+        )
+        assert preview.new_description == expected_description
+
+    def test_execute_preserves_description_only(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """update_description=falseの場合、descriptionはYouTube既存値を使用しタイトルは生成値"""
+        session = create_session(
+            title="Session 1",
+            speakers=[("Speaker", "A")],
+            abstract="Abstract 1",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/1",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(session,),
+            timezone=jst,
+        )
+
+        yaml_content = """
+conf_id: test-conf
+playlist_id: PLtest123
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+        update_title: true
+        update_description: false
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="preserve_desc_mapping.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=True,
+        )
+
+        assert result.preserved_count == 0
+        assert len(result.previews) == 1
+        preview = result.previews[0]
+        # タイトルは生成値
+        assert preview.new_title == "Session 1 - Speaker A"
+        # descriptionはYouTube既存値を維持
+        assert preview.new_description == "Description for video1"
 
     def test_execute_skips_unmapped_sessions(
         self,

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from returns.result import Failure, Result, Success
+from returns.result import Failure, Success
 
 from confengine_to_youtube.domain.youtube_content_generator import (
     YouTubeContentGenerator,
@@ -23,11 +23,10 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from confengine_to_youtube.domain.conference_schedule import ConferenceSchedule
-    from confengine_to_youtube.domain.errors import DomainError
     from confengine_to_youtube.domain.schedule_slot import ScheduleSlot
-    from confengine_to_youtube.domain.video_mapping import MappingConfig
-    from confengine_to_youtube.domain.youtube_description import YouTubeDescription
-    from confengine_to_youtube.domain.youtube_title import YouTubeTitle
+    from confengine_to_youtube.domain.session import Session
+    from confengine_to_youtube.domain.video_mapping import MappingConfig, VideoMapping
+    from confengine_to_youtube.usecases.dto import VideoInfo
     from confengine_to_youtube.usecases.protocols import (
         ConfEngineApiProtocol,
         MappingFileReaderProtocol,
@@ -73,12 +72,11 @@ class UpdateYouTubeDescriptionsUseCase:
         errors: list[SessionProcessError] = []
         changed_count = 0
         unchanged_count = 0
+        preserved_count = 0
         no_mapping_count = 0
         used_slots: set[ScheduleSlot] = set()
 
-        sessions_with_content = schedule.sessions_with_content()
-
-        for session in sessions_with_content:
+        for session in schedule.sessions:
             mapping = mapping_config.find_mapping(slot=session.slot)
 
             if mapping is None:
@@ -87,92 +85,156 @@ class UpdateYouTubeDescriptionsUseCase:
 
             used_slots.add(session.slot)
 
-            # do-notation で2つの Result を組み合わせる
-            # 最初に Failure になった時点でそれ以降はスキップされる (ROP)
-            combined_result: Result[
-                tuple[YouTubeTitle, YouTubeDescription],
-                DomainError,
-            ] = Result.do(
-                (title, description)
-                for title in YouTubeContentGenerator.generate_title(session=session)
-                for description in YouTubeContentGenerator.generate_description(
-                    session=session,
-                    hashtags=mapping_config.hashtags,
-                    footer=mapping_config.footer,
-                )
+            # 両方falseならスキップ (YouTube APIも呼ばない)
+            if not mapping.update_title and not mapping.update_description:
+                preserved_count += 1
+                continue
+
+            video_info = self._youtube_api.get_video_info(
+                video_id=mapping.video_id,
             )
 
-            match combined_result:
-                case Failure(error):
-                    errors.append(
-                        SessionProcessError(
-                            session_key=str(session.slot),
-                            video_id=mapping.video_id,
-                            error=error,
-                        ),
+            new_title = self._resolve_title(
+                session=session,
+                mapping=mapping,
+                video_info=video_info,
+                errors=errors,
+            )
+            if new_title is None:
+                continue
+
+            new_description = self._resolve_description(
+                session=session,
+                mapping=mapping,
+                mapping_config=mapping_config,
+                video_info=video_info,
+                errors=errors,
+            )
+            if new_description is None:
+                continue
+
+            preview = VideoUpdatePreview(
+                session_key=str(session.slot),
+                video_id=mapping.video_id,
+                current_title=video_info.title,
+                current_description=video_info.description,
+                new_title=new_title,
+                new_description=new_description,
+            )
+            previews.append(preview)
+
+            if preview.has_changes:
+                if not dry_run:
+                    request = VideoUpdateRequest(
+                        video_id=mapping.video_id,
+                        title=new_title,
+                        description=new_description,
+                        category_id=video_info.category_id,
                     )
-                    logger.warning(
-                        "Failed to process session %s: %s",
+                    self._youtube_api.update_video(request=request)
+                    logger.info(
+                        "Updated: %s (%s)",
                         session.title,
-                        error.message,
+                        mapping.video_id,
                     )
-
-                case Success((new_title, description)):
-                    video_info = self._youtube_api.get_video_info(
-                        video_id=mapping.video_id,
+                changed_count += 1
+            else:
+                unchanged_count += 1
+                if not dry_run:
+                    logger.info(
+                        "Skipped (unchanged): %s (%s)",
+                        session.title,
+                        mapping.video_id,
                     )
-
-                    preview = VideoUpdatePreview(
-                        session_key=str(session.slot),
-                        video_id=mapping.video_id,
-                        current_title=video_info.title,
-                        current_description=video_info.description,
-                        new_title=str(new_title),
-                        new_description=str(description),
-                    )
-                    previews.append(preview)
-
-                    if preview.has_changes:
-                        if not dry_run:
-                            request = VideoUpdateRequest(
-                                video_id=mapping.video_id,
-                                title=str(new_title),
-                                description=str(description),
-                                category_id=video_info.category_id,
-                            )
-                            self._youtube_api.update_video(request=request)
-                            logger.info(
-                                "Updated: %s (%s)",
-                                session.title,
-                                mapping.video_id,
-                            )
-                        changed_count += 1
-                    else:
-                        unchanged_count += 1
-                        if not dry_run:
-                            logger.info(
-                                "Skipped (unchanged): %s (%s)",
-                                session.title,
-                                mapping.video_id,
-                            )
 
         unused_count = self._warn_unused_mappings(
             mapping_config=mapping_config,
             used_slots=used_slots,
         )
 
-        no_content_count = len(schedule.sessions) - len(sessions_with_content)
-
         return VideoUpdateResult(
             is_dry_run=dry_run,
             previews=tuple(previews),
             changed_count=changed_count,
             unchanged_count=unchanged_count,
-            no_content_count=no_content_count,
+            preserved_count=preserved_count,
             no_mapping_count=no_mapping_count,
             unused_mappings_count=unused_count,
             errors=tuple(errors),
         )
+
+    @staticmethod
+    def _resolve_title(
+        session: Session,
+        mapping: VideoMapping,
+        video_info: VideoInfo,
+        errors: list[SessionProcessError],
+    ) -> str | None:
+        """タイトルを解決する。フラグtrueなら生成、falseならYouTube既存値を使用。
+
+        生成に失敗した場合はerrorsに追加しNoneを返す。
+        """
+        if not mapping.update_title:
+            return video_info.title
+
+        title_result = YouTubeContentGenerator.generate_title(session=session)
+        match title_result:
+            case Failure(error):
+                errors.append(
+                    SessionProcessError(
+                        session_key=str(session.slot),
+                        video_id=mapping.video_id,
+                        error=error,
+                    ),
+                )
+                logger.warning(
+                    "Failed to process session %s: %s",
+                    session.title,
+                    error.message,
+                )
+                return None
+            case Success(generated_title):
+                return str(generated_title)
+        raise AssertionError  # pragma: no cover
+
+    @staticmethod
+    def _resolve_description(
+        session: Session,
+        mapping: VideoMapping,
+        mapping_config: MappingConfig,
+        video_info: VideoInfo,
+        errors: list[SessionProcessError],
+    ) -> str | None:
+        """descriptionを解決する。フラグtrueなら生成、falseならYouTube既存値を使用。
+
+        生成に失敗した場合はerrorsに追加しNoneを返す。
+        """
+        if not mapping.update_description:
+            return video_info.description
+
+        desc_result = YouTubeContentGenerator.generate_description(
+            session=session,
+            hashtags=mapping_config.hashtags,
+            footer=mapping_config.footer,
+        )
+        match desc_result:
+            case Failure(error):
+                errors.append(
+                    SessionProcessError(
+                        session_key=str(session.slot),
+                        video_id=mapping.video_id,
+                        error=error,
+                    ),
+                )
+                logger.warning(
+                    "Failed to process session %s: %s",
+                    session.title,
+                    error.message,
+                )
+                return None
+            case Success(generated_desc):
+                return str(generated_desc)
+        raise AssertionError  # pragma: no cover
 
     def _warn_unused_mappings(
         self,

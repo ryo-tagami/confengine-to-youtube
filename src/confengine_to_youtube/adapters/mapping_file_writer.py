@@ -133,6 +133,23 @@ class MappingFileWriter:
         # fmt: on
 
         root["sessions"] = sessions_map
+        # fmt: off
+        root.yaml_set_comment_before_after_key(
+            key="sessions",
+            before=(
+                "セッション\n"
+                "セッションごとに更新対象を制御できます (デフォルト: true):\n"
+                "例:\n"
+                "  sessions:\n"
+                '    "2026-01-07":\n'
+                '      "Hall A":\n'
+                '        "10:00":\n'
+                '          video_id: "abc123"\n'
+                "          update_title: false\n"
+                "          update_description: false"
+            ),
+        )
+        # fmt: on
 
         yaml = YAML()
         yaml.default_flow_style = False
