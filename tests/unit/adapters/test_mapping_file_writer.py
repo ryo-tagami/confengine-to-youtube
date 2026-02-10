@@ -74,6 +74,16 @@ class TestMappingFileWriter:
             "#     1行目\n"
             "#     2行目\n"
             "footer: ''\n"
+            "# セッション\n"
+            "# セッションごとに更新対象を制御できます (デフォルト: true):\n"
+            "# 例:\n"
+            "#   sessions:\n"
+            '#     "2026-01-07":\n'
+            '#       "Hall A":\n'
+            '#         "10:00":\n'
+            '#           video_id: "abc123"\n'
+            "#           update_title: false\n"
+            "#           update_description: false\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -149,6 +159,16 @@ class TestMappingFileWriter:
             "#     1行目\n"
             "#     2行目\n"
             "footer: ''\n"
+            "# セッション\n"
+            "# セッションごとに更新対象を制御できます (デフォルト: true):\n"
+            "# 例:\n"
+            "#   sessions:\n"
+            '#     "2026-01-07":\n'
+            '#       "Hall A":\n'
+            '#         "10:00":\n'
+            '#           video_id: "abc123"\n'
+            "#           update_title: false\n"
+            "#           update_description: false\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -239,6 +259,16 @@ class TestMappingFileWriter:
             "#     1行目\n"
             "#     2行目\n"
             "footer: ''\n"
+            "# セッション\n"
+            "# セッションごとに更新対象を制御できます (デフォルト: true):\n"
+            "# 例:\n"
+            "#   sessions:\n"
+            '#     "2026-01-07":\n'
+            '#       "Hall A":\n'
+            '#         "10:00":\n'
+            '#           video_id: "abc123"\n'
+            "#           update_title: false\n"
+            "#           update_description: false\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -334,6 +364,16 @@ class TestMappingFileWriter:
             "#     1行目\n"
             "#     2行目\n"
             "footer: ''\n"
+            "# セッション\n"
+            "# セッションごとに更新対象を制御できます (デフォルト: true):\n"
+            "# 例:\n"
+            "#   sessions:\n"
+            '#     "2026-01-07":\n'
+            '#       "Hall A":\n'
+            '#         "10:00":\n'
+            '#           video_id: "abc123"\n'
+            "#           update_title: false\n"
+            "#           update_description: false\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -391,6 +431,16 @@ class TestMappingFileWriter:
             "#     1行目\n"
             "#     2行目\n"
             "footer: ''\n"
+            "# セッション\n"
+            "# セッションごとに更新対象を制御できます (デフォルト: true):\n"
+            "# 例:\n"
+            "#   sessions:\n"
+            '#     "2026-01-07":\n'
+            '#       "Hall A":\n'
+            '#         "10:00":\n'
+            '#           video_id: "abc123"\n'
+            "#           update_title: false\n"
+            "#           update_description: false\n"
             "sessions: {}\n"
         )
         assert result == expected
@@ -459,6 +509,16 @@ class TestMappingFileWriter:
             "#     1行目\n"
             "#     2行目\n"
             "footer: ''\n"
+            "# セッション\n"
+            "# セッションごとに更新対象を制御できます (デフォルト: true):\n"
+            "# 例:\n"
+            "#   sessions:\n"
+            '#     "2026-01-07":\n'
+            '#       "Hall A":\n'
+            '#         "10:00":\n'
+            '#           video_id: "abc123"\n'
+            "#           update_title: false\n"
+            "#           update_description: false\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"
@@ -542,6 +602,16 @@ class TestMappingFileWriter:
             "#     1行目\n"
             "#     2行目\n"
             "footer: ''\n"
+            "# セッション\n"
+            "# セッションごとに更新対象を制御できます (デフォルト: true):\n"
+            "# 例:\n"
+            "#   sessions:\n"
+            '#     "2026-01-07":\n'
+            '#       "Hall A":\n'
+            '#         "10:00":\n'
+            '#           video_id: "abc123"\n'
+            "#           update_title: false\n"
+            "#           update_description: false\n"
             "sessions:\n"
             "  2026-01-07:\n"
             "    Hall A:\n"

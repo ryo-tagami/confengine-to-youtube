@@ -331,3 +331,72 @@ sessions:
 
         assert config.footer == ""
         assert len(config.mappings) == 1
+
+    def test_read_with_update_flags(self, tmp_path: Path, jst: ZoneInfo) -> None:
+        """update_title/update_descriptionフラグ付きYAMLを正しく読み込める"""
+        yaml_content = """
+conf_id: test-conf
+playlist_id: "PLtest123"
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+        update_title: false
+        update_description: false
+"""
+        yaml_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="with_flags.yaml",
+        )
+
+        reader = MappingFileReader()
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
+
+        assert len(config.mappings) == 1
+        slot = ScheduleSlot(
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+        )
+        video_mapping = config.find_mapping(slot=slot)
+        assert video_mapping is not None
+        assert video_mapping.video_id == "abc123"
+        assert video_mapping.update_title is False
+        assert video_mapping.update_description is False
+
+    def test_read_without_update_flags_defaults_to_true(
+        self,
+        tmp_path: Path,
+        jst: ZoneInfo,
+    ) -> None:
+        """update_title/update_descriptionフラグなしの場合デフォルトtrueになる"""
+        yaml_content = """
+conf_id: test-conf
+playlist_id: "PLtest123"
+sessions:
+  2026-01-07:
+    Hall A:
+      "10:00":
+        video_id: "abc123"
+"""
+        yaml_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="without_flags.yaml",
+        )
+
+        reader = MappingFileReader()
+        mapping = reader.read(file_path=yaml_file)
+        config = mapping.to_domain(timezone=jst)
+
+        assert len(config.mappings) == 1
+        slot = ScheduleSlot(
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+        )
+        video_mapping = config.find_mapping(slot=slot)
+        assert video_mapping is not None
+        assert video_mapping.update_title is True
+        assert video_mapping.update_description is True

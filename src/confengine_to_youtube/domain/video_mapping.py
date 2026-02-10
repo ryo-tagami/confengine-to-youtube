@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 class VideoMapping:
     slot: ScheduleSlot
     video_id: str
+    update_title: bool = True
+    update_description: bool = True
 
 
 @dataclass(frozen=True)

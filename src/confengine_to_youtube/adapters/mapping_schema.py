@@ -29,6 +29,8 @@ class SessionEntrySchema(BaseModel):
 
     # YouTube video IDの形式は公式に文書化されていないためバリデーションしない
     video_id: str
+    update_title: bool = True
+    update_description: bool = True
 
 
 class TimeSlotsSchema(RootModel[dict[time, SessionEntrySchema]]):
@@ -113,6 +115,8 @@ class MappingFileSchema(MappingFileBaseSchema):
                         VideoMapping(
                             slot=slot,
                             video_id=session.video_id,
+                            update_title=session.update_title,
+                            update_description=session.update_description,
                         ),
                     )
 

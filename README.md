@@ -76,8 +76,21 @@ sessions:
       "09:30": { video_id: "xxxxxxxxxxx" }
       "10:30": { video_id: "yyyyyyyyyyy" }
     Hall B:
-      "09:30": { video_id: "zzzzzzzzzzz" }
+      "09:30":
+        video_id: "zzzzzzzzzzz"
+        update_title: false       # YouTubeの既存タイトルを維持
+        update_description: false  # YouTubeの既存descriptionを維持
 ```
+
+#### update_title / update_description フラグ
+
+各セッションエントリに `update_title` と `update_description` フラグを指定できます（デフォルト: `true`）。
+
+- `update_title: false` — YouTubeの既存タイトルを維持し、上書きしない
+- `update_description: false` — YouTubeの既存descriptionを維持し、上書きしない
+- 両方 `false` の場合、YouTube APIへのアクセス自体をスキップする
+
+フラグを省略した場合はデフォルトの `true` として扱われるため、既存のマッピングファイルとの後方互換性があります。
 
 ### プレイリスト同期
 

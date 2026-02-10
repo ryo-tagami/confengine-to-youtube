@@ -145,9 +145,9 @@ def _print_result(result: VideoUpdateResult) -> None:
             file=sys.stderr,
         )
 
-    if result.no_content_count > 0:
+    if result.preserved_count > 0:
         print(  # noqa: T201
-            f"Skipped (no content): {result.no_content_count}",
+            f"Preserved (update disabled): {result.preserved_count}",
             file=sys.stderr,
         )
     if result.no_mapping_count > 0:
