@@ -195,8 +195,7 @@ class UpdateYouTubeDescriptionsUseCase:
                 return None
             case Success(generated_title):
                 return str(generated_title)
-            case _:  # pragma: no cover
-                raise AssertionError
+        raise AssertionError  # pragma: no cover
 
     @staticmethod
     def _resolve_description(
@@ -235,8 +234,7 @@ class UpdateYouTubeDescriptionsUseCase:
                 return None
             case Success(generated_desc):
                 return str(generated_desc)
-            case _:  # pragma: no cover
-                raise AssertionError
+        raise AssertionError  # pragma: no cover
 
     def _warn_unused_mappings(
         self,
