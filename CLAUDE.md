@@ -155,6 +155,7 @@ mock_api.fetch_sessions.assert_called_once()  # type: ignore[attr-defined]
 tests/
 ├── unit/           # ユニットテスト
 │   ├── domain/
+│   ├── usecases/
 │   ├── adapters/
 │   └── infrastructure/
 ├── integration/    # 統合テスト

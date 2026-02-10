@@ -71,7 +71,8 @@ class UpdateYouTubeDescriptionsUseCase:
     ) -> VideoUpdateResult:
         previews: list[VideoUpdatePreview] = []
         errors: list[SessionProcessError] = []
-        updated_count = 0
+        changed_count = 0
+        unchanged_count = 0
         no_mapping_count = 0
         used_slots: set[ScheduleSlot] = set()
 
@@ -121,31 +122,39 @@ class UpdateYouTubeDescriptionsUseCase:
                         video_id=mapping.video_id,
                     )
 
-                    previews.append(
-                        VideoUpdatePreview(
-                            session_key=str(session.slot),
-                            video_id=mapping.video_id,
-                            current_title=video_info.title,
-                            current_description=video_info.description,
-                            new_title=str(new_title),
-                            new_description=str(description),
-                        ),
+                    preview = VideoUpdatePreview(
+                        session_key=str(session.slot),
+                        video_id=mapping.video_id,
+                        current_title=video_info.title,
+                        current_description=video_info.description,
+                        new_title=str(new_title),
+                        new_description=str(description),
                     )
+                    previews.append(preview)
 
-                    if not dry_run:
-                        request = VideoUpdateRequest(
-                            video_id=mapping.video_id,
-                            title=str(new_title),
-                            description=str(description),
-                            category_id=video_info.category_id,
-                        )
-                        self._youtube_api.update_video(request=request)
-                        updated_count += 1
-                        logger.info(
-                            "Updated: %s (%s)",
-                            session.title,
-                            mapping.video_id,
-                        )
+                    if preview.has_changes:
+                        if not dry_run:
+                            request = VideoUpdateRequest(
+                                video_id=mapping.video_id,
+                                title=str(new_title),
+                                description=str(description),
+                                category_id=video_info.category_id,
+                            )
+                            self._youtube_api.update_video(request=request)
+                            logger.info(
+                                "Updated: %s (%s)",
+                                session.title,
+                                mapping.video_id,
+                            )
+                        changed_count += 1
+                    else:
+                        unchanged_count += 1
+                        if not dry_run:
+                            logger.info(
+                                "Skipped (unchanged): %s (%s)",
+                                session.title,
+                                mapping.video_id,
+                            )
 
         unused_count = self._warn_unused_mappings(
             mapping_config=mapping_config,
@@ -157,7 +166,8 @@ class UpdateYouTubeDescriptionsUseCase:
         return VideoUpdateResult(
             is_dry_run=dry_run,
             previews=tuple(previews),
-            updated_count=updated_count,
+            changed_count=changed_count,
+            unchanged_count=unchanged_count,
             no_content_count=no_content_count,
             no_mapping_count=no_mapping_count,
             unused_mappings_count=unused_count,

@@ -106,10 +106,23 @@ class TestDiffFormatter:
         console = Console(file=output, force_terminal=False, width=120)
         formatter = DiffFormatter(console=console)
 
-        formatter.print_summary(count=5)
+        formatter.print_summary(update_count=3, unchanged_count=2)
         result = output.getvalue()
 
-        assert "Summary: Would update 5 videos" in result.splitlines()
+        expected = "Summary: Would update 3 videos, skip 2 unchanged videos"
+        assert expected in result.splitlines()
+
+    def test_print_summary_with_zero_unchanged(self) -> None:
+        """変更なしが0件の場合も表示する"""
+        output = StringIO()
+        console = Console(file=output, force_terminal=False, width=120)
+        formatter = DiffFormatter(console=console)
+
+        formatter.print_summary(update_count=5, unchanged_count=0)
+        result = output.getvalue()
+
+        expected = "Summary: Would update 5 videos, skip 0 unchanged videos"
+        assert expected in result.splitlines()
 
     def test_print_preview_long_description_truncated(self) -> None:
         """200文字を超えるdescriptionは変更なしの場合トランケートされる"""
