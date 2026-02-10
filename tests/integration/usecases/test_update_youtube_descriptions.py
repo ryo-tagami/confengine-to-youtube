@@ -127,7 +127,8 @@ sessions:
         )
 
         assert result.is_dry_run is True
-        assert result.updated_count == 0
+        assert result.changed_count == 2
+        assert result.unchanged_count == 0
         assert len(result.previews) == 2
 
         # ConfEngine APIが呼ばれたことを検証
@@ -157,7 +158,7 @@ sessions:
         )
 
         assert result.is_dry_run is False
-        assert result.updated_count == 2
+        assert result.changed_count == 2
         assert result.no_content_count == 0
         assert result.no_mapping_count == 0
 
@@ -225,7 +226,7 @@ sessions:
             dry_run=False,
         )
 
-        assert result.updated_count == 0
+        assert result.changed_count == 0
         assert result.no_content_count == 1
 
     def test_execute_skips_unmapped_sessions(
@@ -272,7 +273,7 @@ sessions: {}
             dry_run=False,
         )
 
-        assert result.updated_count == 0
+        assert result.changed_count == 0
         assert result.no_mapping_count == 1
 
     def test_execute_warns_unused_mappings(
@@ -325,7 +326,7 @@ sessions:
             dry_run=False,
         )
 
-        assert result.updated_count == 1
+        assert result.changed_count == 1
         assert result.unused_mappings_count == 1
 
     def test_execute_with_hashtags_in_mapping(
@@ -439,8 +440,166 @@ sessions:
             dry_run=True,
         )
 
-        assert result.updated_count == 0
+        assert result.changed_count == 0
         assert len(result.previews) == 0
         assert len(result.errors) == 1
         assert result.errors[0].video_id == "video1"
         assert isinstance(result.errors[0].error, FrameOverflowError)
+
+    def test_execute_skips_unchanged_videos(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """タイトルとdescriptionに変更がない動画は更新をスキップする"""
+        session = create_session(
+            title="Session 1",
+            speakers=[("Speaker", "A")],
+            abstract="Abstract 1",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/1",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(session,),
+            timezone=jst,
+        )
+
+        # YouTubeから取得する現在の値を、生成されるはずの値と同じにする
+        expected_title = "Session 1 - Speaker A"
+        expected_description = (
+            "Speaker: Speaker A\n\nAbstract 1\n\n***\n\nhttps://example.com/1\n\n***"
+        )
+        mock_youtube_api.get_video_info.side_effect = None  # type: ignore[attr-defined]
+        mock_youtube_api.get_video_info.return_value = VideoInfo(  # type: ignore[attr-defined]
+            video_id="video1",
+            title=expected_title,
+            description=expected_description,
+            category_id=28,
+        )
+
+        yaml_content = """
+conf_id: test-conf
+playlist_id: PLtest123
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="unchanged_mapping.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=False,
+        )
+
+        # 更新はスキップされる
+        assert result.changed_count == 0
+        assert result.unchanged_count == 1
+        assert len(result.previews) == 1
+
+        # update_videoが呼ばれないことを確認
+        mock_youtube_api.update_video.assert_not_called()  # type: ignore[attr-defined]
+
+    def test_execute_updates_changed_videos_only(
+        self,
+        mock_youtube_api: YouTubeApiProtocol,
+        tmp_path: Path,
+        mapping_reader: MappingFileReader,
+        jst: ZoneInfo,
+    ) -> None:
+        """変更がある動画のみ更新し、変更がない動画はスキップする"""
+        session1 = create_session(
+            title="Session 1",
+            speakers=[("Speaker", "A")],
+            abstract="Abstract 1",
+            timeslot=datetime(year=2026, month=1, day=7, hour=10, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/1",
+        )
+        session2 = create_session(
+            title="Session 2",
+            speakers=[("Speaker", "B")],
+            abstract="Abstract 2",
+            timeslot=datetime(year=2026, month=1, day=7, hour=11, minute=0, tzinfo=jst),
+            room="Hall A",
+            url="https://example.com/2",
+        )
+        mock_confengine_api = create_mock_confengine_api(
+            sessions=(session1, session2),
+            timezone=jst,
+        )
+
+        # video1は変更なし、video2は変更あり
+        video1_title = "Session 1 - Speaker A"
+        video1_description = (
+            "Speaker: Speaker A\n\nAbstract 1\n\n***\n\nhttps://example.com/1\n\n***"
+        )
+
+        def mock_get_video_info(video_id: str) -> VideoInfo:
+            if video_id == "video1":
+                return VideoInfo(
+                    video_id=video_id,
+                    title=video1_title,
+                    description=video1_description,
+                    category_id=28,
+                )
+            return VideoInfo(
+                video_id=video_id,
+                title="Old Title",
+                description="Old description",
+                category_id=28,
+            )
+
+        mock_youtube_api.get_video_info.side_effect = mock_get_video_info  # type: ignore[attr-defined]
+
+        yaml_content = """
+conf_id: test-conf
+playlist_id: PLtest123
+sessions:
+  "2026-01-07":
+    "Hall A":
+      "10:00":
+        video_id: "video1"
+      "11:00":
+        video_id: "video2"
+"""
+        mapping_file = write_yaml_file(
+            tmp_path=tmp_path,
+            content=yaml_content,
+            filename="mixed_mapping.yaml",
+        )
+
+        usecase = UpdateYouTubeDescriptionsUseCase(
+            confengine_api=mock_confengine_api,
+            mapping_reader=mapping_reader,
+            youtube_api=mock_youtube_api,
+        )
+
+        result = usecase.execute(
+            mapping_file=mapping_file,
+            dry_run=False,
+        )
+
+        # video1はスキップ、video2は更新
+        assert result.changed_count == 1
+        assert result.unchanged_count == 1
+        assert len(result.previews) == 2
+
+        # update_videoはvideo2に対してのみ呼ばれる
+        mock_youtube_api.update_video.assert_called_once()  # type: ignore[attr-defined]
+        call_args = mock_youtube_api.update_video.call_args  # type: ignore[attr-defined]
+        assert call_args.kwargs["request"].video_id == "video2"

@@ -134,9 +134,16 @@ def _print_result(result: VideoUpdateResult) -> None:
         for i, preview in enumerate(iterable=result.previews, start=1):
             formatter.print_preview(preview=preview, index=i)
 
-        formatter.print_summary(count=len(result.previews))
+        formatter.print_summary(
+            update_count=result.changed_count,
+            unchanged_count=result.unchanged_count,
+        )
     else:
-        print(f"Updated: {result.updated_count} videos", file=sys.stderr)  # noqa: T201
+        print(  # noqa: T201
+            f"Updated: {result.changed_count} videos, "
+            f"skipped (unchanged): {result.unchanged_count}",
+            file=sys.stderr,
+        )
 
     if result.no_content_count > 0:
         print(  # noqa: T201

@@ -42,6 +42,21 @@ class VideoUpdatePreview:
     new_title: str
     new_description: str
 
+    @property
+    def has_title_changes(self) -> bool:
+        """タイトルに変更があるかどうか"""
+        return self.current_title != self.new_title
+
+    @property
+    def has_description_changes(self) -> bool:
+        """説明に変更があるかどうか"""
+        return self.current_description != self.new_description
+
+    @property
+    def has_changes(self) -> bool:
+        """タイトルまたは説明に変更があるかどうか"""
+        return self.has_title_changes or self.has_description_changes
+
 
 @dataclass(frozen=True)
 class SessionProcessError:
@@ -100,7 +115,8 @@ class VideoUpdateResult:
 
     is_dry_run: bool
     previews: tuple[VideoUpdatePreview, ...]
-    updated_count: int = 0
+    changed_count: int = 0
+    unchanged_count: int = 0
     no_content_count: int = 0
     no_mapping_count: int = 0
     unused_mappings_count: int = 0

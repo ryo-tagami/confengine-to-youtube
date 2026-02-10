@@ -40,7 +40,7 @@ class DiffFormatter:
         # Title diff
         self._console.print("\n  [bold]Title:[/bold]")
 
-        if preview.current_title == preview.new_title:
+        if not preview.has_title_changes:
             self._console.print(
                 f"    [dim](unchanged) {preview.current_title}[/dim]",
                 highlight=False,
@@ -96,11 +96,13 @@ class DiffFormatter:
 
         self._console.print(syntax)
 
-    def print_summary(self, count: int) -> None:
+    def print_summary(self, update_count: int, unchanged_count: int) -> None:
         """サマリーを表示"""
         text = Text()
         text.append("\nSummary: Would update ")
-        text.append(str(count), style="bold green")
-        text.append(" videos")
+        text.append(str(update_count), style="bold green")
+        text.append(" videos, skip ")
+        text.append(str(unchanged_count), style="bold yellow")
+        text.append(" unchanged videos")
 
         self._console.print(text)
